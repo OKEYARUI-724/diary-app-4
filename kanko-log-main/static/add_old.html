@@ -1,0 +1,876 @@
+﻿<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#eee7e6" />
+  <title>Photo Diary | 今日の1曲</title>
+  <style>
+:root {
+  font-family: Inter, "Noto Sans JP", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #3f3a40;
+  background: #eee9e5;
+  --ink: #3f3a40;
+  --ink-soft: #756d73;
+  --line: rgba(103, 91, 99, .14);
+  --paper: rgba(255, 252, 249, .76);
+  --paper-strong: rgba(255, 253, 251, .94);
+  --lavender: #a99ab6;
+  --sage: #9daea3;
+  --rose: #c3a0a4;
+  --sand: #c8b39d;
+  --mist: #b6b8c6;
+  --gradient: linear-gradient(135deg, #a99ab6 0%, #9daea3 48%, #c4a0a5 100%);
+  --gradient-soft: linear-gradient(135deg, rgba(169,154,182,.22), rgba(157,174,163,.20), rgba(196,160,165,.24));
+  --shadow: 0 24px 70px rgba(84, 72, 80, .12);
+}
+
+* { box-sizing: border-box; }
+html { min-height: 100%; }
+body {
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 8% 5%, rgba(190, 172, 193, .48) 0, rgba(190, 172, 193, 0) 34%),
+    radial-gradient(circle at 90% 18%, rgba(168, 187, 173, .43) 0, rgba(168, 187, 173, 0) 31%),
+    radial-gradient(circle at 70% 90%, rgba(201, 166, 166, .38) 0, rgba(201, 166, 166, 0) 33%),
+    linear-gradient(145deg, #efeae7 0%, #e9e8e2 48%, #eee6e6 100%);
+  color: var(--ink);
+}
+body.modal-open { overflow: hidden; }
+button, input, textarea { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: wait; opacity: .62; }
+svg { display: block; }
+
+.ambient {
+  position: fixed;
+  z-index: -1;
+  border-radius: 999px;
+  filter: blur(10px);
+  opacity: .65;
+  pointer-events: none;
+}
+.ambient-a { width: 260px; height: 260px; top: 14%; left: -100px; background: rgba(167, 151, 181, .24); }
+.ambient-b { width: 320px; height: 320px; top: 52%; right: -150px; background: rgba(151, 174, 160, .22); }
+.ambient-c { width: 230px; height: 230px; bottom: -60px; left: 35%; background: rgba(194, 155, 160, .20); }
+
+.shell {
+  width: min(780px, calc(100% - 32px));
+  margin: 44px auto 86px;
+  display: grid;
+  gap: 40px;
+}
+
+.card,
+.post {
+  border: 1px solid rgba(255,255,255,.64);
+  background: var(--paper);
+  backdrop-filter: blur(22px) saturate(115%);
+  -webkit-backdrop-filter: blur(22px) saturate(115%);
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.7);
+}
+.card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 32px;
+  padding: 30px;
+}
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 5px;
+  background: var(--gradient);
+  opacity: .72;
+}
+
+.headline, .feed-title, .music-box-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.headline { align-items: flex-start; }
+.headline-copy { min-width: 0; }
+.headline-kicker { display: inline-flex; align-items: center; gap: 8px; }
+h1, h2, p { margin-top: 0; }
+h1 {
+  margin: 4px 0 0;
+  font-size: clamp(28px, 5vw, 42px);
+  line-height: 1.18;
+  letter-spacing: -.045em;
+  color: #373238;
+}
+h2 {
+  margin-bottom: 0;
+  font-size: 25px;
+  letter-spacing: -.03em;
+}
+.lead { margin: 10px 0 0; color: #80767c; font-size: 14px; line-height: 1.7; }
+.eyebrow {
+  margin: 0;
+  color: #867a82;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .21em;
+}
+
+.gradient-icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 1px solid rgba(255,255,255,.56);
+  border-radius: 13px;
+  background: var(--gradient);
+  box-shadow: 0 8px 24px rgba(116, 94, 110, .19), inset 0 1px 0 rgba(255,255,255,.34);
+}
+.gradient-icon svg { width: 20px; height: 20px; fill: rgba(255,255,255,.94); }
+.gradient-icon-sm { width: 27px; height: 27px; border-radius: 9px; }
+.gradient-icon-sm svg { width: 14px; height: 14px; }
+.gradient-icon-xs { width: 24px; height: 24px; border-radius: 8px; }
+.gradient-icon-xs svg { width: 13px; height: 13px; }
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border: 1px solid rgba(255,255,255,.58);
+  border-radius: 999px;
+  background: rgba(255,255,255,.48);
+  color: #655d63;
+  box-shadow: 0 8px 24px rgba(83,72,79,.07);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gradient);
+  box-shadow: 0 0 0 4px rgba(169,154,182,.13);
+}
+
+#postForm { display: grid; gap: 19px; margin-top: 26px; }
+.field { display: grid; gap: 9px; font-size: 13px; font-weight: 800; color: #5b5258; }
+.field-label { display: flex; align-items: center; gap: 8px; }
+input, textarea {
+  width: 100%;
+  border: 1px solid rgba(111, 98, 106, .16);
+  background: rgba(255,255,255,.67);
+  color: var(--ink);
+  border-radius: 17px;
+  padding: 14px 15px;
+  outline: none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.72);
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease, transform .18s ease;
+}
+input::placeholder, textarea::placeholder { color: #9a9297; }
+input:focus, textarea:focus {
+  border-color: rgba(154, 137, 167, .48);
+  background: rgba(255,255,255,.88);
+  box-shadow: 0 0 0 4px rgba(169,154,182,.12), inset 0 1px 0 rgba(255,255,255,.8);
+}
+textarea { min-height: 98px; resize: vertical; line-height: 1.7; }
+input[type="file"] { padding: 11px; }
+input[type="file"]::file-selector-button {
+  margin-right: 11px;
+  border: 0;
+  border-radius: 11px;
+  padding: 9px 13px;
+  background: var(--gradient-soft);
+  color: #61565e;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.preview-wrap, .post-image-wrap {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.7);
+  border-radius: 25px;
+  background: linear-gradient(135deg, #ded8dd, #dce2dd);
+  box-shadow: 0 18px 45px rgba(74, 63, 71, .11);
+}
+.preview-wrap > img, .post-image { display: block; width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+
+.music-box {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(126, 110, 120, .12);
+  border-radius: 24px;
+  padding: 18px;
+  background:
+    linear-gradient(135deg, rgba(183,166,191,.14), rgba(165,186,172,.13) 52%, rgba(202,168,171,.15)),
+    rgba(255,255,255,.48);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.72);
+}
+.music-box::after {
+  content: "";
+  position: absolute;
+  width: 110px;
+  height: 110px;
+  right: -48px;
+  top: -48px;
+  border-radius: 50%;
+  background: rgba(174,158,188,.13);
+  pointer-events: none;
+}
+.music-box-title { position: relative; z-index: 1; }
+.section-label { display: flex; align-items: center; gap: 10px; font-size: 15px; color: #4f474d; }
+.search-row { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr auto; gap: 9px; margin-top: 14px; }
+.search-input-wrap { position: relative; }
+.search-input-wrap input { padding-left: 42px; }
+.search-icon {
+  position: absolute;
+  z-index: 2;
+  left: 14px;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  transform: translateY(-50%);
+  fill: none;
+  stroke: #968a92;
+  stroke-width: 2;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.primary, .secondary {
+  border: 0;
+  border-radius: 16px;
+  padding: 13px 17px;
+  font-weight: 900;
+  transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
+}
+.primary:hover, .secondary:hover, .track button:hover { transform: translateY(-1px); }
+.primary:active, .secondary:active, .track button:active { transform: translateY(0); }
+.primary {
+  min-height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  background: var(--gradient);
+  color: #fff;
+  box-shadow: 0 14px 32px rgba(120, 100, 114, .24), inset 0 1px 0 rgba(255,255,255,.25);
+}
+.primary:hover { box-shadow: 0 16px 36px rgba(120, 100, 114, .3); filter: saturate(105%); }
+.button-icon svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.secondary {
+  min-width: 74px;
+  border: 1px solid rgba(255,255,255,.57);
+  background: rgba(255,255,255,.62);
+  color: #5f565c;
+  box-shadow: 0 8px 20px rgba(91,75,84,.08);
+}
+.text-button {
+  border: 0;
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: rgba(255,255,255,.45);
+  color: #7c6f77;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.muted { position: relative; z-index: 1; color: #82777e; font-size: 12px; margin: 12px 0 0; line-height: 1.65; }
+.music-results { position: relative; z-index: 1; display: grid; gap: 9px; margin-top: 13px; max-height: 390px; overflow: auto; padding-right: 2px; }
+.music-results::-webkit-scrollbar { width: 7px; }
+.music-results::-webkit-scrollbar-track { background: transparent; }
+.music-results::-webkit-scrollbar-thumb { border-radius: 999px; background: rgba(124,111,119,.2); }
+.track {
+  display: grid;
+  grid-template-columns: 92px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border: 1px solid rgba(123,109,118,.12);
+  background: rgba(255,255,255,.66);
+  border-radius: 17px;
+  box-shadow: 0 7px 18px rgba(81,67,76,.05);
+  transition: transform .16s ease, background .16s ease, box-shadow .16s ease;
+}
+.track:hover { transform: translateY(-1px); background: rgba(255,255,255,.84); box-shadow: 0 10px 24px rgba(81,67,76,.09); }
+.track > img, .thumb-placeholder { width: 92px; height: 52px; object-fit: cover; border-radius: 11px; background: linear-gradient(135deg,#d8cfd8,#d3ddd6); }
+.track-meta { min-width: 0; }
+.track-title { color: #4f474d; font-weight: 900; font-size: 13px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.track-artist { margin-top: 3px; font-size: 11px; color: #8a7f85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.track-link { display: inline-block; margin-top: 5px; color: #81727d; font-size: 10px; text-decoration: none; border-bottom: 1px solid rgba(129,114,125,.3); }
+.track button {
+  border: 0;
+  border-radius: 12px;
+  padding: 9px 11px;
+  background: linear-gradient(135deg, #a99ab6, #9daea3);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(112,94,106,.18);
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+  transition: transform .16s ease, box-shadow .16s ease;
+}
+
+.music-overlay {
+  position: absolute;
+  left: 15px;
+  right: 15px;
+  bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 61px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(103,88,105,.68), rgba(87,106,98,.67) 52%, rgba(130,95,101,.66));
+  backdrop-filter: blur(17px) saturate(125%);
+  -webkit-backdrop-filter: blur(17px) saturate(125%);
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 12px 34px rgba(49,41,47,.24), inset 0 1px 0 rgba(255,255,255,.22);
+}
+.music-overlay::before {
+  content: "♪";
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  background: rgba(255,255,255,.17);
+  font-weight: 900;
+}
+.music-overlay img { width: 62px; height: 35px; object-fit: cover; border-radius: 9px; flex: 0 0 auto; }
+.music-overlay .meta { min-width: 0; display: block; text-align: left; }
+.music-overlay .title { display: block; font-weight: 900; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.music-overlay .artist { display: block; color: rgba(255,255,255,.72); font-size: 10px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.music-play-button { width: auto; }
+.music-play-button:hover { filter: brightness(1.04); }
+
+.feed { display: grid; gap: 23px; margin-top: 17px; }
+#feed { display: none; }
+.feed-title { display: none; }
+.post { border-radius: 28px; padding: 12px; }
+.post-body { padding: 15px 10px 9px; }
+.post-caption { margin: 0; color: #51494f; line-height: 1.75; font-size: 14px; }
+.post-date { margin: 9px 0 0; color: #9a8f95; font-size: 10px; }
+.empty {
+  border: 1px dashed rgba(118,104,113,.2);
+  border-radius: 22px;
+  padding: 34px 14px;
+  background: rgba(255,255,255,.32);
+  color: #887d83;
+  text-align: center;
+  font-size: 13px;
+}
+
+.player-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(49,43,47,.68);
+  backdrop-filter: blur(9px);
+}
+.player-dialog {
+  width: min(880px, 100%);
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 24px;
+  background: #292629;
+  color: #fff;
+  box-shadow: 0 34px 110px rgba(31,26,29,.48);
+}
+.player-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; }
+.player-bar strong { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.player-bar button { width: 36px; height: 36px; border: 1px solid rgba(255,255,255,.08); border-radius: 999px; background: rgba(255,255,255,.08); color: #fff; flex: 0 0 auto; }
+.player-frame-wrap { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; }
+.player-frame-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.youtube-link { display: block; padding: 13px 16px 16px; color: #e7dde5; font-size: 12px; text-align: right; }
+.hidden { display: none !important; }
+
+@media (max-width: 560px) {
+  .shell { width: min(100% - 18px, 780px); margin: 14px auto 55px; gap: 28px; }
+  .card { padding: 20px; border-radius: 25px; }
+  .headline { align-items: flex-start; }
+  h1 { font-size: 29px; }
+  .lead { font-size: 12px; }
+  .pill { display: none; }
+  .search-row { grid-template-columns: 1fr; }
+  .secondary { width: 100%; }
+  .track { grid-template-columns: 82px 1fr; }
+  .track > img, .thumb-placeholder { width: 82px; height: 46px; }
+  .track button { grid-column: 1 / -1; }
+  .music-overlay { left: 10px; right: 10px; bottom: 10px; padding: 9px 10px; }
+  .music-overlay::before { display: none; }
+  .player-modal { padding: 8px; }
+  .player-dialog { border-radius: 17px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+}
+
+</style>
+</head>
+<body>
+  <div class="ambient ambient-a" aria-hidden="true"></div>
+  <div class="ambient ambient-b" aria-hidden="true"></div>
+  <div class="ambient ambient-c" aria-hidden="true"></div>
+
+  <main class="shell">
+    <section class="composer card">
+      <div class="headline">
+        <div class="headline-copy">
+          <div class="headline-kicker">
+            <span class="gradient-icon gradient-icon-sm" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M4 17.5A3.5 3.5 0 1 0 11 17.5V7.8l8-1.8v7A3.5 3.5 0 1 0 21 16.2V3.5L9 6.2v8A3.5 3.5 0 0 0 4 17.5Z"/></svg>
+            </span>
+            <p class="eyebrow">NEW MEMORY</p>
+          </div>
+          <h1>写真に「今日の1曲」を。</h1>
+          <p class="lead">その日の景色と音楽を、ひとつの思い出に。</p>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+          <a href="/" class="pill" style="text-decoration:none">← ホームへ戻る</a>
+          <span class="pill">
+            <span class="pill-dot"></span>
+            YouTube Music
+          </span>
+        </div>
+      </div>
+
+      <form id="postForm">
+        <label class="field upload-field">
+          <span class="field-label">
+            <span class="gradient-icon gradient-icon-xs" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v13a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 18.5v-13Zm3 11.9h10l-3.2-4-2.4 2.8-1.7-2-2.7 3.2ZM15.8 9A1.8 1.8 0 1 0 15.8 5.4 1.8 1.8 0 0 0 15.8 9Z"/></svg>
+            </span>
+            写真
+          </span>
+          <input id="image" name="image" type="file" accept="image/*" required />
+        </label>
+
+        <div id="previewWrap" class="preview-wrap hidden">
+          <img id="imagePreview" alt="投稿画像プレビュー" />
+          <div id="musicOverlay" class="music-overlay hidden"></div>
+        </div>
+
+        <label class="field">
+          <span class="field-label">スポット名 / タイトル</span>
+          <input id="travelSpotName" name="name" type="text" maxlength="120" placeholder="例：広安里海水浴場 / 釜山 DAY1" required />
+        </label>
+
+        <label class="field">
+          <span class="field-label">
+            <span class="gradient-icon gradient-icon-xs" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M5.5 4h13A2.5 2.5 0 0 1 21 6.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-5.6 4v-4.2A2.5 2.5 0 0 1 3 14.5v-8A2.5 2.5 0 0 1 5.5 4Z"/></svg>
+            </span>
+            ひとこと
+          </span>
+          <textarea name="caption" rows="3" placeholder="今日の思い出を書いてみよう"></textarea>
+        </label>
+
+        <div class="music-box">
+          <div class="music-box-title">
+            <strong class="section-label">
+              <span class="gradient-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M4 17.5A3.5 3.5 0 1 0 11 17.5V7.8l8-1.8v7A3.5 3.5 0 1 0 21 16.2V3.5L9 6.2v8A3.5 3.5 0 0 0 4 17.5Z"/></svg>
+              </span>
+              音楽を追加
+            </strong>
+            <button type="button" id="clearMusic" class="text-button hidden">選択解除</button>
+          </div>
+          <div class="search-row">
+            <div class="search-input-wrap">
+              <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m20 20-4.4-4.4m2.4-5.1a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z"/></svg>
+              <input id="musicQuery" type="search" placeholder="曲名・アーティスト名で検索" />
+            </div>
+            <button type="button" id="searchMusic" class="secondary">検索</button>
+          </div>
+          <p id="musicMessage" class="muted">YouTubeから曲やMVを検索して、この日の1曲として残せます。</p>
+          <div id="musicResults" class="music-results"></div>
+        </div>
+
+        <button type="submit" class="primary">
+          <span class="button-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 18v1.5A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V18"/></svg>
+          </span>
+          投稿する
+        </button>
+      </form>
+    </section>
+
+    <section>
+      <div class="feed-title">
+        <div>
+          <div class="headline-kicker">
+            <span class="gradient-icon gradient-icon-sm" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v11a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5v-11Zm4.2 8.7 2.6-3 2.2 2.5 2.1-2.3 2.7 3.1H8.2Z"/></svg>
+            </span>
+            <p class="eyebrow">MEMORIES</p>
+          </div>
+          <h2>最近の投稿</h2>
+        </div>
+      </div>
+      <div id="feed" class="feed"></div>
+    </section>
+  </main>
+
+  <div id="playerModal" class="player-modal hidden" role="dialog" aria-modal="true" aria-label="YouTube player">
+    <div class="player-dialog">
+      <div class="player-bar">
+        <strong id="playerTitle">YouTubeで再生</strong>
+        <button type="button" id="closePlayer" aria-label="閉じる">✕</button>
+      </div>
+      <div class="player-frame-wrap">
+        <iframe
+          id="youtubePlayer"
+          title="YouTube video player"
+          src=""
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerpolicy="strict-origin-when-cross-origin"
+          allowfullscreen
+        ></iframe>
+      </div>
+      <a id="openYouTube" class="youtube-link" href="#" target="_blank" rel="noopener noreferrer">YouTubeで開く ↗</a>
+    </div>
+  </div>
+
+  <script>
+const postForm = document.getElementById("postForm");
+const imageInput = document.getElementById("image");
+const imagePreview = document.getElementById("imagePreview");
+const previewWrap = document.getElementById("previewWrap");
+const musicOverlay = document.getElementById("musicOverlay");
+const musicQuery = document.getElementById("musicQuery");
+const searchMusicButton = document.getElementById("searchMusic");
+const musicResults = document.getElementById("musicResults");
+const musicMessage = document.getElementById("musicMessage");
+const clearMusicButton = document.getElementById("clearMusic");
+const feed = document.getElementById("feed");
+const playerModal = document.getElementById("playerModal");
+const youtubePlayer = document.getElementById("youtubePlayer");
+const closePlayerButton = document.getElementById("closePlayer");
+const playerTitle = document.getElementById("playerTitle");
+const openYouTube = document.getElementById("openYouTube");
+
+let selectedVideo = null;
+let currentPreviewUrl = null;
+
+imageInput.addEventListener("change", () => {
+  const file = imageInput.files?.[0];
+  if (!file) return;
+
+  if (currentPreviewUrl) URL.revokeObjectURL(currentPreviewUrl);
+  currentPreviewUrl = URL.createObjectURL(file);
+  imagePreview.src = currentPreviewUrl;
+  previewWrap.classList.remove("hidden");
+  renderSelectedMusic();
+});
+
+searchMusicButton.addEventListener("click", searchMusic);
+musicQuery.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    searchMusic();
+  }
+});
+
+clearMusicButton.addEventListener("click", () => {
+  selectedVideo = null;
+  clearMusicButton.classList.add("hidden");
+  musicMessage.textContent = "音楽の選択を解除しました。";
+  renderSelectedMusic();
+});
+
+closePlayerButton.addEventListener("click", closePlayer);
+playerModal.addEventListener("click", (event) => {
+  if (event.target === playerModal) closePlayer();
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !playerModal.classList.contains("hidden")) {
+    closePlayer();
+  }
+});
+
+async function searchMusic() {
+  const q = musicQuery.value.trim();
+  if (!q) {
+    musicMessage.textContent = "曲名かアーティスト名を入力してください。";
+    return;
+  }
+
+  searchMusicButton.disabled = true;
+  musicMessage.textContent = "YouTubeで検索中...";
+  musicResults.innerHTML = "";
+
+  try {
+    const response = await fetch(`/api/music/search?q=${encodeURIComponent(q)}&limit=10`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.detail || "検索に失敗しました。");
+
+    musicMessage.textContent = data.items.length
+      ? `${data.items.length}件見つかりました。動画を確認して1曲選んでください。`
+      : "見つかりませんでした。別の曲名やアーティスト名で試してください。";
+
+    data.items.forEach((video) => {
+      const row = document.createElement("div");
+      row.className = "track";
+      row.innerHTML = `
+        ${video.cover_url ? `<img src="${escapeHtml(video.cover_url)}" alt="">` : `<div class="thumb-placeholder"></div>`}
+        <div class="track-meta">
+          <div class="track-title">${escapeHtml(video.title || "")}</div>
+          <div class="track-artist">${escapeHtml(video.artist || "")}</div>
+          <a class="track-link" href="${escapeHtml(video.external_url || "#")}" target="_blank" rel="noopener noreferrer">YouTubeで確認 ↗</a>
+        </div>
+        <button type="button">この曲を選ぶ</button>
+      `;
+      row.querySelector("button").addEventListener("click", () => {
+        selectedVideo = video;
+        musicMessage.textContent = `選択中：${decodeEntities(video.title || "")} — ${decodeEntities(video.artist || "")}`;
+        clearMusicButton.classList.remove("hidden");
+        renderSelectedMusic();
+      });
+      musicResults.appendChild(row);
+    });
+  } catch (error) {
+    musicMessage.textContent = error.message;
+  } finally {
+    searchMusicButton.disabled = false;
+  }
+}
+
+function renderSelectedMusic() {
+  if (!selectedVideo || previewWrap.classList.contains("hidden")) {
+    musicOverlay.classList.add("hidden");
+    musicOverlay.innerHTML = "";
+    return;
+  }
+
+  musicOverlay.classList.remove("hidden");
+  musicOverlay.innerHTML = `
+    ${selectedVideo.cover_url ? `<img src="${escapeHtml(selectedVideo.cover_url)}" alt="">` : ""}
+    <div class="meta">
+      <div class="title">${escapeHtml(decodeEntities(selectedVideo.title || ""))}</div>
+      <div class="artist">${escapeHtml(decodeEntities(selectedVideo.artist || ""))} · YouTube</div>
+    </div>
+  `;
+}
+
+postForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const submitButton = postForm.querySelector('button[type="submit"]');
+  const originalText = submitButton.textContent;
+  submitButton.disabled = true;
+  submitButton.textContent = "投稿中...";
+
+  try {
+    const imageFile = imageInput.files?.[0];
+    if (!imageFile) throw new Error("写真を選択してください。");
+
+    const name = document.getElementById("travelSpotName")?.value?.trim();
+    if (!name) throw new Error("スポット名 / タイトルを入力してください。");
+
+    const caption = postForm.querySelector('textarea[name="caption"]')?.value?.trim() || "";
+
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("memo", caption);
+    formData.append("visited_at", new Date().toISOString());
+    formData.append("file", imageFile, imageFile.name);
+
+    // The current Travel Log upload API has no dedicated music columns yet.
+    // Keep the selected music metadata in memo so it is not lost.
+    if (selectedVideo) {
+      const musicTitle = decodeEntities(selectedVideo.title || "");
+      const artist = decodeEntities(selectedVideo.artist || "");
+      const videoId = selectedVideo.youtube_video_id || "";
+      const url = selectedVideo.external_url || (videoId ? `https://www.youtube.com/watch?v=${videoId}` : "");
+      const musicLine = `\n\n🎵 ${musicTitle}${artist ? ` — ${artist}` : ""}${url ? `\n${url}` : ""}`;
+      formData.set("memo", `${caption}${musicLine}`.trim());
+    }
+
+    // Support both cookie-session auth and Bearer-token auth.
+    const headers = {};
+    const findToken = () => {
+      const stores = [window.localStorage, window.sessionStorage];
+      const preferred = ["access_token", "accessToken", "token", "auth_token", "authToken", "jwt", "jwt_token"];
+      const extract = (raw) => {
+        if (!raw) return "";
+        const text = String(raw).trim();
+        if (/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(text)) return text;
+        try {
+          const obj = JSON.parse(text);
+          const walk = (v, depth=0) => {
+            if (depth > 4 || v == null) return "";
+            if (typeof v === "string" && /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(v.trim())) return v.trim();
+            if (typeof v !== "object") return "";
+            for (const k of ["access_token","accessToken","token","auth_token","authToken","jwt","jwt_token"]) {
+              if (typeof v[k] === "string" && v[k].trim()) return v[k].replace(/^Bearer\s+/i, "").trim();
+            }
+            for (const value of Object.values(v)) {
+              const found = walk(value, depth+1);
+              if (found) return found;
+            }
+            return "";
+          };
+          return walk(obj);
+        } catch (_) {
+          return text.replace(/^Bearer\s+/i, "").trim();
+        }
+      };
+      for (const store of stores) {
+        if (!store) continue;
+        for (const key of preferred) {
+          const token = extract(store.getItem(key));
+          if (token) return token;
+        }
+        for (let i=0; i<store.length; i++) {
+          const key=store.key(i);
+          const token=extract(store.getItem(key));
+          if (token && token.split('.').length === 3) return token;
+        }
+      }
+      return "";
+    };
+
+    const token = findToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
+
+    const response = await fetch("/spots/upload", {
+      method: "POST",
+      headers,
+      body: formData,
+      credentials: "include"
+    });
+
+    const raw = await response.text();
+    let data = {};
+    try { data = raw ? JSON.parse(raw) : {}; }
+    catch (_) { data = { detail: raw }; }
+
+    if (!response.ok) {
+      throw new Error(data.detail || data.message || `投稿に失敗しました (HTTP ${response.status})`);
+    }
+
+    window.location.assign("/");
+  } catch (error) {
+    alert(error.message || "投稿に失敗しました。");
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = originalText;
+  }
+});
+
+async function loadPosts() {
+  try {
+    const response = await fetch("/api/posts");
+    const posts = await response.json();
+    if (!response.ok) throw new Error(posts.detail || "投稿の取得に失敗しました。");
+
+    feed.innerHTML = "";
+
+    if (!posts.length) {
+      feed.innerHTML = '<div class="empty">まだ投稿がありません。最初の1枚を残してみよう。</div>';
+      return;
+    }
+
+    posts.forEach((post) => {
+      const article = document.createElement("article");
+      article.className = "post";
+      const music = post.music;
+      const musicMarkup = music ? `
+        <button
+          type="button"
+          class="music-overlay music-play-button"
+          data-video-id="${escapeHtml(music.youtube_video_id || "")}"
+          data-title="${escapeHtml(music.title || "")}"
+          data-url="${escapeHtml(music.external_url || "")}">
+          ${music.cover_url ? `<img src="${escapeHtml(music.cover_url)}" alt="">` : ""}
+          <span class="meta">
+            <span class="title">${escapeHtml(decodeEntities(music.title || ""))}</span>
+            <span class="artist">${escapeHtml(decodeEntities(music.artist || ""))} · YouTube</span>
+          </span>
+        </button>` : "";
+
+      article.innerHTML = `
+        <div class="post-image-wrap">
+          <img class="post-image" src="${escapeHtml(post.image_url)}" alt="投稿画像">
+          ${musicMarkup}
+        </div>
+        <div class="post-body">
+          ${post.caption ? `<p class="post-caption">${escapeHtml(post.caption)}</p>` : ""}
+          <p class="post-date">${formatDate(post.created_at)}</p>
+        </div>
+      `;
+
+      const playButton = article.querySelector(".music-play-button");
+      if (playButton) {
+        playButton.addEventListener("click", () => {
+          openPlayer(
+            playButton.dataset.videoId,
+            decodeEntities(playButton.dataset.title || "YouTube"),
+            playButton.dataset.url
+          );
+        });
+      }
+
+      feed.appendChild(article);
+    });
+  } catch (error) {
+    feed.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+  }
+}
+
+function openPlayer(videoId, title, externalUrl) {
+  if (!/^[A-Za-z0-9_-]{11}$/.test(videoId || "")) return;
+  playerTitle.textContent = title || "YouTubeで再生";
+  youtubePlayer.src = `https://www.youtube.com/embed/${encodeURIComponent(videoId)}?autoplay=1&rel=0`;
+  openYouTube.href = externalUrl || `https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}`;
+  playerModal.classList.remove("hidden");
+  document.body.classList.add("modal-open");
+}
+
+function closePlayer() {
+  youtubePlayer.src = "";
+  playerModal.classList.add("hidden");
+  document.body.classList.remove("modal-open");
+}
+
+function formatDate(value) {
+  if (!value) return "";
+  return new Intl.DateTimeFormat("ja-JP", {
+    year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
+  }).format(new Date(value));
+}
+
+function decodeEntities(value) {
+  const textarea = document.createElement("textarea");
+  textarea.innerHTML = String(value ?? "");
+  return textarea.value;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+// Demo feed disabled. Real posts are shown on the Travel Log home page.
+
+</script>
+</body>
+</html>

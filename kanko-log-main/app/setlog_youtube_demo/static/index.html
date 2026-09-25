@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Photo Diary + YouTube Music</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <main class="shell">
+    <section class="composer card">
+      <div class="headline">
+        <div>
+          <p class="eyebrow">NEW MEMORY</p>
+          <h1>写真に「今日の1曲」を。</h1>
+        </div>
+        <span class="pill">YouTube Search</span>
+      </div>
+
+      <form id="postForm">
+        <label class="field">
+          <span>写真</span>
+          <input id="image" name="image" type="file" accept="image/*" required />
+        </label>
+
+        <div id="previewWrap" class="preview-wrap hidden">
+          <img id="imagePreview" alt="投稿画像プレビュー" />
+          <div id="musicOverlay" class="music-overlay hidden"></div>
+        </div>
+
+        <label class="field">
+          <span>ひとこと</span>
+          <textarea name="caption" rows="3" placeholder="今日の思い出を書いてみよう"></textarea>
+        </label>
+
+        <div class="music-box">
+          <div class="music-box-title">
+            <strong>🎵 音楽を追加</strong>
+            <button type="button" id="clearMusic" class="text-button hidden">選択解除</button>
+          </div>
+          <div class="search-row">
+            <input id="musicQuery" type="search" placeholder="曲名・アーティスト名でYouTube検索" />
+            <button type="button" id="searchMusic" class="secondary">検索</button>
+          </div>
+          <p id="musicMessage" class="muted">YouTubeから曲やMVを検索して、この日の1曲として残せます。</p>
+          <div id="musicResults" class="music-results"></div>
+        </div>
+
+        <button type="submit" class="primary">投稿する</button>
+      </form>
+    </section>
+
+    <section>
+      <div class="feed-title">
+        <div>
+          <p class="eyebrow">MEMORIES</p>
+          <h2>最近の投稿</h2>
+        </div>
+      </div>
+      <div id="feed" class="feed"></div>
+    </section>
+  </main>
+
+  <div id="playerModal" class="player-modal hidden" role="dialog" aria-modal="true" aria-label="YouTube player">
+    <div class="player-dialog">
+      <div class="player-bar">
+        <strong id="playerTitle">YouTubeで再生</strong>
+        <button type="button" id="closePlayer" aria-label="閉じる">✕</button>
+      </div>
+      <div class="player-frame-wrap">
+        <iframe
+          id="youtubePlayer"
+          title="YouTube video player"
+          src=""
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerpolicy="strict-origin-when-cross-origin"
+          allowfullscreen
+        ></iframe>
+      </div>
+      <a id="openYouTube" class="youtube-link" href="#" target="_blank" rel="noopener noreferrer">YouTubeで開く ↗</a>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
