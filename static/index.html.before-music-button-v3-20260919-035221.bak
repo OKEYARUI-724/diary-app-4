@@ -1,0 +1,1750 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TRAVEL LOG</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+      min-height: 100vh;
+    }
+    .navy-card {
+      background: #ffffff;
+      border: 1px solid #0f172a;
+      box-shadow: 4px 4px 0px #0f172a;
+      transition: all 0.2s ease;
+    }
+    .navy-input {
+      background-color: #ffffff;
+      border: 1px solid #cbd5e1;
+      color: #0f172a;
+      transition: all 0.2s;
+    }
+    .navy-input:focus {
+      border-color: #0f172a;
+      box-shadow: 2px 2px 0px #0f172a;
+      outline: none;
+    }
+    .navy-btn {
+      background-color: #0f172a;
+      color: #ffffff;
+      transition: all 0.15s ease;
+    }
+    .navy-btn:hover {
+      background-color: #1e293b;
+      transform: translateY(-1px);
+    }
+    .navy-btn-outline {
+      border: 1px solid #0f172a;
+      color: #0f172a;
+      background: transparent;
+      transition: all 0.15s ease;
+    }
+    .navy-btn-outline:hover {
+      background-color: #0f172a;
+      color: #ffffff;
+    }
+    .leaflet-tile {
+      filter: contrast(1.05) saturate(0.85);
+    }
+    /* パスポート／エディトリアル風のアクセント */
+    .passport-badge {
+      border: 1px dashed #0f172a;
+      letter-spacing: 0.15em;
+    }
+  </style>
+<style id="muted-home-theme-patch">
+:root{--muted-ink:#3f3a40;--muted-soft:#756d73;--muted-lav:#a99ab6;--muted-sage:#9daea3;--muted-rose:#c3a0a4;--muted-paper:rgba(255,252,249,.78);--muted-grad:linear-gradient(135deg,#a99ab6 0%,#9daea3 50%,#c3a0a4 100%)}
+html,body{min-height:100%}body{color:var(--muted-ink)!important;background:radial-gradient(circle at 8% 5%,rgba(190,172,193,.44) 0,rgba(190,172,193,0) 32%),radial-gradient(circle at 92% 18%,rgba(168,187,173,.40) 0,rgba(168,187,173,0) 30%),radial-gradient(circle at 70% 90%,rgba(201,166,166,.34) 0,rgba(201,166,166,0) 32%),linear-gradient(145deg,#efeae7 0%,#e9e8e2 50%,#eee6e6 100%)!important;background-attachment:fixed!important}
+header,nav,.header,.topbar,.top-bar,.navbar,.nav-bar{background:rgba(255,252,249,.72)!important;backdrop-filter:blur(20px) saturate(115%);-webkit-backdrop-filter:blur(20px) saturate(115%);border-color:rgba(103,91,99,.14)!important}
+.card,.post,.post-card,.log-card,.panel,.modal-content,.story,.story-item{background:var(--muted-paper)!important;border-color:rgba(255,255,255,.68)!important;box-shadow:0 18px 55px rgba(84,72,80,.11)!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+button,.btn,[role="button"],input,textarea,select{font:inherit}button,.btn,[role="button"]{transition:transform .16s ease,box-shadow .16s ease,filter .16s ease}button:hover,.btn:hover,[role="button"]:hover{transform:translateY(-1px)}
+input,textarea,select{border-color:rgba(111,98,106,.16)!important;background:rgba(255,255,255,.68)!important;color:var(--muted-ink)!important;border-radius:14px!important}
+a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!important}.tab.active,.tabs .active,[aria-selected="true"]{color:#4e4650!important;border-color:#8f7e92!important}
+.avatar,img.avatar,.profile-avatar{box-shadow:0 8px 26px rgba(84,72,80,.12)}
+.music-add-entry{background:var(--muted-grad)!important;color:#fff!important;border:0!important;box-shadow:0 12px 30px rgba(112,94,106,.24)!important}.music-add-entry *{color:#fff!important}
+</style>
+</head>
+<body class="selection:bg-slate-900 selection:text-white">
+
+  <!-- ============================================== -->
+  <!-- 1. 未ログイン／ログアウト専用画面（WELCOME GATE） -->
+  <!-- ============================================== -->
+  <div id="landingView" class="hidden min-h-screen flex flex-col justify-between max-w-md mx-auto p-6">
+    <div class="pt-8">
+      <div class="inline-block px-3 py-1 bg-slate-900 text-white text-[9px] font-bold tracking-[0.25em] uppercase rounded-full mb-4">
+        Official Travel Journal
+      </div>
+      <h1 class="text-3xl font-extrabold tracking-[0.18em] text-slate-900 leading-tight uppercase">
+        Travel<br>Log.
+      </h1>
+      <p class="text-xs text-slate-500 mt-2 font-medium tracking-wider">
+        地図と写真で記録する、あなただけの旅路のアーカイブ
+      </p>
+    </div>
+
+    <!-- ミニグラフィックカード -->
+    <div class="my-8 navy-card rounded-2xl p-5 bg-white relative overflow-hidden">
+      <div class="text-[10px] font-mono text-slate-400 tracking-widest uppercase mb-1">Passport / Archive #01</div>
+      <div class="text-sm font-bold text-slate-900 mb-3">旅の記憶を鮮明に、シンプルに美しく。</div>
+      <div class="space-y-2 text-xs text-slate-600">
+        <div class="flex items-center gap-2">
+          <span class="w-1.5 h-1.5 bg-slate-900 rounded-full"></span>
+          <span>OpenStreetMap & Google Maps 連携</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-1.5 h-1.5 bg-slate-900 rounded-full"></span>
+          <span>お互いのログを共有するフォロー & DM</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-1.5 h-1.5 bg-slate-900 rounded-full"></span>
+          <span>日付と写真で振り返るトラベルジャーナル</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 認証フォーム（ログイン / 新規登録） -->
+    <div class="bg-white border-2 border-slate-900 rounded-2xl p-5 shadow-[4px_4px_0px_#0f172a]">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-2.5 mb-4">
+        <h2 id="gateTitle" class="text-xs font-bold tracking-widest text-slate-900 uppercase">SIGN IN TO YOUR LOG</h2>
+        <span class="text-[10px] font-mono text-slate-400">AUTHENTICATION</span>
+      </div>
+
+      <form id="gateAuthForm" class="space-y-3">
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">User ID (@username)</label>
+          <input type="text" id="gateUsername" required class="w-full rounded-xl p-2.5 text-xs navy-input" placeholder="traveler123">
+        </div>
+
+        <div id="gateDisplayNameContainer" class="hidden">
+          <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Display Name (表示名)</label>
+          <input type="text" id="gateDisplayName" class="w-full rounded-xl p-2.5 text-xs navy-input" placeholder="旅するそら">
+        </div>
+
+        <div id="gateEmailContainer" class="hidden">
+          <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Email</label>
+          <input type="email" id="gateEmail" class="w-full rounded-xl p-2.5 text-xs navy-input" placeholder="you@example.com">
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Password</label>
+          <input type="password" id="gatePassword" required class="w-full rounded-xl p-2.5 text-xs navy-input" placeholder="••••••••">
+        </div>
+
+        <button type="submit" id="gateSubmitBtn" class="w-full navy-btn font-bold py-3 rounded-xl text-xs tracking-[0.18em] uppercase shadow-sm mt-1 transition">
+          Enter Travel Log
+        </button>
+      </form>
+
+      <div class="mt-4 text-center">
+        <button type="button" id="gateToggleBtn" class="text-[11px] text-slate-500 hover:text-slate-900 font-semibold transition underline decoration-slate-300 underline-offset-4">
+          アカウントを新規作成する
+        </button>
+      </div>
+    </div>
+
+    <div class="py-6 text-center text-[10px] tracking-widest text-slate-400 font-mono">
+      &copy; 2026 TRAVEL LOG ARCHIVE
+    </div>
+  </div>
+
+
+  <!-- ============================================== -->
+  <!-- 2. ログイン後メインビュー（APP MAIN VIEW）     -->
+  <!-- ============================================== -->
+  <div id="appView" class="hidden max-w-md mx-auto min-h-screen flex flex-col justify-between pb-12">
+
+    <!-- トップヘッダー -->
+    <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md px-5 py-3.5 flex items-center justify-between border-b border-slate-900">
+      <div>
+        <h1 class="text-base font-bold tracking-[0.2em] text-slate-900 uppercase cursor-pointer" onclick="switchFeedTab('all')">Travel Log</h1>
+        <p class="text-[9px] tracking-[0.25em] text-slate-500 uppercase font-medium">Archive of Moments</p>
+      </div>
+
+      <div class="flex items-center gap-2.5">
+        <button onclick="openUserSearchModal()" class="text-slate-700 hover:text-slate-950 p-1 transition" title="ユーザーを探す">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </button>
+
+        <button onclick="openConversationsModal()" class="text-slate-700 hover:text-slate-950 p-1 transition relative" title="メッセージ">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+        </button>
+
+        <div id="authStatusContainer"></div>
+
+        <button id="openModalBtn" class="navy-btn text-[11px] font-semibold tracking-wider px-3.5 py-1.5 rounded-full transition flex items-center gap-1 shadow-sm">
+          <span>+</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- フィード切り替えタブ -->
+    <div class="px-4 pt-3 flex items-center gap-4 text-xs font-bold tracking-wider border-b border-slate-200">
+      <button id="tabAll" onclick="switchFeedTab('all')" class="pb-2 text-slate-900 border-b-2 border-slate-900">ALL</button>
+      <button id="tabFollowing" onclick="switchFeedTab('following')" class="pb-2 text-slate-400 hover:text-slate-700">FOLLOWING</button>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <main class="p-4 flex-1">
+      <div class="bg-white rounded-xl p-3 mb-5 flex items-center justify-between border border-slate-200 shadow-sm">
+        <div class="flex items-center gap-2">
+          <span class="text-[11px] font-bold tracking-wider text-slate-500 uppercase">DATE</span>
+          <input type="date" id="dateFilter" class="navy-input rounded-lg px-2.5 py-1 text-xs text-slate-800">
+        </div>
+        <button id="clearDate" class="text-[11px] font-semibold tracking-wider text-slate-500 hover:text-slate-900 px-2 py-1 transition">
+          RESET
+        </button>
+      </div>
+
+      <div id="feed" class="space-y-7">
+        <p class="text-center text-xs text-slate-400 py-12 tracking-widest uppercase font-medium">Loading...</p>
+      </div>
+    </main>
+
+    <!-- ユーザーID検索モーダル -->
+    <div id="userSearchModal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+      <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-5 shadow-2xl">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
+          <h2 class="text-xs font-bold tracking-widest text-slate-900 uppercase">Search Users</h2>
+          <button onclick="closeUserSearchModal()" class="text-slate-400 hover:text-slate-900 text-xs font-medium">✕</button>
+        </div>
+
+        <div class="space-y-3">
+          <div class="flex gap-2">
+            <input type="text" id="userSearchInput" placeholder="@username または 表示名で検索..." class="w-full rounded-xl p-2.5 text-xs navy-input">
+            <button onclick="executeUserSearch()" class="navy-btn font-semibold px-4 rounded-xl text-xs tracking-wider">Search</button>
+          </div>
+          <div id="userSearchResults" class="max-h-60 overflow-y-auto divide-y divide-slate-100 text-xs">
+            <p class="text-center text-slate-400 py-6">IDを入力して検索してください</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 投稿モーダル -->
+    <div id="postModal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div class="bg-white border-2 border-slate-900 w-full max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[92vh] overflow-y-auto p-6 shadow-2xl">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-5">
+          <div>
+            <h2 class="text-sm font-bold tracking-widest text-slate-900 uppercase">New Log</h2>
+            <p class="text-[10px] text-slate-400 font-medium tracking-wider">思い出を記録する</p>
+          </div>
+          <button id="cancelModalBtn" class="text-slate-400 hover:text-slate-900 text-xs px-2 py-1 font-medium transition">✕ キャンセル</button>
+        </div>
+
+        <form id="postForm" class="space-y-4">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Search Location</label>
+            <div class="flex gap-2">
+              <input type="text" id="searchLocationInput" class="w-full rounded-xl p-2.5 text-xs navy-input placeholder-slate-400" placeholder="地名・スポット名を入力...">
+              <button type="button" id="searchLocationBtn" class="navy-btn font-semibold px-4 rounded-xl text-xs tracking-wider transition">Search</button>
+            </div>
+            <div id="searchSuggestions" class="hidden mt-2 bg-white rounded-xl border border-slate-200 shadow-lg max-h-40 overflow-y-auto divide-y divide-slate-100 text-xs"></div>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Spot Name</label>
+            <input type="text" id="spotNameInput" name="name" required class="w-full rounded-xl p-2.5 text-xs navy-input" placeholder="スポット名">
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Visited Date & Time</label>
+            <input type="datetime-local" id="visitedAtInput" name="visited_at" class="w-full rounded-xl p-2.5 text-xs navy-input text-slate-800">
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Pin on Map</label>
+            <div id="pickerMap" class="w-full h-44 rounded-xl border border-slate-300 overflow-hidden"></div>
+            <input type="hidden" id="selectedLat" name="latitude" value="37.5665">
+            <input type="hidden" id="selectedLng" name="longitude" value="126.9780">
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Media</label>
+            <input type="file" name="file" accept="image/*,video/*" class="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-slate-300 file:text-xs file:font-semibold file:bg-slate-50 file:text-slate-800">
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Note</label>
+            <textarea name="memo" rows="2" class="w-full rounded-xl p-2.5 text-xs navy-input placeholder-slate-400" placeholder="メモや感想..."></textarea>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100">
+            <button type="submit" class="w-full navy-btn font-bold py-3 rounded-xl text-xs tracking-[0.15em] uppercase shadow-sm transition">
+              Post Log
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 3. オリジナル・エディトリアル風 プロフィールモーダル     -->
+    <!-- ======================================================== -->
+    <div id="profileModal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+      <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-[6px_6px_0px_#0f172a] relative overflow-hidden">
+        
+        <!-- ヘッダーライン & 閉じるボタン -->
+        <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-900">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 bg-slate-900"></span>
+            <span class="text-[10px] font-mono tracking-[0.2em] uppercase font-bold text-slate-900">Journalist Profile</span>
+          </div>
+          <button onclick="closeProfileModal()" class="text-slate-400 hover:text-slate-900 text-xs font-bold">✕</button>
+        </div>
+
+        <!-- 独自性のあるオフセット・カードレイアウト -->
+        <div class="space-y-4">
+          <!-- カバー写真（額縁風のスクエアカード） -->
+          <div id="profileCover" class="w-full h-28 border border-slate-900 rounded-xl bg-slate-100 bg-cover bg-center relative shadow-sm">
+            <div class="absolute bottom-2 left-2 passport-badge bg-white/90 backdrop-blur px-2 py-0.5 rounded text-[9px] font-bold text-slate-800">
+              PASSPORT ARCHIVE
+            </div>
+          </div>
+
+          <!-- アイコン & 基本情報 -->
+          <div class="flex items-start gap-3.5">
+            <!-- 四角いソリッドなアイコンフレーム -->
+            <div id="profileAvatar" class="w-16 h-16 rounded-xl border-2 border-slate-900 bg-slate-100 bg-cover bg-center shrink-0 flex items-center justify-center font-bold text-lg text-slate-800 shadow-[2px_2px_0px_#0f172a]"></div>
+            
+            <div class="flex-1 min-w-0">
+              <h2 id="profileDisplayName" class="text-base font-extrabold text-slate-900 leading-tight truncate"></h2>
+              <p id="profileUsername" class="text-[11px] text-slate-400 font-mono mt-0.5"></p>
+              
+              <!-- アクションボタン（フォロー / 編集 / DM） -->
+              <div id="profileActionContainer" class="mt-2 flex gap-1.5"></div>
+            </div>
+          </div>
+
+          <!-- 自己紹介文（エディトリアル風の引用枠） -->
+          <div class="bg-slate-50 border-l-2 border-slate-900 p-3 rounded-r-xl">
+            <p id="profileBio" class="text-xs text-slate-700 leading-relaxed font-normal"></p>
+          </div>
+
+          <!-- スタッツカウンター（パスポートスタンプ風） -->
+          <div class="grid grid-cols-2 gap-2 pt-1 font-mono">
+            <div class="border border-slate-200 rounded-xl p-2.5 text-center bg-white shadow-sm">
+              <span class="text-[9px] text-slate-400 block tracking-widest uppercase">Following</span>
+              <span id="profileFollowingCount" class="text-sm font-black text-slate-900">0</span>
+            </div>
+            <div class="border border-slate-200 rounded-xl p-2.5 text-center bg-white shadow-sm">
+              <span class="text-[9px] text-slate-400 block tracking-widest uppercase">Followers</span>
+              <span id="profileFollowersCount" class="text-sm font-black text-slate-900">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- プロフィール編集モーダル -->
+    <div id="editProfileModal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+      <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
+          <h2 class="text-sm font-bold tracking-widest text-slate-900 uppercase">Edit Profile</h2>
+          <button onclick="closeEditProfileModal()" class="text-slate-400 hover:text-slate-900 text-xs font-medium">✕</button>
+        </div>
+
+        <form id="editProfileForm" class="space-y-3">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Display Name (表示名)</label>
+            <input type="text" id="editDisplayName" name="display_name" class="w-full rounded-xl p-2 text-xs navy-input">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Bio (自己紹介)</label>
+            <textarea id="editBio" name="bio" rows="2" class="w-full rounded-xl p-2 text-xs navy-input"></textarea>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Avatar Image (アイコン)</label>
+            <input type="file" name="avatar" accept="image/*" class="w-full text-xs text-slate-600">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Cover Image (背景画像)</label>
+            <input type="file" name="cover" accept="image/*" class="w-full text-xs text-slate-600">
+          </div>
+
+          <button type="submit" class="w-full navy-btn font-bold py-2.5 rounded-xl text-xs tracking-wider uppercase mt-3">Save Changes</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- DM 会話一覧モーダル -->
+    <div id="conversationsModal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+      <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-5 shadow-2xl">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
+          <h2 class="text-xs font-bold tracking-widest text-slate-900 uppercase">Messages</h2>
+          <button onclick="closeConversationsModal()" class="text-slate-400 hover:text-slate-900 text-xs font-medium">✕</button>
+        </div>
+        <div id="conversationsList" class="max-h-72 overflow-y-auto divide-y divide-slate-100 text-xs">
+          <p class="text-center text-slate-400 py-6">メッセージのやり取りはありません</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- DM チャットモーダル -->
+    <div id="dmModal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+      <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl h-[520px] flex flex-col shadow-2xl overflow-hidden">
+        <div class="px-4 py-3 border-b border-slate-900 flex items-center justify-between bg-slate-50">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-slate-900" id="dmPartnerTitle">Chat</span>
+          </div>
+          <button onclick="closeDmModal()" class="text-slate-400 hover:text-slate-900 text-xs">✕</button>
+        </div>
+
+        <div id="dmMessageList" class="flex-1 p-4 overflow-y-auto space-y-3 bg-white text-xs"></div>
+
+        <form id="dmSendForm" class="p-2.5 border-t border-slate-200 bg-white flex gap-2">
+          <input type="text" id="dmInput" required placeholder="メッセージを入力..." class="flex-1 rounded-xl p-2 text-xs navy-input">
+          <button type="submit" class="navy-btn px-4 py-2 rounded-xl text-xs font-bold">送信</button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let currentFeedTab = 'all';
+    let currentUser = null;
+    let activeDmPartner = null;
+    let map = null;
+    let currentMarker = null;
+
+    const landingView = document.getElementById('landingView');
+    const appView = document.getElementById('appView');
+    const feedEl = document.getElementById('feed');
+    const formEl = document.getElementById('postForm');
+    const dateFilterEl = document.getElementById('dateFilter');
+    const clearDateEl = document.getElementById('clearDate');
+    const postModal = document.getElementById('postModal');
+
+    function getToken() { return localStorage.getItem('access_token'); }
+    function setToken(t) { localStorage.setItem('access_token', t); }
+    function removeToken() { localStorage.removeItem('access_token'); }
+
+    // --- 画面表示の切り替え（ログイン中: AppView, 未ログイン: LandingView） ---
+    function updateViewState(isLoggedIn) {
+      if (isLoggedIn) {
+        landingView.classList.add('hidden');
+        appView.classList.remove('hidden');
+      } else {
+        appView.classList.add('hidden');
+        landingView.classList.remove('hidden');
+      }
+    }
+
+    // --- 認証ステータス確認 ---
+    async function checkAuth() {
+      const token = getToken();
+      if (!token) {
+        updateViewState(false);
+        renderAuthUI(null);
+        return;
+      }
+      try {
+        const res = await fetch('/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (res.ok) {
+          currentUser = await res.json();
+          updateViewState(true);
+          renderAuthUI(currentUser);
+          loadSpots();
+        } else {
+          removeToken();
+          updateViewState(false);
+          renderAuthUI(null);
+        }
+      } catch (e) {
+        updateViewState(false);
+        renderAuthUI(null);
+      }
+    }
+
+    function renderAuthUI(user) {
+      const c = document.getElementById('authStatusContainer');
+      if (user) {
+        c.innerHTML = `
+          <div class="flex items-center gap-2">
+            <button onclick="openProfile('${user.username}')" class="navy-btn-outline text-[10px] font-bold tracking-wider px-3 py-1 rounded-full flex items-center gap-1 transition">
+              <span>👤</span><span>Account</span>
+            </button>
+            <button onclick="logout()" class="text-[9px] font-bold tracking-wider text-slate-400 hover:text-slate-900 uppercase transition">
+              LOGOUT
+            </button>
+          </div>
+        `;
+      } else {
+        c.innerHTML = '';
+      }
+    }
+
+    window.logout = function() {
+      removeToken();
+      currentUser = null;
+      renderAuthUI(null);
+      updateViewState(false);
+    };
+
+    // --- ゲート画面の認証制御（ログイン / 新規登録） ---
+    let isGateRegisterMode = false;
+    const gateToggleBtn = document.getElementById('gateToggleBtn');
+    const gateTitle = document.getElementById('gateTitle');
+    const gateSubmitBtn = document.getElementById('gateSubmitBtn');
+    const gateEmailContainer = document.getElementById('gateEmailContainer');
+    const gateDisplayNameContainer = document.getElementById('gateDisplayNameContainer');
+    const gateAuthForm = document.getElementById('gateAuthForm');
+
+    gateToggleBtn.addEventListener('click', () => {
+      isGateRegisterMode = !isGateRegisterMode;
+      if (isGateRegisterMode) {
+        gateTitle.innerText = 'CREATE TRAVEL ARCHIVE';
+        gateSubmitBtn.innerText = 'Create Account';
+        gateEmailContainer.classList.remove('hidden');
+        gateDisplayNameContainer.classList.remove('hidden');
+        gateToggleBtn.innerText = 'すでにアカウントをお持ちの方はこちら（ログイン）';
+      } else {
+        gateTitle.innerText = 'SIGN IN TO YOUR LOG';
+        gateSubmitBtn.innerText = 'Enter Travel Log';
+        gateEmailContainer.classList.add('hidden');
+        gateDisplayNameContainer.classList.add('hidden');
+        gateToggleBtn.innerText = 'アカウントを新規作成する';
+      }
+    });
+
+    gateAuthForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const endpoint = isGateRegisterMode ? '/auth/register' : '/auth/login';
+      const payload = {
+        username: document.getElementById('gateUsername').value.trim(),
+        password: document.getElementById('gatePassword').value
+      };
+      if (isGateRegisterMode) {
+        payload.email = document.getElementById('gateEmail').value.trim();
+        payload.display_name = document.getElementById('gateDisplayName').value.trim();
+      }
+
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setToken(data.access_token);
+          currentUser = data.user;
+          updateViewState(true);
+          renderAuthUI(currentUser);
+          gateAuthForm.reset();
+          loadSpots();
+        } else {
+          alert(data.detail || '認証に失敗しました');
+        }
+      } catch (err) {
+        alert('通信エラーが発生しました');
+      }
+    });
+
+    // --- ユーザーID検索モーダル ---
+    window.openUserSearchModal = function() {
+      document.getElementById('userSearchModal').classList.remove('hidden');
+      document.getElementById('userSearchInput').focus();
+    };
+    window.closeUserSearchModal = function() {
+      document.getElementById('userSearchModal').classList.add('hidden');
+    };
+
+    window.executeUserSearch = async function() {
+      const q = document.getElementById('userSearchInput').value.trim();
+      if (!q) return;
+
+      const token = getToken();
+      const res = await fetch(`/users/search?q=${encodeURIComponent(q)}`, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
+
+      const listEl = document.getElementById('userSearchResults');
+      if (!res.ok) { listEl.innerHTML = '<p class="text-center text-slate-400 py-6">エラーが発生しました</p>'; return; }
+
+      const users = await res.json();
+      if (users.length === 0) {
+        listEl.innerHTML = '<p class="text-center text-slate-400 py-6">見つかりませんでした</p>';
+        return;
+      }
+
+      listEl.innerHTML = users.map(u => `
+        <div class="p-3 flex items-center justify-between hover:bg-slate-50 transition cursor-pointer" onclick="closeUserSearchModal(); openProfile('${u.username}');">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-slate-200 bg-cover bg-center border border-slate-400 flex items-center justify-center font-bold text-xs" ${u.avatar_url ? `style="background-image: url('${u.avatar_url}')"` : ''}>
+              ${!u.avatar_url ? (u.display_name || u.username).charAt(0).toUpperCase() : ''}
+            </div>
+            <div>
+              <p class="font-bold text-slate-900 leading-none">${u.display_name || u.username}</p>
+              <p class="text-[10px] text-slate-400 font-mono mt-0.5">@${u.username}</p>
+            </div>
+          </div>
+          <span class="text-[10px] text-slate-800 font-bold">VIEW ↗</span>
+        </div>
+      `).join('');
+    };
+
+    document.getElementById('userSearchInput')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        executeUserSearch();
+      }
+    });
+
+    // --- DM会話一覧モーダル ---
+    window.openConversationsModal = async function() {
+      const token = getToken();
+      const res = await fetch('/messages/conversations', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const listEl = document.getElementById('conversationsList');
+      if (res.ok) {
+        const users = await res.json();
+        if (users.length === 0) {
+          listEl.innerHTML = '<p class="text-center text-slate-400 py-6">メッセージのやり取りはありません<br><span class="text-[10px]">ユーザー検索からDMを送ってみましょう！</span></p>';
+        } else {
+          listEl.innerHTML = users.map(u => `
+            <div class="p-3 flex items-center justify-between hover:bg-slate-50 transition cursor-pointer" onclick="closeConversationsModal(); openDmChat('${u.username}');">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-slate-200 bg-cover bg-center border border-slate-400 flex items-center justify-center font-bold text-xs" ${u.avatar_url ? `style="background-image: url('${u.avatar_url}')"` : ''}>
+                  ${!u.avatar_url ? (u.display_name || u.username).charAt(0).toUpperCase() : ''}
+                </div>
+                <div>
+                  <p class="font-bold text-slate-900 leading-none">${u.display_name || u.username}</p>
+                  <p class="text-[10px] text-slate-400 font-mono mt-0.5">@${u.username}</p>
+                </div>
+              </div>
+              <span class="text-[10px] text-slate-800 font-bold">OPEN ↗</span>
+            </div>
+          `).join('');
+        }
+      }
+      document.getElementById('conversationsModal').classList.remove('hidden');
+    };
+
+    window.closeConversationsModal = function() {
+      document.getElementById('conversationsModal').classList.add('hidden');
+    };
+
+    // --- フィード切り替え ---
+    window.switchFeedTab = function(tab) {
+      currentFeedTab = tab;
+      const tabAll = document.getElementById('tabAll');
+      const tabFollowing = document.getElementById('tabFollowing');
+
+      if (tab === 'all') {
+        tabAll.className = "pb-2 text-slate-900 border-b-2 border-slate-900 font-bold";
+        tabFollowing.className = "pb-2 text-slate-400 hover:text-slate-700 font-medium";
+      } else {
+        tabAll.className = "pb-2 text-slate-400 hover:text-slate-700 font-medium";
+        tabFollowing.className = "pb-2 text-slate-900 border-b-2 border-slate-900 font-bold";
+      }
+      loadSpots(dateFilterEl.value);
+    };
+
+    // --- フィード取得 ---
+    async function loadSpots(date = '') {
+      feedEl.innerHTML = '<p class="text-center text-xs text-slate-400 py-12 tracking-widest uppercase font-medium">Loading...</p>';
+      const token = getToken();
+      let url = `/spots?feed_type=${currentFeedTab}`;
+      if (date) url += `&target_date=${date}`;
+
+      const res = await fetch(url, { headers: token ? { 'Authorization': `Bearer ${token}` } : {} });
+      const spots = await res.json();
+
+      if (spots.length === 0) {
+        feedEl.innerHTML = `
+          <div class="text-center py-16 border border-dashed border-slate-300 rounded-2xl bg-white/50">
+            <p class="text-xs text-slate-400 tracking-[0.2em] font-semibold uppercase">No Logs Archived</p>
+          </div>
+        `;
+        return;
+      }
+
+      feedEl.innerHTML = spots.map(s => {
+        const visitDate = new Date(s.visited_at);
+        const dateText = `${visitDate.getFullYear()}.${String(visitDate.getMonth() + 1).padStart(2, '0')}.${String(visitDate.getDate()).padStart(2, '0')}`;
+        const timeText = visitDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const avatarBg = s.author_avatar_url ? `style="background-image: url('${s.author_avatar_url}')"` : '';
+
+        return `
+          <article class="navy-card rounded-2xl overflow-hidden">
+            <div class="px-4 py-3 flex items-center justify-between border-b border-slate-900 bg-white">
+              <div class="flex items-center gap-2.5 cursor-pointer" onclick="openProfile('${s.username}')">
+                <div class="w-8 h-8 rounded-lg bg-slate-200 bg-cover bg-center border border-slate-400 flex items-center justify-center font-bold text-xs" ${avatarBg}>
+                  ${!s.author_avatar_url ? (s.display_name || s.username).charAt(0).toUpperCase() : ''}
+                </div>
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-xs font-bold text-slate-900 leading-none">${s.display_name || s.username}</span>
+                    <span class="text-[10px] text-slate-400 font-mono">@${s.username}</span>
+                  </div>
+                  <h2 class="font-bold text-xs text-slate-800 tracking-wide mt-1">${s.name}</h2>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <a href="${s.google_map_url}" target="_blank" rel="noopener noreferrer" class="navy-btn-outline text-[10px] font-bold tracking-wider px-2.5 py-1 rounded-full flex items-center gap-1 font-mono">
+                  <span>MAP</span><span>↗</span>
+                </a>
+                ${currentUser && currentUser.username === s.username ? `
+                  <button onclick="deleteSpot('${s.id}')" class="text-slate-300 hover:text-rose-600 p-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+
+            ${s.media_url ? (
+              s.media_type === 'video' 
+                ? `<video src="${s.media_url}" controls class="w-full max-h-[440px] object-cover bg-black"></video>`
+                : `<img src="${s.media_url}" class="w-full max-h-[440px] object-cover border-b border-slate-100" />`
+            ) : ''}
+
+            <div class="p-4 bg-white">
+              <div class="flex items-center justify-between mb-2">
+                <button onclick="toggleSpotLike('${s.id}', this)" class="flex items-center gap-1.5 text-xs text-slate-700 hover:text-slate-950">
+                  <svg class="w-4 h-4 heart-icon transition-colors ${s.is_liked ? 'text-rose-500 fill-current' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                  <span class="like-count font-mono font-bold text-xs">${s.likes_count}</span>
+                </button>
+                <span class="text-[10px] text-slate-400 font-mono">${dateText} ${timeText}</span>
+              </div>
+              ${s.memo ? `<p class="text-xs text-slate-600 leading-relaxed">${s.memo}</p>` : ''}
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    // --- いいね処理 ---
+    window.toggleSpotLike = async function(spotId, btn) {
+      const token = getToken();
+      if (!token) return;
+
+      const res = await fetch(`/spots/${spotId}/like`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const heart = btn.querySelector('.heart-icon');
+        const countEl = btn.querySelector('.like-count');
+        countEl.innerText = data.likes_count;
+        if (data.liked) {
+          heart.classList.add('text-rose-500', 'fill-current');
+        } else {
+          heart.classList.remove('text-rose-500', 'fill-current');
+        }
+      }
+    };
+
+    // --- 独自デザインのプロフィール表示 ---
+    window.openProfile = async function(username) {
+      const token = getToken();
+      const res = await fetch(`/users/${username}`, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
+      if (!res.ok) return;
+      const user = await res.json();
+
+      document.getElementById('profileDisplayName').innerText = user.display_name || user.username;
+      document.getElementById('profileUsername').innerText = `@${user.username}`;
+      document.getElementById('profileBio').innerText = user.bio || '自己紹介がまだ記入されていません';
+      document.getElementById('profileFollowingCount').innerText = user.following_count;
+      document.getElementById('profileFollowersCount').innerText = user.followers_count;
+
+      const avatarEl = document.getElementById('profileAvatar');
+      if (user.avatar_url) {
+        avatarEl.style.backgroundImage = `url('${user.avatar_url}')`;
+        avatarEl.innerText = '';
+      } else {
+        avatarEl.style.backgroundImage = 'none';
+        avatarEl.innerText = (user.display_name || user.username).charAt(0).toUpperCase();
+      }
+
+      const coverEl = document.getElementById('profileCover');
+      coverEl.style.backgroundImage = user.cover_url ? `url('${user.cover_url}')` : 'none';
+
+      const act = document.getElementById('profileActionContainer');
+      if (currentUser && currentUser.username === user.username) {
+        act.innerHTML = `<button onclick="openEditProfile()" class="navy-btn-outline text-[10px] font-bold px-3 py-1 rounded-full">EDIT PROFILE</button>`;
+      } else {
+        act.innerHTML = `
+          <button onclick="toggleFollowUser('${user.username}')" class="navy-btn text-[10px] font-bold px-3 py-1 rounded-full">
+            ${user.is_following ? 'フォロー中' : 'フォロー'}
+          </button>
+          <button onclick="openDmChat('${user.username}')" class="navy-btn-outline text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+            <span>✉️</span><span>DM</span>
+          </button>
+        `;
+      }
+
+      document.getElementById('profileModal').classList.remove('hidden');
+    };
+
+    window.closeProfileModal = function() {
+      document.getElementById('profileModal').classList.add('hidden');
+    };
+
+    window.toggleFollowUser = async function(username) {
+      const token = getToken();
+      const res = await fetch(`/users/${username}/follow`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) openProfile(username);
+    };
+
+    // --- プロフィール編集 ---
+    window.openEditProfile = function() {
+      closeProfileModal();
+      document.getElementById('editDisplayName').value = currentUser.display_name || '';
+      document.getElementById('editBio').value = currentUser.bio || '';
+      document.getElementById('editProfileModal').classList.remove('hidden');
+    };
+
+    window.closeEditProfileModal = function() {
+      document.getElementById('editProfileModal').classList.add('hidden');
+    };
+
+    document.getElementById('editProfileForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const token = getToken();
+      const formData = new FormData(e.target);
+      const res = await fetch('/users/profile', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      if (res.ok) {
+        currentUser = await res.json();
+        renderAuthUI(currentUser);
+        closeEditProfileModal();
+        openProfile(currentUser.username);
+        loadSpots();
+      }
+    });
+
+    // --- DM（チャット） ---
+    window.openDmChat = async function(username) {
+      activeDmPartner = username;
+      closeProfileModal();
+      document.getElementById('dmPartnerTitle').innerText = `@${username} とのDM`;
+      document.getElementById('dmModal').classList.remove('hidden');
+      loadDmMessages();
+    };
+
+    window.closeDmModal = function() {
+      document.getElementById('dmModal').classList.add('hidden');
+      activeDmPartner = null;
+    };
+
+    async function loadDmMessages() {
+      if (!activeDmPartner) return;
+      const token = getToken();
+      const res = await fetch(`/messages/${activeDmPartner}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const msgs = await res.json();
+        const list = document.getElementById('dmMessageList');
+        list.innerHTML = msgs.map(m => {
+          const isMe = m.sender_username === currentUser.username;
+          return `
+            <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
+              <div class="max-w-[75%] p-2 rounded-2xl ${isMe ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-800'}">
+                ${m.content}
+              </div>
+            </div>
+          `;
+        }).join('');
+        list.scrollTop = list.scrollHeight;
+      }
+    }
+
+    document.getElementById('dmSendForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const input = document.getElementById('dmInput');
+      const content = input.value.trim();
+      if (!content || !activeDmPartner) return;
+
+      const token = getToken();
+      const res = await fetch('/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ recipient_username: activeDmPartner, content })
+      });
+      if (res.ok) {
+        input.value = '';
+        loadDmMessages();
+      }
+    });
+
+    // --- 投稿削除 ---
+    window.deleteSpot = async function(spotId) {
+      if (!confirm('この思い出を削除しますか？')) return;
+      const token = getToken();
+      const res = await fetch(`/spots/${spotId}`, {
+        method: 'DELETE',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
+      if (res.ok) loadSpots(dateFilterEl.value);
+    };
+
+    // --- 投稿 & 地図 ---
+    function initMap() {
+      map = L.map('pickerMap', { zoomControl: false }).setView([37.5665, 126.9780], 14);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+      currentMarker = L.marker([37.5665, 126.9780]).addTo(map);
+      map.on('click', (e) => {
+        setCoordinates(e.latlng.lat, e.latlng.lng);
+      });
+    }
+
+    function setCoordinates(lat, lng, zoom = null) {
+      currentMarker.setLatLng([lat, lng]);
+      if (zoom && map) map.setView([lat, lng], zoom);
+      document.getElementById('selectedLat').value = lat;
+      document.getElementById('selectedLng').value = lng;
+    }
+
+    function setInitialVisitedAt() {
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      document.getElementById('visitedAtInput').value = now.toISOString().slice(0, 16);
+    }
+
+    document.getElementById('openModalBtn').addEventListener('click', () => {
+      postModal.classList.remove('hidden');
+      setInitialVisitedAt();
+      if (!map) initMap();
+      setTimeout(() => { if (map) map.invalidateSize(); }, 150);
+    });
+
+    function closePostModal() {
+      if (document.getElementById('spotNameInput').value.trim() !== '' || document.getElementById('searchLocationInput').value.trim() !== '') {
+        if (!confirm('入力内容を破棄してキャンセルしますか？')) return;
+      }
+      formEl.reset();
+      document.getElementById('searchSuggestions').classList.add('hidden');
+      postModal.classList.add('hidden');
+    }
+    document.getElementById('cancelModalBtn').addEventListener('click', closePostModal);
+
+    // --- 場所検索 ---
+    const searchLocationInput = document.getElementById('searchLocationInput');
+    const searchLocationBtn = document.getElementById('searchLocationBtn');
+    const searchSuggestions = document.getElementById('searchSuggestions');
+    const spotNameInput = document.getElementById('spotNameInput');
+
+    function escapeQuotes(str) {
+      return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
+    async function executePlaceSearch() {
+      const q = searchLocationInput.value.trim();
+      if (!q) return;
+
+      searchLocationBtn.innerText = '...';
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=5`);
+        const results = await res.json();
+
+        searchSuggestions.innerHTML = '';
+        if (results.length === 0) {
+          searchSuggestions.innerHTML = '<div class="p-3 text-slate-400">見つかりませんでした</div>';
+          searchSuggestions.classList.remove('hidden');
+          return;
+        }
+
+        const top = results[0];
+        setCoordinates(parseFloat(top.lat), parseFloat(top.lon), 16);
+        if (!spotNameInput.value) spotNameInput.value = q;
+
+        searchSuggestions.innerHTML = results.map(item => `
+          <div class="p-2.5 hover:bg-slate-50 cursor-pointer transition flex items-center justify-between text-slate-700" 
+               onclick="selectSuggestion('${escapeQuotes(item.display_name)}', ${item.lat}, ${item.lon})">
+            <span class="truncate mr-2 font-medium">${item.display_name}</span>
+            <span class="text-slate-900 text-[10px] font-bold tracking-wider shrink-0">SELECT ↗</span>
+          </div>
+        `).join('');
+        searchSuggestions.classList.remove('hidden');
+      } catch (err) {
+        console.error(err);
+      } finally {
+        searchLocationBtn.innerText = 'Search';
+      }
+    }
+
+    window.selectSuggestion = function(name, lat, lon) {
+      setCoordinates(parseFloat(lat), parseFloat(lon), 16);
+      const shortName = name.split(',')[0];
+      spotNameInput.value = shortName;
+      searchLocationInput.value = shortName;
+      searchSuggestions.classList.add('hidden');
+    };
+
+    searchLocationBtn.addEventListener('click', executePlaceSearch);
+    searchLocationInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        executePlaceSearch();
+      }
+    });
+
+    formEl.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const token = getToken();
+      const formData = new FormData(formEl);
+      await fetch('/spots/upload', {
+        method: 'POST',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        body: formData
+      });
+      formEl.reset();
+      searchSuggestions.classList.add('hidden');
+      postModal.classList.add('hidden');
+      loadSpots(dateFilterEl.value);
+    });
+
+    dateFilterEl.addEventListener('change', (e) => loadSpots(e.target.value));
+    clearDateEl.addEventListener('click', () => { dateFilterEl.value = ''; loadSpots(); });
+
+    // 初期化チェック
+    checkAuth();
+  </script>
+<script id="music-add-route-patch">
+document.addEventListener("DOMContentLoaded", function () {
+  var nodes = Array.prototype.slice.call(document.querySelectorAll("button,a,[role='button']"));
+  var addButton = nodes.find(function (el) {
+    var text = (el.textContent || "").replace(/\s+/g, " ").trim();
+    return /ADD/i.test(text) || el.id === "addButton" || el.id === "add-btn" || el.classList.contains("add-button") || el.classList.contains("add-btn");
+  });
+  if (!addButton) {
+    console.warn("ADD button not found. Open /static/add.html directly.");
+    return;
+  }
+  addButton.classList.add("music-add-entry");
+  if (addButton.tagName.toLowerCase() === "a") {
+    addButton.setAttribute("href", "/static/add.html");
+  }
+  addButton.addEventListener("click", function (event) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    window.location.href = "/static/add.html";
+  }, true);
+});
+</script>
+<!-- MUSIC_ADD_REDIRECT_PATCH_V2 -->
+<script>
+(() => {
+  const MUSIC_POST_URL = "/static/add.html";
+
+  document.addEventListener("click", (event) => {
+    const target = event.target.closest("button, a");
+    if (!target) return;
+
+    const text = (target.textContent || "")
+      .replace(/\s+/g, "")
+      .toUpperCase();
+
+    const id = (target.id || "").toLowerCase();
+    const aria = (target.getAttribute("aria-label") || "").toLowerCase();
+    const title = (target.getAttribute("title") || "").toLowerCase();
+
+    const isAddButton =
+      text === "+" ||
+      text === "+ADD" ||
+      text === "ADD" ||
+      id === "addbtn" ||
+      id === "addbutton" ||
+      aria === "add" ||
+      aria.includes("add log") ||
+      title === "add" ||
+      title.includes("add log");
+
+    if (!isAddButton) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    window.location.assign(MUSIC_POST_URL);
+  }, true);
+})();
+</script>
+<!-- POP2D_HOME_MUSIC_V2_START -->
+<style id="pop2d-home-music-style">
+:root {
+  --pop-ink: #302a38;
+  --pop-sub: #766d7b;
+  --pop-line: #393240;
+  --pop-paper: #fffaf7;
+  --pop-lav: #b8a8c8;
+  --pop-lav-2: #d7cadf;
+  --pop-sage: #adbea9;
+  --pop-sage-2: #d0dbcd;
+  --pop-rose: #cba8b1;
+  --pop-rose-2: #ead1d6;
+  --pop-peach: #d4b09f;
+  --pop-sand: #d8c7aa;
+  --pop-sky: #aebdca;
+  --pop-grad: linear-gradient(135deg, #b8a8c8 0%, #adbea9 52%, #cba8b1 100%);
+  --pop-soft-grad: linear-gradient(135deg, #eee5f0 0%, #e4ece2 48%, #f0e2e5 100%);
+}
+
+/* Page */
+html, body {
+  min-height: 100%;
+}
+
+body {
+  color: var(--pop-ink) !important;
+  background:
+    radial-gradient(circle at 6% 7%, rgba(184,168,200,.48) 0 150px, transparent 330px),
+    radial-gradient(circle at 96% 22%, rgba(173,190,169,.48) 0 150px, transparent 330px),
+    radial-gradient(circle at 68% 92%, rgba(203,168,177,.40) 0 170px, transparent 350px),
+    linear-gradient(140deg, #eee8ed 0%, #e7ece6 48%, #f1e7e4 100%) !important;
+  background-attachment: fixed !important;
+}
+
+/* More 2D, less glass */
+body.pop2d-ready header,
+body.pop2d-ready .header,
+body.pop2d-ready .topbar,
+body.pop2d-ready .top-bar,
+body.pop2d-ready .navbar,
+body.pop2d-ready .nav-bar,
+body.pop2d-ready .pop2d-header {
+  background: #fffaf7 !important;
+  border-color: var(--pop-line) !important;
+  box-shadow: 0 4px 0 rgba(48,42,56,.12) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+body.pop2d-ready button,
+body.pop2d-ready .btn,
+body.pop2d-ready [role="button"] {
+  border-radius: 999px !important;
+}
+
+body.pop2d-ready input,
+body.pop2d-ready textarea,
+body.pop2d-ready select {
+  border: 1.6px solid rgba(48,42,56,.25) !important;
+  border-radius: 16px !important;
+  background: #fffdfb !important;
+  color: var(--pop-ink) !important;
+  box-shadow: 2px 3px 0 rgba(48,42,56,.08) !important;
+}
+
+/* Header/nav automatically tagged by JS */
+.pop2d-header {
+  position: relative;
+  overflow: hidden;
+}
+
+.pop2d-header::after {
+  content: "";
+  position: absolute;
+  right: -35px;
+  top: -42px;
+  width: 105px;
+  height: 105px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(184,168,200,.34), rgba(203,168,177,.28));
+  pointer-events: none;
+}
+
+.pop2d-header strong,
+.pop2d-header h1,
+.pop2d-header h2 {
+  letter-spacing: .14em !important;
+}
+
+/* + ADD */
+.pop2d-add-btn {
+  color: #fff !important;
+  border: 2px solid var(--pop-ink) !important;
+  background: var(--pop-grad) !important;
+  box-shadow: 4px 4px 0 rgba(48,42,56,.22) !important;
+  transition: transform .14s ease, box-shadow .14s ease !important;
+}
+
+.pop2d-add-btn:hover {
+  transform: translate(-1px, -1px) !important;
+  box-shadow: 5px 5px 0 rgba(48,42,56,.22) !important;
+}
+
+/* ALL / FOLLOWING etc. */
+.pop2d-tab {
+  border-radius: 999px !important;
+  padding: 8px 13px !important;
+  border: 1.5px solid transparent !important;
+}
+
+.pop2d-tab.is-pop-active,
+.pop2d-tab[aria-selected="true"] {
+  border-color: var(--pop-ink) !important;
+  background: linear-gradient(135deg, var(--pop-lav-2), var(--pop-sage-2)) !important;
+  box-shadow: 3px 3px 0 rgba(48,42,56,.12) !important;
+}
+
+/* Date/filter panel */
+.pop2d-filter-panel {
+  border: 2px solid rgba(48,42,56,.86) !important;
+  border-radius: 20px !important;
+  background:
+    linear-gradient(90deg, rgba(234,209,214,.72), rgba(255,250,247,.96) 45%, rgba(208,219,205,.72)) !important;
+  box-shadow: 5px 5px 0 rgba(48,42,56,.11) !important;
+}
+
+/* Post */
+.pop2d-post-card {
+  position: relative !important;
+  overflow: hidden !important;
+  border: 2px solid var(--pop-ink) !important;
+  border-radius: 24px !important;
+  background: #fffaf7 !important;
+  box-shadow: 6px 7px 0 rgba(88,75,95,.18) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.pop2d-post-card::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 5px;
+  background: var(--pop-grad);
+  pointer-events: none;
+}
+
+.pop2d-post-card img {
+  filter: saturate(.94) contrast(.98);
+}
+
+.pop2d-post-card button,
+.pop2d-post-card a[role="button"] {
+  border: 1.5px solid var(--pop-ink) !important;
+  background: #fffaf7 !important;
+  color: var(--pop-ink) !important;
+  box-shadow: 2px 2px 0 rgba(48,42,56,.12) !important;
+}
+
+.pop2d-post-card .pop2d-map-btn {
+  background: linear-gradient(135deg, #e8dfed, #dce6d9) !important;
+}
+
+/* Small sticker decor on posts */
+.pop2d-post-sticker {
+  position: absolute;
+  z-index: 5;
+  right: 14px;
+  top: 62px;
+  width: 13px;
+  height: 13px;
+  border-radius: 4px;
+  background: var(--pop-rose);
+  border: 1.5px solid var(--pop-ink);
+  transform: rotate(10deg);
+  pointer-events: none;
+}
+
+/* Music bar attached to each post */
+.pop2d-music-wrap {
+  margin: 12px 13px 14px;
+  border: 2px solid var(--pop-ink);
+  border-radius: 18px;
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, #ebe3ef 0%, #e1e9df 50%, #efdfe3 100%);
+  box-shadow: 4px 4px 0 rgba(48,42,56,.13);
+}
+
+.pop2d-music-row {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  padding: 10px;
+}
+
+.pop2d-music-thumb {
+  width: 72px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 11px;
+  border: 1.5px solid var(--pop-ink);
+  background: #d9d1db;
+}
+
+.pop2d-music-info {
+  min-width: 0;
+}
+
+.pop2d-music-kicker {
+  display: block;
+  margin-bottom: 3px;
+  color: #84758d;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .16em;
+}
+
+.pop2d-music-title {
+  display: block;
+  overflow: hidden;
+  color: var(--pop-ink);
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.35;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.pop2d-music-artist {
+  display: block;
+  overflow: hidden;
+  margin-top: 3px;
+  color: var(--pop-sub);
+  font-size: 10px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.pop2d-play-btn {
+  width: 44px !important;
+  height: 44px !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 !important;
+  border: 2px solid var(--pop-ink) !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, var(--pop-rose), var(--pop-lav)) !important;
+  color: #fff !important;
+  box-shadow: 3px 3px 0 rgba(48,42,56,.18) !important;
+  font-size: 17px !important;
+  font-weight: 900 !important;
+}
+
+.pop2d-play-btn.is-playing {
+  background: linear-gradient(135deg, var(--pop-sage), var(--pop-sky)) !important;
+}
+
+.pop2d-inline-player {
+  display: none;
+  border-top: 2px solid var(--pop-ink);
+  background: #27232a;
+}
+
+.pop2d-inline-player.is-open {
+  display: block;
+}
+
+.pop2d-player-ratio {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #111;
+}
+
+.pop2d-player-ratio iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.pop2d-player-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  padding: 8px 10px;
+  color: #efe9ef;
+  font-size: 10px;
+}
+
+.pop2d-player-bottom a {
+  color: #efe9ef !important;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 560px) {
+  .pop2d-post-card {
+    border-radius: 20px !important;
+    box-shadow: 4px 5px 0 rgba(88,75,95,.16) !important;
+  }
+
+  .pop2d-music-wrap {
+    margin: 10px 10px 13px;
+    border-radius: 16px;
+  }
+
+  .pop2d-music-row {
+    grid-template-columns: 62px minmax(0, 1fr) 42px;
+    gap: 8px;
+    padding: 9px;
+  }
+
+  .pop2d-music-thumb {
+    width: 62px;
+    height: 42px;
+  }
+
+  .pop2d-play-btn {
+    width: 40px !important;
+    height: 40px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pop2d-add-btn,
+  .pop2d-post-card button {
+    transition: none !important;
+  }
+}
+</style>
+
+<script id="pop2d-home-music-script">
+(() => {
+  if (window.__travelLogPop2dMusicV2) return;
+  window.__travelLogPop2dMusicV2 = true;
+
+  const YT_RE = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?(?:[^#\s]*&)?v=|youtu\.be\/|youtube\.com\/shorts\/)([A-Za-z0-9_-]{11})/i;
+
+  function cleanText(value) {
+    return String(value || "").replace(/\s+/g, " ").trim();
+  }
+
+  function tagHeaderAndControls() {
+    const all = Array.from(document.querySelectorAll("body *"));
+
+    // Header containing TRAVEL LOG.
+    const brand = all.find(el => cleanText(el.textContent) === "TRAVEL LOG");
+    if (brand) {
+      let node = brand;
+      for (let i = 0; i < 5 && node; i++, node = node.parentElement) {
+        const rect = node.getBoundingClientRect();
+        if (rect.width > 300 && rect.height >= 55 && rect.height < 190) {
+          node.classList.add("pop2d-header");
+          break;
+        }
+      }
+    }
+
+    // + / ADD button.
+    document.querySelectorAll("button,a,[role='button']").forEach(el => {
+      const text = cleanText(el.textContent).toUpperCase();
+      if (
+        text === "+" ||
+        text === "ADD" ||
+        text === "+ ADD" ||
+        text === "+ADD"
+      ) {
+        el.classList.add("pop2d-add-btn");
+      }
+
+      if (text === "ALL" || text === "FOLLOWING") {
+        el.classList.add("pop2d-tab");
+        if (
+          el.classList.contains("active") ||
+          el.getAttribute("aria-selected") === "true"
+        ) {
+          el.classList.add("is-pop-active");
+        }
+      }
+
+      if (/^MAP(?:\s|竊慾$)/i.test(text)) {
+        el.classList.add("pop2d-map-btn");
+      }
+    });
+
+    // Date/filter box.
+    const dateInput = document.querySelector('input[type="date"]');
+    if (dateInput) {
+      let node = dateInput.parentElement;
+      for (let i = 0; i < 4 && node; i++, node = node.parentElement) {
+        const rect = node.getBoundingClientRect();
+        if (rect.width > 250 && rect.height >= 45 && rect.height <= 150) {
+          node.classList.add("pop2d-filter-panel");
+          break;
+        }
+      }
+    }
+  }
+
+  function findPostRoot(mapButton) {
+    let node = mapButton;
+    let fallback = null;
+
+    for (let i = 0; i < 9 && node; i++, node = node.parentElement) {
+      if (!(node instanceof HTMLElement)) continue;
+
+      const rect = node.getBoundingClientRect();
+      const images = node.querySelectorAll("img");
+
+      if (images.length && rect.width > 260 && rect.height > 180) {
+        fallback = node;
+      }
+
+      if (
+        node.matches("article,.spot-card,.post-card,.log-card,.card") &&
+        images.length
+      ) {
+        return node;
+      }
+    }
+
+    return fallback;
+  }
+
+  function parseMusic(card) {
+    const text = card.innerText || card.textContent || "";
+    const match = text.match(YT_RE);
+    if (!match) return null;
+
+    const id = match[1];
+    const urlMatch = text.match(/https?:\/\/[^\s]+(?:youtube\.com|youtu\.be)[^\s]*/i);
+    const externalUrl = urlMatch
+      ? urlMatch[0].replace(/[),.;]+$/, "")
+      : `https://www.youtube.com/watch?v=${id}`;
+
+    let musicLine = "";
+    const lines = String(text)
+      .split(/\r?\n/)
+      .map(v => v.trim())
+      .filter(Boolean);
+
+    const emojiLine = lines.find(line => line.includes("七"));
+    if (emojiLine) musicLine = emojiLine.replace(/^.*?七\s*/, "").trim();
+
+    let title = musicLine || "縺薙・謚慕ｨｿ縺ｮ1譖ｲ";
+    let artist = "YouTube";
+
+    const separator = title.includes(" 窶・")
+      ? " 窶・"
+      : title.includes(" - ")
+        ? " - "
+        : null;
+
+    if (separator) {
+      const parts = title.split(separator);
+      title = parts.shift()?.trim() || "縺薙・謚慕ｨｿ縺ｮ1譖ｲ";
+      artist = parts.join(separator).trim() || "YouTube";
+    }
+
+    return { id, title, artist, externalUrl };
+  }
+
+  function closeAllPlayers(exceptWrap) {
+    document.querySelectorAll(".pop2d-music-wrap").forEach(wrap => {
+      if (wrap === exceptWrap) return;
+
+      const player = wrap.querySelector(".pop2d-inline-player");
+      const iframe = wrap.querySelector("iframe");
+      const button = wrap.querySelector(".pop2d-play-btn");
+
+      if (player) player.classList.remove("is-open");
+      if (iframe) iframe.src = "";
+      if (button) {
+        button.classList.remove("is-playing");
+        button.textContent = "笆ｶ";
+        button.setAttribute("aria-label", "髻ｳ讌ｽ繧貞・逕・);
+      }
+    });
+  }
+
+  function hideRawMusicMetadata(card) {
+    card.querySelectorAll("p,span,div").forEach(el => {
+      if (el.classList.contains("pop2d-music-wrap")) return;
+      if (el.closest(".pop2d-music-wrap")) return;
+
+      if (el.children.length > 2) return;
+
+      const text = el.innerText || "";
+      if (!text.includes("七") || !YT_RE.test(text)) return;
+
+      const before = text.split("七")[0].trim();
+
+      if (el.children.length === 0) {
+        if (before) {
+          el.textContent = before;
+        } else {
+          el.style.display = "none";
+        }
+      }
+    });
+  }
+
+  function addMusicPlayer(card, music) {
+    if (card.querySelector(".pop2d-music-wrap")) return;
+
+    const wrap = document.createElement("div");
+    wrap.className = "pop2d-music-wrap";
+
+    const thumb = `https://i.ytimg.com/vi/${encodeURIComponent(music.id)}/mqdefault.jpg`;
+
+    wrap.innerHTML = `
+      <div class="pop2d-music-row">
+        <img class="pop2d-music-thumb" src="${thumb}" alt="">
+        <div class="pop2d-music-info">
+          <span class="pop2d-music-kicker">THIS POST'S SONG</span>
+          <strong class="pop2d-music-title"></strong>
+          <span class="pop2d-music-artist"></span>
+        </div>
+        <button type="button" class="pop2d-play-btn" aria-label="髻ｳ讌ｽ繧貞・逕・>笆ｶ</button>
+      </div>
+      <div class="pop2d-inline-player">
+        <div class="pop2d-player-ratio">
+          <iframe
+            title="YouTube player"
+            src=""
+            allow="autoplay; encrypted-media; picture-in-picture"
+            referrerpolicy="strict-origin-when-cross-origin"
+            allowfullscreen
+          ></iframe>
+        </div>
+        <div class="pop2d-player-bottom">
+          <span>縺薙・謚慕ｨｿ縺ｮ髻ｳ讌ｽ</span>
+          <a target="_blank" rel="noopener noreferrer">YouTube縺ｧ髢九￥ 竊・/a>
+        </div>
+      </div>
+    `;
+
+    wrap.querySelector(".pop2d-music-title").textContent = music.title;
+    wrap.querySelector(".pop2d-music-artist").textContent = music.artist;
+    wrap.querySelector(".pop2d-player-bottom a").href = music.externalUrl;
+
+    const button = wrap.querySelector(".pop2d-play-btn");
+    const player = wrap.querySelector(".pop2d-inline-player");
+    const iframe = wrap.querySelector("iframe");
+
+    button.addEventListener("click", () => {
+      const opening = !player.classList.contains("is-open");
+
+      if (!opening) {
+        player.classList.remove("is-open");
+        iframe.src = "";
+        button.classList.remove("is-playing");
+        button.textContent = "笆ｶ";
+        button.setAttribute("aria-label", "髻ｳ讌ｽ繧貞・逕・);
+        return;
+      }
+
+      closeAllPlayers(wrap);
+
+      iframe.src =
+        `https://www.youtube.com/embed/${encodeURIComponent(music.id)}` +
+        "?autoplay=1&playsinline=1&rel=0";
+
+      player.classList.add("is-open");
+      button.classList.add("is-playing");
+      button.textContent = "笆";
+      button.setAttribute("aria-label", "髻ｳ讌ｽ繧貞●豁｢");
+    });
+
+    // Put it after the main post image if possible.
+    const images = Array.from(card.querySelectorAll("img"));
+    let mainImage = null;
+    let maxArea = 0;
+
+    images.forEach(img => {
+      const rect = img.getBoundingClientRect();
+      const area = rect.width * rect.height;
+      if (rect.width > 180 && rect.height > 120 && area > maxArea) {
+        mainImage = img;
+        maxArea = area;
+      }
+    });
+
+    if (mainImage) {
+      const imageBlock = mainImage.parentElement || mainImage;
+      imageBlock.insertAdjacentElement("afterend", wrap);
+    } else {
+      card.appendChild(wrap);
+    }
+
+    hideRawMusicMetadata(card);
+  }
+
+  function decoratePosts() {
+    const mapButtons = Array.from(
+      document.querySelectorAll("button,a,[role='button']")
+    ).filter(el => /^MAP(?:\s|竊慾$)/i.test(cleanText(el.textContent)));
+
+    mapButtons.forEach(mapButton => {
+      const card = findPostRoot(mapButton);
+      if (!card) return;
+
+      card.classList.add("pop2d-post-card");
+      mapButton.classList.add("pop2d-map-btn");
+
+      if (!card.querySelector(".pop2d-post-sticker")) {
+        const sticker = document.createElement("span");
+        sticker.className = "pop2d-post-sticker";
+        sticker.setAttribute("aria-hidden", "true");
+        card.appendChild(sticker);
+      }
+
+      const music = parseMusic(card);
+      if (music) addMusicPlayer(card, music);
+    });
+  }
+
+  let scheduled = false;
+  function refreshPopUi() {
+    if (scheduled) return;
+    scheduled = true;
+
+    requestAnimationFrame(() => {
+      scheduled = false;
+      document.body.classList.add("pop2d-ready");
+      tagHeaderAndControls();
+      decoratePosts();
+    });
+  }
+
+  refreshPopUi();
+
+  const observer = new MutationObserver(refreshPopUi);
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+
+  window.addEventListener("resize", refreshPopUi, { passive: true });
+})();
+</script>
+<!-- POP2D_HOME_MUSIC_V2_END -->
+</body>
+</html>
