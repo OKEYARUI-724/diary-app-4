@@ -1153,6 +1153,98 @@ html.withlog-dark .with-daily-post .post-action-menu {
 }
 </style>
 
+
+<style id="withlog-mobile-header-and-media-fix">
+/* Smartphone header: keep every action, including +, inside the viewport. */
+@media (max-width: 560px) {
+  #appView > header {
+    padding: 11px 10px !important;
+    gap: 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  #appView > header > div:first-child {
+    flex: 0 1 98px !important;
+    min-width: 0 !important;
+  }
+  #appView > header h1 {
+    font-size: 14px !important;
+    letter-spacing: .14em !important;
+    white-space: nowrap !important;
+  }
+  #appView > header p {
+    font-size: 7px !important;
+    letter-spacing: .14em !important;
+    white-space: nowrap !important;
+  }
+  #appView > header > div:last-child {
+    flex: 0 0 auto !important;
+    gap: 5px !important;
+    min-width: 0 !important;
+  }
+  #appView > header button[title="ユーザーを探す"],
+  #appView > header button[title="通知"],
+  #appView > header button[title="メッセージ"],
+  #authStatusContainer .withlog-header-icon {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+  }
+  #authStatusContainer > div { gap: 5px !important; }
+  #appView > header button[title="ユーザーを探す"] svg,
+  #appView > header button[title="通知"] svg,
+  #appView > header button[title="メッセージ"] svg,
+  #authStatusContainer .withlog-header-icon svg {
+    width: 15px !important;
+    height: 15px !important;
+  }
+  #openModalBtn {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    margin: 0 !important;
+  }
+}
+@media (max-width: 380px) {
+  #appView > header { padding-left: 8px !important; padding-right: 8px !important; gap: 6px !important; }
+  #appView > header > div:first-child { flex-basis: 86px !important; }
+  #appView > header h1 { font-size: 13px !important; letter-spacing: .11em !important; }
+  #appView > header p { font-size: 6.5px !important; letter-spacing: .10em !important; }
+  #appView > header > div:last-child, #authStatusContainer > div { gap: 4px !important; }
+  #appView > header button[title="ユーザーを探す"],
+  #appView > header button[title="通知"],
+  #appView > header button[title="メッセージ"],
+  #authStatusContainer .withlog-header-icon { width: 30px !important; height: 30px !important; min-width: 30px !important; }
+  #openModalBtn { width: 34px !important; height: 34px !important; min-width: 34px !important; }
+}
+
+/* Neutral letterbox color for post media. */
+.post-media-frame {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #d5d5d2;
+}
+.post-media-frame > img,
+.post-media-frame > video {
+  display: block;
+  width: 100%;
+  max-height: 520px;
+  object-fit: contain !important;
+  background: #d5d5d2 !important;
+}
+html.withlog-dark .post-media-frame,
+html.withlog-dark .post-media-frame > img,
+html.withlog-dark .post-media-frame > video {
+  background: #1f2024 !important;
+}
+@media (max-width: 560px) {
+  .post-media-frame > img, .post-media-frame > video { max-height: none; }
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -2520,8 +2612,8 @@ html.withlog-dark .with-daily-post .post-action-menu {
 
             ${s.media_url ? (
               s.media_type === 'video' 
-                ? `<video src="${s.media_url}" controls class="w-full max-h-[440px] object-cover bg-black"></video>`
-                : `<img src="${s.media_url}" class="w-full max-h-[440px] object-cover border-b border-slate-100" />`
+                ? `<div class="post-media-frame"><video src="${s.media_url}" controls></video></div>`
+                : `<div class="post-media-frame"><img src="${s.media_url}" alt="${escapeHtml(s.name || 'WITHLOGの投稿画像')}" /></div>`
             ) : ''}
 
             <div class="p-4 bg-white">

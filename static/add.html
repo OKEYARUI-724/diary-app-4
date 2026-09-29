@@ -968,6 +968,15 @@ html.withlog-dark .daily-with-composer .kicker{background:rgba(45,46,52,.84);col
 html.withlog-dark .daily-with-composer p{color:#c5becb}
 @media(max-width:560px){.daily-with-composer{padding:16px;border-radius:24px}.daily-with-composer strong{font-size:15px}}
 </style>
+
+<style id="withlog-crop-neutral-padding-fix">
+/* The empty area inside a 4:5 crop uses a neutral photo-mat color. */
+.crop-stage { background: #d5d5d2 !important; }
+.crop-stage .cropper-bg { background-image: none !important; background-color: #d5d5d2 !important; }
+html.withlog-dark .crop-stage,
+html.withlog-dark .crop-stage .cropper-bg { background-color: #1f2024 !important; }
+</style>
+
 </head>
 <body>
   <div class="ambient ambient-a" aria-hidden="true"></div>
@@ -1403,7 +1412,7 @@ useCurrentLocationButton.addEventListener("click", () => {
 initTravelMap();
 
 function getCropBackgroundColor() {
-  return document.documentElement.classList.contains("withlog-dark") ? "#38393f" : "#f2eee9";
+  return document.documentElement.classList.contains("withlog-dark") ? "#1f2024" : "#d5d5d2";
 }
 
 function setCropMode(mode) {
