@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TRAVEL LOG</title>
+  <title>WITHLOG</title>
   <script src="https://cdn.tailwindcss.com"></script>
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -23,7 +23,7 @@
     .navy-card {
       background: #ffffff;
       border: 1px solid #0f172a;
-      box-shadow: 4px 4px 0px #0f172a;
+      box-shadow: none !important;
       transition: all 0.2s ease;
     }
     .navy-input {
@@ -34,7 +34,7 @@
     }
     .navy-input:focus {
       border-color: #0f172a;
-      box-shadow: 2px 2px 0px #0f172a;
+      box-shadow: none !important;
       outline: none;
     }
     .navy-btn {
@@ -69,12 +69,12 @@
 :root{--muted-ink:#3f3a40;--muted-soft:#756d73;--muted-lav:#a99ab6;--muted-sage:#9daea3;--muted-rose:#c3a0a4;--muted-paper:rgba(255,252,249,.78);--muted-grad:linear-gradient(135deg,#a99ab6 0%,#9daea3 50%,#c3a0a4 100%)}
 html,body{min-height:100%}body{color:var(--muted-ink)!important;background:radial-gradient(circle at 8% 5%,rgba(190,172,193,.44) 0,rgba(190,172,193,0) 32%),radial-gradient(circle at 92% 18%,rgba(168,187,173,.40) 0,rgba(168,187,173,0) 30%),radial-gradient(circle at 70% 90%,rgba(201,166,166,.34) 0,rgba(201,166,166,0) 32%),linear-gradient(145deg,#efeae7 0%,#e9e8e2 50%,#eee6e6 100%)!important;background-attachment:fixed!important}
 header,nav,.header,.topbar,.top-bar,.navbar,.nav-bar{background:rgba(255,252,249,.72)!important;backdrop-filter:blur(20px) saturate(115%);-webkit-backdrop-filter:blur(20px) saturate(115%);border-color:rgba(103,91,99,.14)!important}
-.card,.post,.post-card,.log-card,.panel,.modal-content,.story,.story-item{background:var(--muted-paper)!important;border-color:rgba(255,255,255,.68)!important;box-shadow:0 18px 55px rgba(84,72,80,.11)!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.card,.post,.post-card,.log-card,.panel,.modal-content,.story,.story-item{background:var(--muted-paper)!important;border-color:rgba(255,255,255,.68)!important;box-shadow: none !important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
 button,.btn,[role="button"],input,textarea,select{font:inherit}button,.btn,[role="button"]{transition:transform .16s ease,box-shadow .16s ease,filter .16s ease}button:hover,.btn:hover,[role="button"]:hover{transform:translateY(-1px)}
 input,textarea,select{border-color:rgba(111,98,106,.16)!important;background:rgba(255,255,255,.68)!important;color:var(--muted-ink)!important;border-radius:14px!important}
 a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!important}.tab.active,.tabs .active,[aria-selected="true"]{color:#4e4650!important;border-color:#8f7e92!important}
-.avatar,img.avatar,.profile-avatar{box-shadow:0 8px 26px rgba(84,72,80,.12)}
-.music-add-entry{background:var(--muted-grad)!important;color:#fff!important;border:0!important;box-shadow:0 12px 30px rgba(112,94,106,.24)!important}.music-add-entry *{color:#fff!important}
+.avatar,img.avatar,.profile-avatar{box-shadow: none !important}
+.music-add-entry{background:var(--muted-grad)!important;color:#fff!important;border:0!important;box-shadow: none !important}.music-add-entry *{color:#fff!important}
 </style>
 
 <style id="travel-log-final-2d-music-style">
@@ -92,14 +92,14 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
 #appView > header {
   background: #fffaf7 !important;
   border-bottom: 2px solid var(--tl-ink) !important;
-  box-shadow: 0 4px 0 rgba(48,42,56,.10) !important;
+  box-shadow: none !important;
   backdrop-filter: none !important;
 }
 #openModalBtn {
   border: 2px solid var(--tl-ink) !important;
   background: linear-gradient(135deg, var(--tl-lav), var(--tl-sage) 52%, var(--tl-rose)) !important;
   color: #fff !important;
-  box-shadow: 3px 3px 0 rgba(48,42,56,.20) !important;
+  box-shadow: none !important;
 }
 #tabAll, #tabFollowing {
   border-radius: 999px;
@@ -110,7 +110,7 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
   border: 2px solid rgba(48,42,56,.82) !important;
   border-radius: 19px !important;
   background: linear-gradient(90deg, rgba(238,229,240,.95), #fffaf7 48%, rgba(226,235,224,.96)) !important;
-  box-shadow: 4px 4px 0 rgba(48,42,56,.10) !important;
+  box-shadow: none !important;
 }
 .tl-post-card {
   position: relative;
@@ -118,7 +118,7 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
   border: 2px solid var(--tl-ink) !important;
   border-radius: 24px !important;
   background: var(--tl-paper) !important;
-  box-shadow: 6px 7px 0 rgba(81,69,88,.17) !important;
+  box-shadow: none !important;
 }
 .tl-post-card::before {
   content: "";
@@ -139,7 +139,7 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
   border: 1.5px solid var(--tl-ink) !important;
   background: linear-gradient(135deg, #e9e0ee, #dde7da) !important;
   color: var(--tl-ink) !important;
-  box-shadow: 2px 2px 0 rgba(48,42,56,.10);
+  box-shadow: none !important;
 }
 
 .home-song-card {
@@ -148,7 +148,7 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
   border: 2px solid var(--tl-ink);
   border-radius: 18px;
   background: linear-gradient(135deg, var(--tl-soft-lav), var(--tl-soft-sage) 52%, var(--tl-soft-rose));
-  box-shadow: 4px 4px 0 rgba(48,42,56,.12);
+  box-shadow: none !important;
 }
 .home-song-row {
   display: grid;
@@ -204,7 +204,7 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
   border-radius: 50% !important;
   background: linear-gradient(135deg, var(--tl-rose), var(--tl-lav)) !important;
   color: #fff !important;
-  box-shadow: 3px 3px 0 rgba(48,42,56,.18) !important;
+  box-shadow: none !important;
   font-size: 17px !important;
   font-weight: 900 !important;
   line-height: 1 !important;
@@ -248,7 +248,7 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
 @media (max-width: 560px) {
   .tl-post-card {
     border-radius: 20px !important;
-    box-shadow: 4px 5px 0 rgba(81,69,88,.15) !important;
+    box-shadow: none !important;
   }
   .home-song-row {
     grid-template-columns: 62px minmax(0,1fr) 42px;
@@ -267,6 +267,892 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
 }
 </style>
 
+<style id="flat-pop-round-theme">
+:root {
+  --pop-ink: #44375f;
+  --pop-purple: #8066c7;
+  --pop-pink: #ffb8d0;
+  --pop-mint: #bfe8d2;
+  --pop-yellow: #ffe7a3;
+  --pop-blue: #cfe8ff;
+  --pop-lavender: #eadfff;
+  --pop-cream: #fffaf2;
+  --pop-white: #fffdfb;
+}
+
+/* Flat UI: remove every drop shadow and make the whole app softer/rounder. */
+*, *::before, *::after {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+html, body {
+  background:
+    radial-gradient(circle at 7% 10%, rgba(234,223,255,.82) 0, rgba(234,223,255,0) 28%),
+    radial-gradient(circle at 95% 20%, rgba(191,232,210,.78) 0, rgba(191,232,210,0) 30%),
+    radial-gradient(circle at 78% 88%, rgba(255,184,208,.50) 0, rgba(255,184,208,0) 28%),
+    #fff8f4 !important;
+  color: var(--pop-ink) !important;
+}
+
+#appView {
+  border-radius: 34px !important;
+}
+
+#appView > header {
+  margin: 0 8px 10px !important;
+  border: 0 !important;
+  border-radius: 0 0 32px 32px !important;
+  background: rgba(255,253,251,.96) !important;
+  backdrop-filter: none !important;
+}
+
+#appView > header h1 { color: var(--pop-ink) !important; }
+#appView > header p { color: #9a8dad !important; }
+
+/* Header icons as pastel bubbles. */
+#appView > header button[title="ユーザーを探す"],
+#appView > header button[title="通知"],
+#appView > header button[title="メッセージ"] {
+  width: 36px !important;
+  height: 36px !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 9999px !important;
+  color: #604d83 !important;
+}
+#appView > header button[title="ユーザーを探す"] { background: var(--pop-lavender) !important; }
+#appView > header button[title="通知"] { background: #fff1bf !important; color: #8a6e1f !important; }
+#appView > header button[title="メッセージ"] { background: #dff3ff !important; color: #46769a !important; }
+
+#authStatusContainer .withlog-header-icon {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 9999px !important;
+  transition: transform .16s ease, filter .16s ease !important;
+}
+#authStatusContainer .withlog-header-icon:hover {
+  transform: translateY(-1px);
+  filter: brightness(.98);
+}
+#authStatusContainer .withlog-account-icon {
+  background: #efe7ff !important;
+  color: #684c91 !important;
+}
+#authStatusContainer .withlog-logout-icon {
+  background: #ffe7ec !important;
+  color: #a65d72 !important;
+}
+#authStatusContainer .withlog-header-icon svg {
+  width: 16px;
+  height: 16px;
+}
+.navy-btn-outline {
+  border: 0 !important;
+  border-radius: 9999px !important;
+  background: #f1eaff !important;
+  color: #5d477f !important;
+}
+.navy-btn-outline:hover {
+  background: #e7dbff !important;
+  color: #513b77 !important;
+}
+
+#openModalBtn {
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 9999px !important;
+  background: linear-gradient(135deg, #8fd8b0, #98bff2) !important;
+  color: #fff !important;
+  font-size: 17px !important;
+}
+
+/* Feed tabs: big pill switches instead of lines. */
+#tabAll, #tabFollowing {
+  min-height: 38px !important;
+  padding: 8px 17px !important;
+  border: 0 !important;
+  border-radius: 9999px !important;
+  background: #f1ecf7 !important;
+  color: #998da8 !important;
+}
+#tabAll.border-b-2,
+#tabFollowing.border-b-2 {
+  background: var(--pop-purple) !important;
+  color: #fff !important;
+}
+
+/* Stories + date filter are flat pastel capsules. */
+.tl-filter-card {
+  border: 0 !important;
+  border-radius: 30px !important;
+  background: #eaf8f1 !important;
+}
+#storiesSection .tl-filter-card {
+  background: linear-gradient(110deg, #f2eaff, #fff5df 58%, #e8f8ee) !important;
+}
+#storiesBar button > span:first-child {
+  border: 3px solid #fff !important;
+  border-radius: 9999px !important;
+  background-color: #e8dcff !important;
+}
+#dateFilter {
+  border: 0 !important;
+  border-radius: 9999px !important;
+  background: #fff !important;
+  color: var(--pop-ink) !important;
+}
+#clearDate {
+  border-radius: 9999px !important;
+  background: #fff0bb !important;
+  color: #7b6626 !important;
+  padding: 7px 12px !important;
+}
+
+/* Posts: no dark outline or lifted shadow, just rounded pastel blocks. */
+.navy-card,
+.tl-post-card {
+  border: 0 !important;
+  border-radius: 34px !important;
+  background: var(--pop-white) !important;
+  overflow: hidden !important;
+}
+.tl-post-card::before { display: none !important; }
+.tl-post-card > div:first-child {
+  border: 0 !important;
+  background: #fff3c8 !important;
+  border-radius: 34px 34px 0 0 !important;
+}
+.tl-post-card > img,
+.tl-post-card > video {
+  width: calc(100% - 20px) !important;
+  margin: 10px !important;
+  border: 0 !important;
+  border-radius: 28px !important;
+}
+.tl-post-card > div:last-child {
+  border: 0 !important;
+  background: #fffdfb !important;
+  border-radius: 0 0 34px 34px !important;
+}
+.tl-post-card > div:first-child .w-8.h-8 {
+  border: 0 !important;
+  border-radius: 9999px !important;
+  background-color: #dceeff !important;
+}
+.tl-post-card .tl-map-btn {
+  border: 0 !important;
+  border-radius: 9999px !important;
+  background: #dff5e9 !important;
+  color: #3f765a !important;
+}
+.tl-post-card button[onclick^="deleteSpot("] {
+  width: 32px !important;
+  height: 32px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 9999px !important;
+  background: #ffe6eb !important;
+  color: #b66577 !important;
+}
+
+/* Music card: extra round, flat and colorful. */
+.home-song-card {
+  border: 0 !important;
+  border-radius: 28px !important;
+  background: linear-gradient(135deg, #f0e5ff, #e4f5eb 50%, #ffe1ea) !important;
+}
+.home-song-thumb {
+  border: 0 !important;
+  border-radius: 18px !important;
+}
+.home-song-play {
+  border: 0 !important;
+  border-radius: 9999px !important;
+  background: #8a70ca !important;
+}
+.home-song-play.is-playing { background: #67b78b !important; }
+.home-song-player { border: 0 !important; border-radius: 0 0 28px 28px !important; overflow: hidden !important; }
+
+/* Forms and modals: remove hard corners and hard borders. */
+input, select {
+  border: 0 !important;
+  border-radius: 9999px !important;
+  background: #f5effb !important;
+}
+textarea {
+  border: 0 !important;
+  border-radius: 24px !important;
+  background: #f5effb !important;
+}
+input:focus, select:focus, textarea:focus {
+  outline: 3px solid rgba(128,102,199,.18) !important;
+}
+
+#userSearchModal > div,
+#postModal > div,
+#profileModal > div,
+#editProfileModal > div,
+#notificationsModal > div,
+#friendRequestsModal > div,
+#userListModal > div,
+#conversationsModal > div,
+#dmModal > div {
+  border: 0 !important;
+  border-radius: 34px !important;
+  background: #fffdfb !important;
+}
+
+#profileCover {
+  border: 0 !important;
+  border-radius: 28px !important;
+}
+#profileAvatar {
+  border: 0 !important;
+  border-radius: 9999px !important;
+  background-color: #e9ddff !important;
+}
+#profileFollowingCount,
+#profileFollowersCount { color: #6c53aa !important; }
+
+/* Rounded stats cards and list rows. */
+#profileModal button[onclick*="openUserListModal"],
+#notificationsList > div,
+#friendRequestsList > div,
+#userListContent > div,
+#conversationsList > div {
+  border: 0 !important;
+  border-radius: 22px !important;
+}
+#profileModal button[onclick*="openUserListModal"] { background: #f3edff !important; }
+
+.navy-btn,
+button.navy-btn,
+.primary-action {
+  border: 0 !important;
+  border-radius: 9999px !important;
+}
+
+/* Keep the UI playful on phones too. */
+@media (max-width: 560px) {
+  #appView > header { margin-left: 0 !important; margin-right: 0 !important; border-radius: 0 0 28px 28px !important; }
+  .tl-filter-card { border-radius: 26px !important; }
+  .tl-post-card { border-radius: 30px !important; }
+  .tl-post-card > div:first-child { border-radius: 30px 30px 0 0 !important; }
+  .tl-post-card > div:last-child { border-radius: 0 0 30px 30px !important; }
+  .home-song-card { border-radius: 24px !important; }
+}
+</style>
+
+
+<style id="absolute-no-shadow-override">
+/* Final no-shadow override: keep the pop/rounded UI completely flat. */
+*, *::before, *::after {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+button, .btn, [role="button"], input, textarea, select,
+.navy-card, .tl-post-card, .tl-filter-card, .home-song-card,
+#appView > header, #userSearchModal > div, #postModal > div,
+#profileModal > div, #editProfileModal > div, #notificationsModal > div,
+#friendRequestsModal > div, #userListModal > div, #conversationsModal > div, #dmModal > div {
+  box-shadow: none !important;
+  filter: none !important;
+}
+button:hover, .btn:hover, [role="button"]:hover {
+  box-shadow: none !important;
+}
+</style>
+
+<style id="withlog-dark-mode-style">
+html.withlog-dark { color-scheme: dark; background: #202126; }
+html.withlog-dark body { background: #202126 !important; color: #f4f1f5 !important; }
+html.withlog-dark #landingView h1 { color: #f7f3ff !important; }
+html.withlog-dark #appView > header { background: #292a30 !important; }
+html.withlog-dark #appView > header h1 { color: #f4f1f5 !important; }
+html.withlog-dark #appView > header p { color: #aaa4b4 !important; }
+html.withlog-dark #tabAll,
+html.withlog-dark #tabFollowing { background: #303138 !important; color: #aaa5b3 !important; }
+html.withlog-dark #tabAll.border-b-2,
+html.withlog-dark #tabFollowing.border-b-2 { background: #7766a8 !important; color: #fff !important; }
+html.withlog-dark .tl-filter-card { background: #2d3331 !important; color: #f4f1f5 !important; }
+html.withlog-dark #storiesSection .tl-filter-card { background: #303137 !important; }
+html.withlog-dark #dateFilter { background: #3a3b42 !important; color: #f4f1f5 !important; }
+html.withlog-dark #clearDate { background: #4a4131 !important; color: #f0d995 !important; }
+html.withlog-dark .navy-card,
+html.withlog-dark .tl-post-card { background: #2b2c31 !important; color: #f4f1f5 !important; }
+html.withlog-dark .tl-post-card > div:first-child { background: #36343a !important; }
+html.withlog-dark .tl-post-card > div:last-child { background: #2b2c31 !important; }
+html.withlog-dark .tl-post-card h2,
+html.withlog-dark .tl-post-card p,
+html.withlog-dark .tl-post-card span { color: inherit; }
+html.withlog-dark .tl-post-card .tl-map-btn { background: #31423a !important; color: #a8ddbf !important; }
+html.withlog-dark .tl-post-card button[onclick^="deleteSpot("] { background: #463138 !important; color: #f1a8ba !important; }
+html.withlog-dark .home-song-card { background: #34323a !important; color: #f5f1f6 !important; }
+html.withlog-dark .home-song-title { color: #f5f1f6 !important; }
+html.withlog-dark .home-song-artist,
+html.withlog-dark .home-song-kicker { color: #aaa3b2 !important; }
+html.withlog-dark input,
+html.withlog-dark textarea,
+html.withlog-dark select { background: #37383f !important; color: #f4f1f5 !important; }
+html.withlog-dark input::placeholder,
+html.withlog-dark textarea::placeholder { color: #8f8a97 !important; }
+html.withlog-dark #landingView > div.bg-white,
+html.withlog-dark #userSearchModal > div,
+html.withlog-dark #postModal > div,
+html.withlog-dark #profileModal > div,
+html.withlog-dark #editProfileModal > div,
+html.withlog-dark #notificationsModal > div,
+html.withlog-dark #friendRequestsModal > div,
+html.withlog-dark #userListModal > div,
+html.withlog-dark #conversationsModal > div,
+html.withlog-dark #dmModal > div { background: #2b2c31 !important; color: #f4f1f5 !important; }
+html.withlog-dark #profileModal [class*="border-slate"],
+html.withlog-dark #editProfileModal [class*="border-slate"],
+html.withlog-dark #notificationsModal [class*="border-slate"],
+html.withlog-dark #conversationsModal [class*="border-slate"] { border-color: #44454d !important; }
+html.withlog-dark #profileModal .bg-white,
+html.withlog-dark #profileModal .bg-slate-50,
+html.withlog-dark #editProfileModal .bg-slate-50,
+html.withlog-dark #notificationsModal .bg-white,
+html.withlog-dark #conversationsModal .bg-white,
+html.withlog-dark #dmModal .bg-white,
+html.withlog-dark #dmModal .bg-slate-50 { background: #34353b !important; }
+html.withlog-dark #profileModal .text-slate-900,
+html.withlog-dark #profileModal .text-slate-800,
+html.withlog-dark #profileModal .text-slate-700,
+html.withlog-dark #editProfileModal .text-slate-900,
+html.withlog-dark #editProfileModal .text-slate-800,
+html.withlog-dark #editProfileModal .text-slate-700,
+html.withlog-dark #notificationsModal .text-slate-900,
+html.withlog-dark #conversationsModal .text-slate-900,
+html.withlog-dark #dmModal .text-slate-900 { color: #f4f1f5 !important; }
+html.withlog-dark #profileModal .text-slate-400,
+html.withlog-dark #profileModal .text-slate-500,
+html.withlog-dark #editProfileModal .text-slate-400,
+html.withlog-dark #editProfileModal .text-slate-500 { color: #aaa4b2 !important; }
+html.withlog-dark #profileCover { background-color: #393a41 !important; }
+html.withlog-dark #profileAvatar { background-color: #45424d !important; color: #f5f2f7 !important; }
+html.withlog-dark #profileModal button[onclick*="openUserListModal"] { background: #36343f !important; }
+html.withlog-dark .navy-btn-outline { background: #3b3548 !important; color: #d7c7ff !important; }
+html.withlog-dark .navy-btn { background: #7562a8 !important; color: #fff !important; }
+html.withlog-dark #userSearchResults > div,
+html.withlog-dark #notificationsList > div,
+html.withlog-dark #friendRequestsList > div,
+html.withlog-dark #userListContent > div,
+html.withlog-dark #conversationsList > div { background: #323339 !important; color: #f4f1f5 !important; }
+html.withlog-dark #dmMessageList { background: #25262b !important; }
+html.withlog-dark #dmSendForm { background: #2f3036 !important; border-color: #44454d !important; }
+html.withlog-dark .passport-badge { background: #3a3b42 !important; color: #e9e4ed !important; border-color: #666872 !important; }
+
+.withlog-setting-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  padding: 14px 15px; border-radius: 22px; background: #f2eff7; cursor: pointer;
+}
+.withlog-setting-title { display: block; color: #443d4a; font-size: 12px; font-weight: 900; }
+.withlog-setting-desc { display: block; margin-top: 3px; color: #928a98; font-size: 9px; line-height: 1.5; }
+.withlog-theme-switch {
+  width: 46px; height: 26px; flex: 0 0 auto; padding: 3px; border-radius: 9999px;
+  background: #d8d2df; transition: background .2s ease;
+}
+.withlog-theme-switch > span {
+  display: block; width: 20px; height: 20px; border-radius: 9999px; background: #fff;
+  transition: transform .2s ease;
+}
+#darkModeToggle:checked + .withlog-theme-switch { background: #666973; }
+#darkModeToggle:checked + .withlog-theme-switch > span { transform: translateX(20px); }
+html.withlog-dark .withlog-setting-row { background: #36373d !important; }
+html.withlog-dark .withlog-setting-title { color: #f5f2f6 !important; }
+html.withlog-dark .withlog-setting-desc { color: #a7a1ad !important; }
+html.withlog-dark .withlog-theme-switch { background: #50515a; }
+html.withlog-dark #darkModeToggle:checked + .withlog-theme-switch { background: #8a7dab; }
+html.withlog-dark *, html.withlog-dark *::before, html.withlog-dark *::after {
+  box-shadow: none !important; text-shadow: none !important;
+}
+</style>
+<script>
+(function () {
+  try {
+    if (localStorage.getItem('withlog_theme') === 'dark') {
+      document.documentElement.classList.add('withlog-dark');
+    }
+  } catch (_) {}
+})();
+</script>
+
+
+
+<style id="withlog-dark-contrast-fix">
+/* Dark mode contrast corrections only. No feature or layout changes. */
+html.withlog-dark .tl-post-card button[onclick^="toggleSpotLike"] {
+  color: #f6f2f7 !important;
+  background: #3b3c43 !important;
+  border: 1px solid #55565f !important;
+  border-radius: 9999px !important;
+  padding: 7px 10px !important;
+}
+html.withlog-dark .tl-post-card button[onclick^="toggleSpotLike"] .heart-icon {
+  color: #ded8e6 !important;
+  stroke: currentColor !important;
+}
+html.withlog-dark .tl-post-card button[onclick^="toggleSpotLike"] .heart-icon.text-rose-500 {
+  color: #f49bb6 !important;
+  fill: currentColor !important;
+}
+html.withlog-dark .tl-post-card button[onclick^="toggleSpotLike"] .like-count {
+  color: #f6f2f7 !important;
+}
+
+html.withlog-dark #userSearchModal > div,
+html.withlog-dark #postModal > div,
+html.withlog-dark #profileModal > div,
+html.withlog-dark #editProfileModal > div,
+html.withlog-dark #notificationsModal > div,
+html.withlog-dark #friendRequestsModal > div,
+html.withlog-dark #userListModal > div,
+html.withlog-dark #conversationsModal > div,
+html.withlog-dark #dmModal > div {
+  border-color: #4c4d56 !important;
+}
+
+html.withlog-dark :is(#userSearchModal, #postModal, #profileModal, #editProfileModal, #notificationsModal, #friendRequestsModal, #userListModal, #conversationsModal, #dmModal) .text-slate-900,
+html.withlog-dark :is(#userSearchModal, #postModal, #profileModal, #editProfileModal, #notificationsModal, #friendRequestsModal, #userListModal, #conversationsModal, #dmModal) .text-slate-800,
+html.withlog-dark :is(#userSearchModal, #postModal, #profileModal, #editProfileModal, #notificationsModal, #friendRequestsModal, #userListModal, #conversationsModal, #dmModal) .text-slate-700 {
+  color: #f5f1f6 !important;
+}
+html.withlog-dark :is(#userSearchModal, #postModal, #profileModal, #editProfileModal, #notificationsModal, #friendRequestsModal, #userListModal, #conversationsModal, #dmModal) .text-slate-600,
+html.withlog-dark :is(#userSearchModal, #postModal, #profileModal, #editProfileModal, #notificationsModal, #friendRequestsModal, #userListModal, #conversationsModal, #dmModal) .text-slate-500 {
+  color: #c8c2ce !important;
+}
+html.withlog-dark :is(#userSearchModal, #postModal, #profileModal, #editProfileModal, #notificationsModal, #friendRequestsModal, #userListModal, #conversationsModal, #dmModal) .text-slate-400,
+html.withlog-dark :is(#userSearchModal, #postModal, #profileModal, #editProfileModal, #notificationsModal, #friendRequestsModal, #userListModal, #conversationsModal, #dmModal) .text-slate-300 {
+  color: #aaa4b2 !important;
+}
+html.withlog-dark :is(#userSearchModal, #postModal, #profileModal, #editProfileModal, #notificationsModal, #friendRequestsModal, #userListModal, #conversationsModal, #dmModal) [class*="border-slate"] {
+  border-color: #50515a !important;
+}
+html.withlog-dark :is(#userSearchModal, #postModal, #profileModal, #editProfileModal, #notificationsModal, #friendRequestsModal, #userListModal, #conversationsModal, #dmModal) [class*="divide-slate"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: #484951 !important;
+}
+
+html.withlog-dark #userSearchInput,
+html.withlog-dark #dmInput,
+html.withlog-dark #editDisplayName,
+html.withlog-dark #editBio,
+html.withlog-dark #searchLocationInput,
+html.withlog-dark #spotNameInput,
+html.withlog-dark #visitedAtInput {
+  background: #3b3c44 !important;
+  color: #f7f4f8 !important;
+  border-color: #555761 !important;
+}
+html.withlog-dark #userSearchInput::placeholder,
+html.withlog-dark #dmInput::placeholder,
+html.withlog-dark #editDisplayName::placeholder,
+html.withlog-dark #editBio::placeholder,
+html.withlog-dark #searchLocationInput::placeholder,
+html.withlog-dark #spotNameInput::placeholder {
+  color: #b8b2c1 !important;
+  opacity: 1 !important;
+}
+html.withlog-dark #userSearchInput:focus,
+html.withlog-dark #dmInput:focus,
+html.withlog-dark #editDisplayName:focus,
+html.withlog-dark #editBio:focus,
+html.withlog-dark #searchLocationInput:focus,
+html.withlog-dark #spotNameInput:focus,
+html.withlog-dark #visitedAtInput:focus {
+  border-color: #9b8bc3 !important;
+  outline: 2px solid rgba(155, 139, 195, .22) !important;
+  outline-offset: 1px !important;
+}
+
+html.withlog-dark #userSearchResults > p,
+html.withlog-dark #notificationsList > p,
+html.withlog-dark #friendRequestsList > p,
+html.withlog-dark #userListContent > p,
+html.withlog-dark #conversationsList > p {
+  color: #b8b2c1 !important;
+}
+
+html.withlog-dark #userSearchModal button[onclick="closeUserSearchModal()"],
+html.withlog-dark #postModal button[id="cancelModalBtn"],
+html.withlog-dark #profileModal button[onclick="closeProfileModal()"],
+html.withlog-dark #editProfileModal button[onclick="closeEditProfileModal()"],
+html.withlog-dark #notificationsModal button[onclick="closeNotificationsModal()"],
+html.withlog-dark #userListModal button[onclick="closeUserListModal()"],
+html.withlog-dark #conversationsModal button[onclick="closeConversationsModal()"],
+html.withlog-dark #dmModal button[onclick="closeDmModal()"] {
+  color: #c8c2ce !important;
+}
+</style>
+
+
+<style id="withlog-post-action-menu-style">
+.post-action-wrap { position: relative; flex: 0 0 auto; }
+.post-action-btn {
+  width: 36px; height: 36px; display: grid; place-items: center;
+  padding: 0; border: 0 !important; border-radius: 9999px !important;
+  background: #eee7ff !important; color: #5f4f83 !important;
+}
+.post-action-btn svg { width: 20px; height: 20px; }
+.post-action-menu {
+  position: absolute; top: calc(100% + 7px); right: 0; z-index: 50;
+  display: none; min-width: 168px; padding: 7px;
+  border: 1px solid #ece5ef; border-radius: 18px;
+  background: #fffdfb; color: #443d4a;
+}
+.post-action-menu.is-open { display: grid; gap: 3px; }
+.post-action-item {
+  width: 100%; display: flex; align-items: center; gap: 10px;
+  padding: 10px 11px; border: 0 !important; border-radius: 13px !important;
+  background: transparent !important; color: #4d4652 !important;
+  font-size: 11px; font-weight: 800; text-align: left; white-space: nowrap;
+}
+.post-action-item:hover { background: #f5f0fa !important; }
+.post-action-item svg { width: 16px; height: 16px; flex: 0 0 auto; }
+.post-action-item.is-map { color: #46755d !important; }
+.post-action-item.is-share { color: #665590 !important; }
+.post-action-item.is-delete { color: #b85f74 !important; }
+html.withlog-dark .post-action-btn { background: #44404f !important; color: #e0d5ff !important; }
+html.withlog-dark .post-action-menu {
+  background: #34353b !important; color: #f3eff5 !important; border-color: #4a4b53 !important;
+}
+html.withlog-dark .post-action-item { color: #eee9f1 !important; }
+html.withlog-dark .post-action-item:hover { background: #404149 !important; }
+html.withlog-dark .post-action-item.is-map { color: #addbc0 !important; }
+html.withlog-dark .post-action-item.is-share { color: #d6c8ff !important; }
+html.withlog-dark .post-action-item.is-delete { color: #f1a8ba !important; }
+@media (max-width: 560px) {
+  .post-action-btn { width: 38px; height: 38px; }
+  .post-action-menu { min-width: 162px; right: -2px; }
+  .post-action-item { min-height: 42px; }
+}
+</style>
+
+<style id="withlog-daily-with-style">
+.daily-with-card,.with-daily-post{position:relative;overflow:hidden;isolation:isolate;border:1px solid rgba(129,112,145,.10)!important;box-shadow:none!important}
+.daily-with-card::before,.with-daily-post::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:
+radial-gradient(circle at 7% 18%,rgba(255,225,94,.58) 0 32px,transparent 33px),
+radial-gradient(circle at 24% 72%,rgba(121,217,197,.42) 0 46px,transparent 47px),
+radial-gradient(circle at 42% 22%,rgba(164,169,244,.38) 0 42px,transparent 43px),
+radial-gradient(circle at 59% 66%,rgba(244,155,181,.34) 0 54px,transparent 55px),
+radial-gradient(circle at 77% 27%,rgba(132,218,219,.38) 0 37px,transparent 38px),
+radial-gradient(circle at 93% 75%,rgba(255,191,145,.36) 0 49px,transparent 50px),
+radial-gradient(circle at 16% 43%,rgba(246,166,191,.28) 0 25px,transparent 26px),
+radial-gradient(circle at 67% 8%,rgba(208,235,157,.38) 0 29px,transparent 30px),
+linear-gradient(135deg,#fff9ea 0%,#f7f1ff 35%,#e9fbf5 68%,#fff0f3 100%)}
+.daily-with-card>*,.with-daily-post>*{position:relative;z-index:1}
+.daily-with-card{min-height:190px;padding:22px;border-radius:32px;display:flex;flex-direction:column;justify-content:space-between;gap:18px;color:#443b50}
+.daily-with-topline{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.daily-with-kicker{display:inline-flex;align-items:center;gap:8px;width:fit-content;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.72);color:#695689;font-size:9px;font-weight:900;letter-spacing:.18em}
+.daily-with-date{font-size:9px;font-weight:800;letter-spacing:.08em;color:#867a8e}
+.daily-with-question{margin:0;max-width:92%;font-size:21px;line-height:1.45;font-weight:900;letter-spacing:.01em;color:#3f3747}
+.daily-with-sub{margin:7px 0 0;font-size:10px;line-height:1.7;color:#746a7a}
+.daily-with-join{align-self:flex-end;min-height:44px;padding:0 18px;border:0!important;border-radius:9999px!important;background:#7560b5!important;color:#fff!important;font-size:11px;font-weight:900;letter-spacing:.06em;box-shadow:none!important}
+.daily-with-join:hover{background:#6953aa!important}
+/* TODAY'S WITH posts get a visibly special, collectible-style frame. */
+.with-daily-post{
+  padding:7px!important;
+  background:
+    radial-gradient(circle at 5% 12%,rgba(255,221,88,.82) 0 34px,transparent 35px),
+    radial-gradient(circle at 92% 10%,rgba(158,224,210,.78) 0 42px,transparent 43px),
+    radial-gradient(circle at 16% 82%,rgba(169,173,245,.68) 0 50px,transparent 51px),
+    radial-gradient(circle at 86% 78%,rgba(246,157,190,.68) 0 58px,transparent 59px),
+    radial-gradient(circle at 55% 6%,rgba(255,190,145,.58) 0 28px,transparent 29px),
+    linear-gradient(135deg,#fff5bb 0%,#f5e9ff 28%,#dcf8ed 58%,#ffe0eb 100%)!important;
+  border:2px solid rgba(255,255,255,.78)!important;
+}
+.with-daily-post::after{
+  content:'TODAY\'S WITH';
+  position:absolute;top:12px;right:58px;z-index:3;
+  padding:5px 9px;border-radius:999px;
+  background:rgba(255,255,255,.82);color:#72589b;
+  font-size:7px;font-weight:900;letter-spacing:.16em;pointer-events:none;
+}
+.with-daily-post>div:first-child{
+  margin:0!important;border:0!important;border-radius:28px 28px 18px 18px!important;
+  background:rgba(255,253,251,.84)!important;backdrop-filter:blur(8px);
+}
+.with-daily-post>div:last-child{
+  margin:0!important;border-radius:18px 18px 28px 28px!important;
+  background:rgba(255,253,251,.86)!important;backdrop-filter:blur(8px);
+}
+.with-daily-post>img,.with-daily-post>video{
+  width:calc(100% - 12px)!important;margin:6px!important;
+  border-radius:24px!important;border:3px solid rgba(255,255,255,.74)!important;
+}
+.daily-with-post-banner{position:relative;z-index:2;margin:10px 6px 6px;padding:14px 15px;border-radius:22px;background:rgba(255,255,255,.86);color:#45394e;border:1px solid rgba(255,255,255,.7)}
+.daily-with-post-banner .label{display:block;margin-bottom:4px;color:#745fa5;font-size:8px;font-weight:900;letter-spacing:.18em}
+.daily-with-post-banner strong{display:block;font-size:12px;line-height:1.5}
+html.withlog-dark .daily-with-card::before,html.withlog-dark .with-daily-post::before{opacity:.72;filter:saturate(.85) brightness(.72)}
+html.withlog-dark .daily-with-card{color:#f6f2f7;border-color:#494850!important;background:#2f3035!important}
+html.withlog-dark .daily-with-kicker{background:rgba(45,46,52,.84);color:#ded1ff}
+html.withlog-dark .daily-with-date,html.withlog-dark .daily-with-sub{color:#c5becb}
+html.withlog-dark .daily-with-question{color:#fff9ff}
+html.withlog-dark .daily-with-join{background:#8a73ca!important;color:#fff!important}
+html.withlog-dark .with-daily-post{
+  background:
+    radial-gradient(circle at 5% 12%,rgba(195,164,78,.48) 0 34px,transparent 35px),
+    radial-gradient(circle at 92% 10%,rgba(82,151,139,.46) 0 42px,transparent 43px),
+    radial-gradient(circle at 16% 82%,rgba(105,109,178,.46) 0 50px,transparent 51px),
+    radial-gradient(circle at 86% 78%,rgba(168,91,118,.44) 0 58px,transparent 59px),
+    linear-gradient(135deg,#49412f 0%,#41394e 30%,#30463f 62%,#4b343c 100%)!important;
+  border-color:#5a5660!important;
+}
+html.withlog-dark .with-daily-post::after{background:rgba(47,48,54,.90);color:#e1d3ff}
+html.withlog-dark .with-daily-post>div:first-child,html.withlog-dark .with-daily-post>div:last-child{background:rgba(43,44,49,.88)!important}
+html.withlog-dark .with-daily-post>img,html.withlog-dark .with-daily-post>video{border-color:rgba(75,76,84,.86)!important}
+html.withlog-dark .daily-with-post-banner{background:rgba(48,49,55,.90);color:#f8f3fa;border-color:#51525a}
+html.withlog-dark .daily-with-post-banner .label{color:#d7c6ff}
+@media(max-width:560px){.daily-with-card{min-height:175px;padding:18px;border-radius:28px}.daily-with-question{max-width:100%;font-size:18px}.daily-with-join{align-self:stretch;width:100%}.daily-with-post-banner{margin:10px 10px 0;border-radius:18px}}
+</style>
+
+<style id="withlog-daily-with-special-post-v2">
+/* TODAY'S WITH posts: make the whole post feel like a daily limited-edition card. */
+.with-daily-post {
+  background:
+    radial-gradient(circle at 8% 8%, rgba(255, 226, 89, .76) 0 38px, transparent 39px),
+    radial-gradient(circle at 88% 11%, rgba(163, 184, 255, .62) 0 48px, transparent 49px),
+    radial-gradient(circle at 18% 38%, rgba(255, 170, 200, .54) 0 56px, transparent 57px),
+    radial-gradient(circle at 78% 43%, rgba(128, 221, 198, .54) 0 45px, transparent 46px),
+    radial-gradient(circle at 38% 70%, rgba(182, 158, 241, .46) 0 52px, transparent 53px),
+    radial-gradient(circle at 92% 82%, rgba(255, 196, 137, .50) 0 58px, transparent 59px),
+    radial-gradient(circle at 12% 90%, rgba(132, 216, 231, .50) 0 42px, transparent 43px),
+    linear-gradient(135deg, #fff8d9 0%, #fbe7f1 28%, #e9e4ff 52%, #def7ee 76%, #fff0df 100%) !important;
+  border: 2px solid rgba(132, 104, 175, .16) !important;
+  padding-bottom: 10px;
+}
+.with-daily-post::before {
+  background:
+    radial-gradient(circle at 30% 12%, rgba(255,255,255,.48) 0 18px, transparent 19px),
+    radial-gradient(circle at 63% 20%, rgba(255,255,255,.34) 0 26px, transparent 27px),
+    radial-gradient(circle at 52% 48%, rgba(255,255,255,.30) 0 20px, transparent 21px),
+    radial-gradient(circle at 23% 72%, rgba(255,255,255,.28) 0 30px, transparent 31px),
+    radial-gradient(circle at 74% 76%, rgba(255,255,255,.32) 0 23px, transparent 24px) !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+.with-daily-post > div:first-child {
+  margin: 10px 10px 0;
+  padding: 12px 14px !important;
+  border: 0 !important;
+  border-radius: 24px !important;
+  background: rgba(255, 253, 251, .74) !important;
+  backdrop-filter: blur(8px);
+}
+.with-daily-post .daily-with-post-banner {
+  margin: 10px 10px 0;
+  padding: 14px 16px;
+  border: 1px solid rgba(255,255,255,.74);
+  border-radius: 22px;
+  background: rgba(255,255,255,.74) !important;
+  backdrop-filter: blur(8px);
+}
+.with-daily-post .daily-with-post-banner .label {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-bottom: 7px;
+  padding: 6px 9px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #f6d78d, #efc7dd, #cfc3f6, #bfe6d5);
+  color: #4f4262 !important;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .15em;
+}
+.with-daily-post .daily-with-post-banner strong {
+  color: #3f3648;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.with-daily-post > img,
+.with-daily-post > video {
+  display: block;
+  width: calc(100% - 20px) !important;
+  margin: 10px 10px 0;
+  border: 4px solid rgba(255,255,255,.66) !important;
+  border-radius: 30px !important;
+  overflow: hidden;
+}
+.with-daily-post > div:last-child {
+  margin: 10px 10px 0;
+  padding: 14px !important;
+  border: 0 !important;
+  border-radius: 24px !important;
+  background: rgba(255, 253, 251, .70) !important;
+  backdrop-filter: blur(8px);
+}
+.with-daily-post .home-song-card {
+  background: rgba(255,255,255,.72) !important;
+  border: 1px solid rgba(255,255,255,.72) !important;
+}
+
+html.withlog-dark .with-daily-post {
+  background:
+    radial-gradient(circle at 8% 8%, rgba(191, 160, 72, .40) 0 38px, transparent 39px),
+    radial-gradient(circle at 88% 11%, rgba(111, 120, 181, .46) 0 48px, transparent 49px),
+    radial-gradient(circle at 18% 38%, rgba(160, 91, 119, .38) 0 56px, transparent 57px),
+    radial-gradient(circle at 78% 43%, rgba(77, 145, 126, .42) 0 45px, transparent 46px),
+    radial-gradient(circle at 38% 70%, rgba(115, 91, 161, .44) 0 52px, transparent 53px),
+    radial-gradient(circle at 92% 82%, rgba(157, 107, 69, .38) 0 58px, transparent 59px),
+    radial-gradient(circle at 12% 90%, rgba(74, 132, 145, .38) 0 42px, transparent 43px),
+    linear-gradient(135deg, #353127 0%, #352b31 28%, #2f2d3c 52%, #293733 76%, #3a302b 100%) !important;
+  border-color: rgba(211, 196, 229, .18) !important;
+}
+html.withlog-dark .with-daily-post::before {
+  opacity: .55 !important;
+  filter: none !important;
+}
+html.withlog-dark .with-daily-post > div:first-child,
+html.withlog-dark .with-daily-post > div:last-child,
+html.withlog-dark .with-daily-post .daily-with-post-banner {
+  background: rgba(43, 44, 49, .76) !important;
+  border-color: rgba(255,255,255,.08) !important;
+  color: #f6f2f7 !important;
+}
+html.withlog-dark .with-daily-post .daily-with-post-banner .label {
+  background: linear-gradient(90deg, #66583a, #634656, #51496f, #3e6254);
+  color: #f3eaff !important;
+}
+html.withlog-dark .with-daily-post .daily-with-post-banner strong { color: #fff8ff !important; }
+html.withlog-dark .with-daily-post > img,
+html.withlog-dark .with-daily-post > video {
+  border-color: rgba(236, 226, 244, .16) !important;
+}
+html.withlog-dark .with-daily-post .home-song-card {
+  background: rgba(48,49,55,.78) !important;
+  border-color: rgba(255,255,255,.08) !important;
+}
+
+@media (max-width: 560px) {
+  .with-daily-post { padding-bottom: 8px; }
+  .with-daily-post > div:first-child,
+  .with-daily-post .daily-with-post-banner,
+  .with-daily-post > div:last-child { margin-left: 8px; margin-right: 8px; }
+  .with-daily-post > img,
+  .with-daily-post > video { width: calc(100% - 16px) !important; margin-left: 8px; margin-right: 8px; border-radius: 26px !important; }
+}
+</style>
+
+
+<style id="withlog-like-pop-style">
+/* Larger, playful like button. Visual-only change. */
+.tl-post-card button[onclick^="toggleSpotLike"] {
+  min-width: 64px !important;
+  min-height: 46px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 10px 15px !important;
+  border: 0 !important;
+  border-radius: 9999px !important;
+  background: #f2eaff !important;
+  color: #675385 !important;
+  font-size: 14px !important;
+}
+.tl-post-card button[onclick^="toggleSpotLike"] .heart-icon {
+  width: 24px !important;
+  height: 24px !important;
+  stroke-width: 2 !important;
+  color: #745d91 !important;
+  transition: transform .18s ease, color .18s ease, fill .18s ease !important;
+}
+.tl-post-card button[onclick^="toggleSpotLike"] .heart-icon.text-rose-500 {
+  color: #ee789d !important;
+  fill: currentColor !important;
+  transform: scale(1.08);
+}
+.tl-post-card button[onclick^="toggleSpotLike"] .like-count {
+  font-size: 14px !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+  color: #59486f !important;
+}
+.tl-post-card button[onclick^="toggleSpotLike"]:active .heart-icon {
+  transform: scale(1.16);
+}
+@keyframes withlogHeartPop {
+  0%   { transform: scale(1.08); }
+  38%  { transform: scale(1.62) rotate(-7deg); }
+  62%  { transform: scale(.92) rotate(4deg); }
+  82%  { transform: scale(1.18) rotate(-2deg); }
+  100% { transform: scale(1.08) rotate(0); }
+}
+@keyframes withlogLikeCountPop {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.28); }
+  100% { transform: scale(1); }
+}
+.tl-post-card button[onclick^="toggleSpotLike"] .heart-icon.withlog-heart-pop {
+  animation: withlogHeartPop .48s cubic-bezier(.2,.9,.25,1.25) !important;
+  transform-origin: center;
+}
+.tl-post-card button[onclick^="toggleSpotLike"] .like-count.withlog-like-count-pop {
+  animation: withlogLikeCountPop .34s ease-out !important;
+}
+html.withlog-dark .tl-post-card button[onclick^="toggleSpotLike"] {
+  background: #46414f !important;
+  color: #f5eef8 !important;
+  border: 0 !important;
+}
+html.withlog-dark .tl-post-card button[onclick^="toggleSpotLike"] .heart-icon {
+  color: #e6dcef !important;
+}
+html.withlog-dark .tl-post-card button[onclick^="toggleSpotLike"] .heart-icon.text-rose-500 {
+  color: #f59bb8 !important;
+  fill: currentColor !important;
+}
+html.withlog-dark .tl-post-card button[onclick^="toggleSpotLike"] .like-count {
+  color: #f7f2f8 !important;
+}
+@media (max-width: 560px) {
+  .tl-post-card button[onclick^="toggleSpotLike"] {
+    min-width: 62px !important;
+    min-height: 44px !important;
+    padding: 9px 14px !important;
+  }
+  .tl-post-card button[onclick^="toggleSpotLike"] .heart-icon {
+    width: 23px !important;
+    height: 23px !important;
+  }
+}
+</style>
+
+
+<style id="withlog-daily-menu-layer-fix">
+/* Keep the three-dot action menu above the special TODAY'S WITH layers. */
+.with-daily-post > div:first-child {
+  position: relative !important;
+  z-index: 30 !important;
+}
+.with-daily-post .post-action-wrap {
+  position: relative !important;
+  z-index: 60 !important;
+}
+.with-daily-post .post-action-menu {
+  z-index: 999 !important;
+  background: #fffdfb !important;
+}
+html.withlog-dark .with-daily-post .post-action-menu {
+  background: #34353b !important;
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -276,52 +1162,33 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
   <div id="landingView" class="hidden min-h-screen flex flex-col justify-between max-w-md mx-auto p-6">
     <div class="pt-8">
       <div class="inline-block px-3 py-1 bg-slate-900 text-white text-[9px] font-bold tracking-[0.25em] uppercase rounded-full mb-4">
-        Official Travel Journal
+        Everyday Memory App
       </div>
       <h1 class="text-3xl font-extrabold tracking-[0.18em] text-slate-900 leading-tight uppercase">
-        Travel<br>Log.
+        WITHLOG
       </h1>
       <p class="text-xs text-slate-500 mt-2 font-medium tracking-wider">
-        地図と写真で記録する、あなただけの旅路のアーカイブ
+        写真と音楽で残す、あなたの日常の記録
       </p>
     </div>
 
-    <!-- ミニグラフィックカード -->
-    <div class="my-8 navy-card rounded-2xl p-5 bg-white relative overflow-hidden">
-      <div class="text-[10px] font-mono text-slate-400 tracking-widest uppercase mb-1">Passport / Archive #01</div>
-      <div class="text-sm font-bold text-slate-900 mb-3">旅の記憶を鮮明に、シンプルに美しく。</div>
-      <div class="space-y-2 text-xs text-slate-600">
-        <div class="flex items-center gap-2">
-          <span class="w-1.5 h-1.5 bg-slate-900 rounded-full"></span>
-          <span>OpenStreetMap & Google Maps 連携</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="w-1.5 h-1.5 bg-slate-900 rounded-full"></span>
-          <span>お互いのログを共有するフォロー & DM</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="w-1.5 h-1.5 bg-slate-900 rounded-full"></span>
-          <span>日付と写真で振り返るトラベルジャーナル</span>
-        </div>
-      </div>
-    </div>
-
     <!-- 認証フォーム（ログイン / 新規登録） -->
-    <div class="bg-white border-2 border-slate-900 rounded-2xl p-5 shadow-[4px_4px_0px_#0f172a]">
+    <div class="bg-white border-2 border-slate-900 rounded-2xl p-5 ">
       <div class="flex items-center justify-between border-b border-slate-200 pb-2.5 mb-4">
-        <h2 id="gateTitle" class="text-xs font-bold tracking-widest text-slate-900 uppercase">SIGN IN TO YOUR LOG</h2>
+        <h2 id="gateTitle" class="text-xs font-bold tracking-widest text-slate-900 uppercase">SIGN IN TO WITHLOG</h2>
         <span class="text-[10px] font-mono text-slate-400">AUTHENTICATION</span>
       </div>
 
       <form id="gateAuthForm" class="space-y-3">
         <div>
           <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">User ID (@username)</label>
-          <input type="text" id="gateUsername" required class="w-full rounded-xl p-2.5 text-xs navy-input" placeholder="traveler123">
+          <input type="text" id="gateUsername" required class="w-full rounded-xl p-2.5 text-xs navy-input" placeholder="your_name123" autocomplete="username">
+          <p id="gateUsernameRule" class="hidden mt-1.5 text-[10px] leading-relaxed text-slate-400">User IDは半角英数字と「_」のみ使用できます。スペースは使えません（例：your_name123）。</p>
         </div>
 
         <div id="gateDisplayNameContainer" class="hidden">
           <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Display Name (表示名)</label>
-          <input type="text" id="gateDisplayName" class="w-full rounded-xl p-2.5 text-xs navy-input" placeholder="旅するそら">
+          <input type="text" id="gateDisplayName" class="w-full rounded-xl p-2.5 text-xs navy-input" placeholder="そら">
         </div>
 
         <div id="gateEmailContainer" class="hidden">
@@ -334,8 +1201,8 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
           <input type="password" id="gatePassword" required class="w-full rounded-xl p-2.5 text-xs navy-input" placeholder="••••••••">
         </div>
 
-        <button type="submit" id="gateSubmitBtn" class="w-full navy-btn font-bold py-3 rounded-xl text-xs tracking-[0.18em] uppercase shadow-sm mt-1 transition">
-          Enter Travel Log
+        <button type="submit" id="gateSubmitBtn" class="w-full navy-btn font-bold py-3 rounded-xl text-xs tracking-[0.18em] uppercase  mt-1 transition">
+          Enter WITHLOG
         </button>
       </form>
 
@@ -349,7 +1216,7 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
     </div>
 
     <div class="py-6 text-center text-[10px] tracking-widest text-slate-400 font-mono">
-      &copy; 2026 TRAVEL LOG ARCHIVE
+      &copy; 2026 WITHLOG
     </div>
   </div>
 
@@ -362,8 +1229,8 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
     <!-- トップヘッダー -->
     <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md px-5 py-3.5 flex items-center justify-between border-b border-slate-900">
       <div>
-        <h1 class="text-base font-bold tracking-[0.2em] text-slate-900 uppercase cursor-pointer" onclick="switchFeedTab('all')">Travel Log</h1>
-        <p class="text-[9px] tracking-[0.25em] text-slate-500 uppercase font-medium">Archive of Moments</p>
+        <h1 class="text-base font-bold tracking-[0.2em] text-slate-900 uppercase cursor-pointer" onclick="switchFeedTab('all')">WITHLOG</h1>
+        <p class="text-[9px] tracking-[0.25em] text-slate-500 uppercase font-medium">Everyday Moments</p>
       </div>
 
       <div class="flex items-center gap-2.5">
@@ -388,7 +1255,7 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
 
         <div id="authStatusContainer"></div>
 
-        <button id="openModalBtn" class="navy-btn text-[11px] font-semibold tracking-wider px-3.5 py-1.5 rounded-full transition flex items-center gap-1 shadow-sm">
+        <button id="openModalBtn" class="navy-btn text-[11px] font-semibold tracking-wider px-3.5 py-1.5 rounded-full transition flex items-center gap-1 ">
           <span>+</span>
         </button>
       </div>
@@ -413,7 +1280,7 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
 
     <!-- メインコンテンツ -->
     <main class="p-4 flex-1">
-      <div class="tl-filter-card bg-white rounded-xl p-3 mb-5 flex items-center justify-between border border-slate-200 shadow-sm">
+      <div class="tl-filter-card bg-white rounded-xl p-3 mb-5 flex items-center justify-between border border-slate-200 ">
         <div class="flex items-center gap-2">
           <span class="text-[11px] font-bold tracking-wider text-slate-500 uppercase">DATE</span>
           <input type="date" id="dateFilter" class="navy-input rounded-lg px-2.5 py-1 text-xs text-slate-800">
@@ -430,7 +1297,7 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
 
     <!-- ユーザーID検索モーダル -->
     <div id="userSearchModal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
-      <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-5 shadow-2xl">
+      <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-5 ">
         <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
           <h2 class="text-xs font-bold tracking-widest text-slate-900 uppercase">Search Users</h2>
           <button onclick="closeUserSearchModal()" class="text-slate-400 hover:text-slate-900 text-xs font-medium">✕</button>
@@ -450,11 +1317,11 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
 
     <!-- 投稿モーダル -->
     <div id="postModal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div class="bg-white border-2 border-slate-900 w-full max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[92vh] overflow-y-auto p-6 shadow-2xl">
+      <div class="bg-white border-2 border-slate-900 w-full max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[92vh] overflow-y-auto p-6 ">
         <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-5">
           <div>
-            <h2 class="text-sm font-bold tracking-widest text-slate-900 uppercase">New Log</h2>
-            <p class="text-[10px] text-slate-400 font-medium tracking-wider">思い出を記録する</p>
+            <h2 class="text-sm font-bold tracking-widest text-slate-900 uppercase">New Moment</h2>
+            <p class="text-[10px] text-slate-400 font-medium tracking-wider">今日を記録する</p>
           </div>
           <button id="cancelModalBtn" class="text-slate-400 hover:text-slate-900 text-xs px-2 py-1 font-medium transition">✕ キャンセル</button>
         </div>
@@ -466,12 +1333,12 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
               <input type="text" id="searchLocationInput" class="w-full rounded-xl p-2.5 text-xs navy-input placeholder-slate-400" placeholder="地名・スポット名を入力...">
               <button type="button" id="searchLocationBtn" class="navy-btn font-semibold px-4 rounded-xl text-xs tracking-wider transition">Search</button>
             </div>
-            <div id="searchSuggestions" class="hidden mt-2 bg-white rounded-xl border border-slate-200 shadow-lg max-h-40 overflow-y-auto divide-y divide-slate-100 text-xs"></div>
+            <div id="searchSuggestions" class="hidden mt-2 bg-white rounded-xl border border-slate-200  max-h-40 overflow-y-auto divide-y divide-slate-100 text-xs"></div>
           </div>
 
           <div>
-            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Spot Name</label>
-            <input type="text" id="spotNameInput" name="name" required class="w-full rounded-xl p-2.5 text-xs navy-input" placeholder="スポット名">
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Title / Place</label>
+            <input type="text" id="spotNameInput" name="name" required class="w-full rounded-xl p-2.5 text-xs navy-input" placeholder="今日のタイトルや場所">
           </div>
 
           <div>
@@ -497,8 +1364,8 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
           </div>
 
           <div class="pt-3 border-t border-slate-100">
-            <button type="submit" class="w-full navy-btn font-bold py-3 rounded-xl text-xs tracking-[0.15em] uppercase shadow-sm transition">
-              Post Log
+            <button type="submit" class="w-full navy-btn font-bold py-3 rounded-xl text-xs tracking-[0.15em] uppercase  transition">
+              Save Moment
             </button>
           </div>
         </form>
@@ -509,13 +1376,13 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
     <!-- 3. オリジナル・エディトリアル風 プロフィールモーダル     -->
     <!-- ======================================================== -->
     <div id="profileModal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
-      <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-[6px_6px_0px_#0f172a] relative overflow-hidden">
+      <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-6 relative max-h-[88vh] overflow-y-auto">
         
         <!-- ヘッダーライン & 閉じるボタン -->
         <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-900">
           <div class="flex items-center gap-2">
             <span class="w-2 h-2 bg-slate-900"></span>
-            <span class="text-[10px] font-mono tracking-[0.2em] uppercase font-bold text-slate-900">Journalist Profile</span>
+            <span class="text-[10px] font-mono tracking-[0.2em] uppercase font-bold text-slate-900">WITHLOG Profile</span>
           </div>
           <button onclick="closeProfileModal()" class="text-slate-400 hover:text-slate-900 text-xs font-bold">✕</button>
         </div>
@@ -523,16 +1390,16 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
         <!-- 独自性のあるオフセット・カードレイアウト -->
         <div class="space-y-4">
           <!-- カバー写真（額縁風のスクエアカード） -->
-          <div id="profileCover" class="w-full h-28 border border-slate-900 rounded-xl bg-slate-100 bg-cover bg-center relative shadow-sm">
+          <div id="profileCover" class="w-full h-28 border border-slate-900 rounded-xl bg-slate-100 bg-cover bg-center relative ">
             <div class="absolute bottom-2 left-2 passport-badge bg-white/90 backdrop-blur px-2 py-0.5 rounded text-[9px] font-bold text-slate-800">
-              PASSPORT ARCHIVE
+              DAILY MEMORY
             </div>
           </div>
 
           <!-- アイコン & 基本情報 -->
           <div class="flex items-start gap-3.5">
             <!-- 四角いソリッドなアイコンフレーム -->
-            <div id="profileAvatar" class="w-16 h-16 rounded-xl border-2 border-slate-900 bg-slate-100 bg-cover bg-center shrink-0 flex items-center justify-center font-bold text-lg text-slate-800 shadow-[2px_2px_0px_#0f172a]"></div>
+            <div id="profileAvatar" class="w-16 h-16 rounded-xl border-2 border-slate-900 bg-slate-100 bg-cover bg-center shrink-0 flex items-center justify-center font-bold text-lg text-slate-800 "></div>
             
             <div class="flex-1 min-w-0">
               <h2 id="profileDisplayName" class="text-base font-extrabold text-slate-900 leading-tight truncate"></h2>
@@ -550,22 +1417,38 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
 
           <!-- スタッツカウンター（パスポートスタンプ風） -->
           <div class="grid grid-cols-2 gap-2 pt-1 font-mono">
-            <button type="button" onclick="openUserListModal('following')" class="border border-slate-200 rounded-xl p-2.5 text-center bg-white shadow-sm hover:bg-slate-50 transition">
+            <button type="button" onclick="openUserListModal('following')" class="border border-slate-200 rounded-xl p-2.5 text-center bg-white  hover:bg-slate-50 transition">
               <span class="text-[9px] text-slate-400 block tracking-widest uppercase">Following</span>
               <span id="profileFollowingCount" class="text-sm font-black text-slate-900">0</span>
             </button>
-            <button type="button" onclick="openUserListModal('followers')" class="border border-slate-200 rounded-xl p-2.5 text-center bg-white shadow-sm hover:bg-slate-50 transition">
+            <button type="button" onclick="openUserListModal('followers')" class="border border-slate-200 rounded-xl p-2.5 text-center bg-white  hover:bg-slate-50 transition">
               <span class="text-[9px] text-slate-400 block tracking-widest uppercase">Followers</span>
               <span id="profileFollowersCount" class="text-sm font-black text-slate-900">0</span>
             </button>
           </div>
+
+          <!-- 自分のプロフィールだけに表示する設定 -->
+          <section id="profileSettingsSection" class="hidden pt-2">
+            <div class="flex items-center gap-2 mb-2 px-1">
+              <span class="w-2 h-2 rounded-full bg-slate-500"></span>
+              <span class="text-[10px] font-black tracking-[0.18em] text-slate-500 uppercase">Settings</span>
+            </div>
+            <label class="withlog-setting-row">
+              <span class="min-w-0">
+                <span class="withlog-setting-title">ダークモード</span>
+                <span class="withlog-setting-desc">ダークグレーを基調に画面全体を切り替えます</span>
+              </span>
+              <input id="darkModeToggle" type="checkbox" class="sr-only" aria-label="ダークモード">
+              <span class="withlog-theme-switch" aria-hidden="true"><span></span></span>
+            </label>
+          </section>
         </div>
       </div>
     </div>
 
     <!-- プロフィール編集モーダル -->
     <div id="editProfileModal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
-      <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl">
+      <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-6 ">
         <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
           <h2 class="text-sm font-bold tracking-widest text-slate-900 uppercase">Edit Profile</h2>
           <button onclick="closeEditProfileModal()" class="text-slate-400 hover:text-slate-900 text-xs font-medium">✕</button>
@@ -603,7 +1486,7 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
 
     <!-- フォロー / フォロワー一覧 -->
     <div id="userListModal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
-      <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-5 shadow-2xl">
+      <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-5 ">
         <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
           <h2 id="userListModalTitle" class="text-xs font-bold tracking-widest text-slate-900 uppercase">Users</h2>
           <button onclick="closeUserListModal()" class="text-slate-400 hover:text-slate-900 text-xs font-medium">✕</button>
@@ -614,7 +1497,7 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
 
     <!-- 通知 / フォロー申請 -->
     <div id="notificationsModal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
-      <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-5 shadow-2xl max-h-[82vh] overflow-y-auto">
+      <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-5  max-h-[82vh] overflow-y-auto">
         <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
           <h2 class="text-xs font-bold tracking-widest text-slate-900 uppercase">Notifications</h2>
           <button onclick="closeNotificationsModal()" class="text-slate-400 hover:text-slate-900 text-xs font-medium">✕</button>
@@ -639,7 +1522,7 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
 
     <!-- DM 会話一覧モーダル -->
     <div id="conversationsModal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
-      <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-5 shadow-2xl">
+      <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-5 ">
         <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
           <h2 class="text-xs font-bold tracking-widest text-slate-900 uppercase">Messages</h2>
           <button onclick="closeConversationsModal()" class="text-slate-400 hover:text-slate-900 text-xs font-medium">✕</button>
@@ -652,7 +1535,7 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
 
     <!-- DM チャットモーダル -->
     <div id="dmModal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
-      <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl h-[520px] flex flex-col shadow-2xl overflow-hidden">
+      <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl h-[520px] flex flex-col  overflow-hidden">
         <div class="px-4 py-3 border-b border-slate-900 flex items-center justify-between bg-slate-50">
           <div class="flex items-center gap-2">
             <span class="text-xs font-bold text-slate-900" id="dmPartnerTitle">Chat</span>
@@ -672,6 +1555,26 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
   </div>
 
   <script>
+    function withlogIsDarkMode() {
+      return document.documentElement.classList.contains('withlog-dark');
+    }
+
+    function applyWithlogTheme(theme, persist = true) {
+      const dark = theme === 'dark';
+      document.documentElement.classList.toggle('withlog-dark', dark);
+      if (persist) {
+        try { localStorage.setItem('withlog_theme', dark ? 'dark' : 'light'); } catch (_) {}
+      }
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', dark ? '#202126' : '#eee7e6');
+      const toggle = document.getElementById('darkModeToggle');
+      if (toggle) toggle.checked = dark;
+    }
+
+    window.setWithlogDarkMode = function(enabled) {
+      applyWithlogTheme(enabled ? 'dark' : 'light', true);
+    };
+
     let currentFeedTab = 'all';
     let currentUser = null;
     let activeDmPartner = null;
@@ -680,6 +1583,7 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
     let notificationTimer = null;
     let map = null;
     let currentMarker = null;
+    const spotMenuData = new Map();
 
     const landingView = document.getElementById('landingView');
     const appView = document.getElementById('appView');
@@ -738,11 +1642,15 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
       if (user) {
         c.innerHTML = `
           <div class="flex items-center gap-2">
-            <button onclick="openProfile('${user.username}')" class="navy-btn-outline text-[10px] font-bold tracking-wider px-3 py-1 rounded-full flex items-center gap-1 transition">
-              <span>👤</span><span>Account</span>
+            <button onclick="openProfile('${user.username}')" class="withlog-header-icon withlog-account-icon" title="アカウント" aria-label="アカウント">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M15.75 6.75a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.25a7.5 7.5 0 0 1 15 0"/>
+              </svg>
             </button>
-            <button onclick="logout()" class="text-[9px] font-bold tracking-wider text-slate-400 hover:text-slate-900 uppercase transition">
-              LOGOUT
+            <button onclick="logout()" class="withlog-header-icon withlog-logout-icon" title="ログアウト" aria-label="ログアウト">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M15.75 9V5.625A2.625 2.625 0 0 0 13.125 3h-6.75A2.625 2.625 0 0 0 3.75 5.625v12.75A2.625 2.625 0 0 0 6.375 21h6.75a2.625 2.625 0 0 0 2.625-2.625V15M18 15l3-3m0 0-3-3m3 3H9"/>
+              </svg>
             </button>
           </div>
         `;
@@ -777,6 +1685,7 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
     const gateAuthForm = document.getElementById('gateAuthForm');
     const gateStatusMessage = document.getElementById('gateStatusMessage');
     const gateUsername = document.getElementById('gateUsername');
+    const gateUsernameRule = document.getElementById('gateUsernameRule');
     const gatePassword = document.getElementById('gatePassword');
     const gateEmail = document.getElementById('gateEmail');
     const gateDisplayName = document.getElementById('gateDisplayName');
@@ -806,20 +1715,24 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
       isGateRegisterMode = registerMode;
 
       if (registerMode) {
-        gateTitle.innerText = 'CREATE TRAVEL ARCHIVE';
+        gateTitle.innerText = 'CREATE WITHLOG ACCOUNT';
         gateSubmitBtn.innerText = 'Create Account';
         gateEmailContainer.classList.remove('hidden');
         gateDisplayNameContainer.classList.remove('hidden');
         gateEmail.required = true;
         gateDisplayName.required = true;
+        gateUsername.placeholder = 'your_name123';
+        gateUsernameRule?.classList.remove('hidden');
         gateToggleBtn.innerText = 'すでにアカウントをお持ちの方はこちら（ログイン）';
       } else {
-        gateTitle.innerText = 'SIGN IN TO YOUR LOG';
-        gateSubmitBtn.innerText = 'Enter Travel Log';
+        gateTitle.innerText = 'SIGN IN TO WITHLOG';
+        gateSubmitBtn.innerText = 'Enter WITHLOG';
         gateEmailContainer.classList.add('hidden');
         gateDisplayNameContainer.classList.add('hidden');
         gateEmail.required = false;
         gateDisplayName.required = false;
+        gateUsername.placeholder = 'yourname123';
+        gateUsernameRule?.classList.add('hidden');
         gateToggleBtn.innerText = 'アカウントを新規作成する';
       }
     }
@@ -922,13 +1835,32 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
     gateAuthForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const username = gateUsername.value.trim();
+      const rawUsername = gateUsername.value;
+      const username = rawUsername.trim();
       const password = gatePassword.value;
       const email = gateEmail.value.trim();
       const displayName = gateDisplayName.value.trim();
 
       if (!username) {
         setGateStatus('User ID を入力してください。', 'error');
+        gateUsername.focus();
+        return;
+      }
+
+      if (isGateRegisterMode && /\s/.test(rawUsername)) {
+        setGateStatus('User IDにスペースは使用できません。スペースの代わりに「_」を使用してください。', 'error');
+        gateUsername.focus();
+        return;
+      }
+
+      if (isGateRegisterMode && !/^[A-Za-z0-9_]+$/.test(username)) {
+        setGateStatus('User IDに使用できるのは半角英数字と「_」のみです。', 'error');
+        gateUsername.focus();
+        return;
+      }
+
+      if (isGateRegisterMode && username.length > 50) {
+        setGateStatus('User IDは50文字以内で入力してください。', 'error');
         gateUsername.focus();
         return;
       }
@@ -1042,7 +1974,7 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
         if (isGateRegisterMode) {
           gateSubmitBtn.innerText = 'Create Account';
         } else {
-          gateSubmitBtn.innerText = 'Enter Travel Log';
+          gateSubmitBtn.innerText = 'Enter WITHLOG';
         }
       }
     });
@@ -1117,7 +2049,7 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
 
         bar.innerHTML = users.map(u => `
           <button type="button" onclick="openProfile('${escapeHtml(u.username)}')" class="shrink-0 w-[72px] text-center group">
-            <span class="mx-auto w-12 h-12 rounded-2xl border-2 ${u.has_recent_spot ? 'border-rose-300' : 'border-slate-200'} bg-slate-100 bg-cover bg-center flex items-center justify-center text-xs font-black shadow-sm"
+            <span class="mx-auto w-12 h-12 rounded-2xl border-2 ${u.has_recent_spot ? 'border-rose-300' : 'border-slate-200'} bg-slate-100 bg-cover bg-center flex items-center justify-center text-xs font-black "
               ${u.avatar_url ? `style="background-image:url('${escapeHtml(u.avatar_url)}')"` : ''}>
               ${u.avatar_url ? '' : escapeHtml((u.display_name || u.username).charAt(0).toUpperCase())}
             </span>
@@ -1326,6 +2258,31 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
         .replaceAll("'", '&#039;');
     }
 
+
+    const DAILY_WITH_PROMPTS = [
+      '今日いちばん笑ったことは？','今日食べたもので一番おいしかったものは？','今日見つけた小さな幸せは？',
+      '今の気分を写真1枚で表すなら？','今日いちばん頑張ったことは？','今日の空はどんな色？',
+      '今日、誰かに「ありがとう」と思ったことは？','今日のベストショットは？','今日いちばん落ち着いた瞬間は？',
+      '今日の自分にひとこと！','今日買ってよかったものは？','今日の服でお気に入りのポイントは？',
+      '今日いちばん印象に残った場所は？','今日のごほうびは？','今日いちばん驚いたことは？',
+      '今、目の前にある好きなものは？','今日の夜に残したい景色は？','今日初めて知ったことは？',
+      '今日の「またやりたい！」は？','今日の気分を色で表すなら？','今日の一曲を選ぶなら？',
+      '明日の自分に残したい一言は？','今日いちばん心に残った会話は？','今日の自分をほめるなら、どこ？'
+    ];
+    function getLocalDayKey(date=new Date()){const y=date.getFullYear();const m=String(date.getMonth()+1).padStart(2,'0');const d=String(date.getDate()).padStart(2,'0');return `${y}-${m}-${d}`;}
+    function getDailyWithPrompt(dayKey=getLocalDayKey()){const seed=`${dayKey}:${currentUser?.username||'withlog'}`;let hash=2166136261;for(let i=0;i<seed.length;i+=1){hash^=seed.charCodeAt(i);hash=Math.imul(hash,16777619);}return DAILY_WITH_PROMPTS[Math.abs(hash)%DAILY_WITH_PROMPTS.length];}
+    function parseDailyWithMemo(memoValue){const raw=String(memoValue||'');const marker=/\[\[WITH_DAILY:(\d{4}-\d{2}-\d{2}):([^\]]+)\]\]/;const match=raw.match(marker);if(!match)return{memo:raw,prompt:null,day:null};let prompt='';try{prompt=decodeURIComponent(match[2]);}catch(_){prompt=match[2];}return{memo:raw.replace(marker,'').replace(/\n{3,}/g,'\n\n').trim(),prompt,day:match[1]};}
+    function renderDailyWithCard(prompt,dayKey){const prettyDay=dayKey.replaceAll('-','.');return `
+      <section class="daily-with-card" aria-label="今日のWITH">
+        <div>
+          <div class="daily-with-topline"><span class="daily-with-kicker">● TODAY'S WITH</span><span class="daily-with-date">${escapeHtml(prettyDay)}</span></div>
+          <h2 class="daily-with-question">${escapeHtml(prompt)}</h2>
+          <p class="daily-with-sub">今日のあなたを、写真・音楽・場所と一緒に残してみよう。</p>
+        </div>
+        <button type="button" class="daily-with-join" data-prompt="${escapeHtml(prompt)}" data-day="${escapeHtml(dayKey)}" onclick="joinDailyWithFromButton(this)">WITHに参加！</button>
+      </section>`;}
+    window.joinDailyWithFromButton=function(button){const prompt=button?.dataset?.prompt||'';const day=button?.dataset?.day||getLocalDayKey();const params=new URLSearchParams({with_prompt:prompt,with_day:day});window.location.href=`/static/add.html?${params.toString()}`;};
+
     function parseSpotMusic(memoValue) {
       const raw = String(memoValue || '');
       const lines = raw.split(/\r?\n/);
@@ -1481,25 +2438,45 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
       const res = await fetch(url, { headers: token ? { 'Authorization': `Bearer ${token}` } : {} });
       const spots = await res.json();
 
+      const dailyDay = getLocalDayKey();
+      const dailyPrompt = getDailyWithPrompt(dailyDay);
+      const dailyCard = date ? '' : renderDailyWithCard(dailyPrompt, dailyDay);
+
       if (spots.length === 0) {
-        feedEl.innerHTML = `
+        feedEl.innerHTML = `${dailyCard}
           <div class="text-center py-16 border border-dashed border-slate-300 rounded-2xl bg-white/50">
-            <p class="text-xs text-slate-400 tracking-[0.2em] font-semibold uppercase">No Logs Archived</p>
-          </div>
-        `;
+            <p class="text-xs text-slate-400 tracking-[0.2em] font-semibold uppercase">No Moments Yet</p>
+          </div>`;
         return;
       }
 
-      feedEl.innerHTML = spots.map(s => {
+      spotMenuData.clear();
+      spots.forEach(s => {
+        spotMenuData.set(String(s.id), {
+          id: String(s.id),
+          name: s.name || 'WITHLOGの投稿',
+          username: s.username || '',
+          mapUrl: s.google_map_url || ''
+        });
+      });
+
+      feedEl.innerHTML = spots.map((s, index) => {
         const visitDate = new Date(s.visited_at);
         const dateText = `${visitDate.getFullYear()}.${String(visitDate.getMonth() + 1).padStart(2, '0')}.${String(visitDate.getDate()).padStart(2, '0')}`;
         const timeText = visitDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         const avatarBg = s.author_avatar_url ? `style="background-image: url('${s.author_avatar_url}')"` : '';
-        const parsedMemo = parseSpotMusic(s.memo);
+        const dailyMeta = parseDailyWithMemo(s.memo);
+        const parsedMemo = parseSpotMusic(dailyMeta.memo);
         const musicCard = renderHomeSongCard(parsedMemo.music);
+        const dailyClass = dailyMeta.prompt ? ' with-daily-post' : '';
+        const dailyBanner = dailyMeta.prompt ? `
+          <div class="daily-with-post-banner">
+            <span class="label">● TODAY'S WITH · ${escapeHtml((dailyMeta.day || '').replaceAll('-', '.'))}</span>
+            <strong>${escapeHtml(dailyMeta.prompt)}</strong>
+          </div>` : '';
 
-        return `
-          <article class="navy-card tl-post-card rounded-2xl overflow-hidden">
+        const postHtml = `
+          <article id="spot-${s.id}" class="navy-card tl-post-card rounded-2xl overflow-hidden${dailyClass}">
             <div class="px-4 py-3 flex items-center justify-between border-b border-slate-900 bg-white">
               <div class="flex items-center gap-2.5 cursor-pointer" onclick="openProfile('${s.username}')">
                 <div class="w-8 h-8 rounded-lg bg-slate-200 bg-cover bg-center border border-slate-400 flex items-center justify-center font-bold text-xs" ${avatarBg}>
@@ -1514,17 +2491,32 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
                 </div>
               </div>
 
-              <div class="flex items-center gap-2">
-                <a href="${s.google_map_url}" target="_blank" rel="noopener noreferrer" class="navy-btn-outline tl-map-btn text-[10px] font-bold tracking-wider px-2.5 py-1 rounded-full flex items-center gap-1 font-mono">
-                  <span>MAP</span><span>↗</span>
-                </a>
-                ${currentUser && currentUser.username === s.username ? `
-                  <button onclick="deleteSpot('${s.id}')" class="text-slate-300 hover:text-rose-600 p-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              <div class="post-action-wrap">
+                <button type="button" class="post-action-btn" onclick="togglePostMenu(event, '${s.id}')" aria-label="投稿メニュー" aria-expanded="false">
+                  <svg fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="5" cy="12" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle>
+                  </svg>
+                </button>
+                <div id="post-menu-${s.id}" class="post-action-menu" role="menu">
+                  <button type="button" class="post-action-item is-map" onclick="openSpotMap('${s.id}')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 21s6-5.33 6-11a6 6 0 10-12 0c0 5.67 6 11 6 11z"/><circle cx="12" cy="10" r="2"/></svg>
+                    <span>マップ詳細</span>
                   </button>
-                ` : ''}
+                  <button type="button" class="post-action-item is-share" onclick="shareSpot('${s.id}')">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8.5 12.5l7-4m-7 3l7 4M6 14.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5zm12-6a2.5 2.5 0 110-5 2.5 2.5 0 010 5zm0 12a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
+                    <span>共有リンク</span>
+                  </button>
+                  ${currentUser && currentUser.username === s.username ? `
+                    <button type="button" class="post-action-item is-delete" onclick="deleteSpotFromMenu('${s.id}')">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 7h16m-10 4v6m4-6v6m1-10V4H9v3m-2 0 1 14h8l1-14"/></svg>
+                      <span>削除</span>
+                    </button>
+                  ` : ''}
+                </div>
               </div>
             </div>
+
+            ${dailyBanner}
 
             ${s.media_url ? (
               s.media_type === 'video' 
@@ -1547,9 +2539,15 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
             </div>
           </article>
         `;
+        return index === 0 && dailyCard ? `${postHtml}${dailyCard}` : postHtml;
       }).join('');
 
       wireHomeSongPlayers();
+
+      if (window.location.hash && window.location.hash.startsWith('#spot-')) {
+        const target = document.getElementById(window.location.hash.slice(1));
+        if (target) setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 80);
+      }
     }
 
     // --- いいね処理 ---
@@ -1568,8 +2566,20 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
         countEl.innerText = data.likes_count;
         if (data.liked) {
           heart.classList.add('text-rose-500', 'fill-current');
+
+          // いいねした瞬間だけ、ハートがポンッと大きくなる演出。
+          heart.classList.remove('withlog-heart-pop');
+          countEl.classList.remove('withlog-like-count-pop');
+          void heart.offsetWidth;
+          heart.classList.add('withlog-heart-pop');
+          countEl.classList.add('withlog-like-count-pop');
+          window.setTimeout(() => {
+            heart.classList.remove('withlog-heart-pop');
+            countEl.classList.remove('withlog-like-count-pop');
+          }, 520);
         } else {
-          heart.classList.remove('text-rose-500', 'fill-current');
+          heart.classList.remove('text-rose-500', 'fill-current', 'withlog-heart-pop');
+          countEl.classList.remove('withlog-like-count-pop');
         }
       }
     };
@@ -1603,7 +2613,13 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
       coverEl.style.backgroundImage = user.cover_url ? `url('${user.cover_url}')` : 'none';
 
       const act = document.getElementById('profileActionContainer');
-      if (currentUser && currentUser.username === user.username) {
+      const isOwnProfile = !!(currentUser && currentUser.username === user.username);
+      const settingsSection = document.getElementById('profileSettingsSection');
+      if (settingsSection) settingsSection.classList.toggle('hidden', !isOwnProfile);
+      const darkToggle = document.getElementById('darkModeToggle');
+      if (darkToggle) darkToggle.checked = withlogIsDarkMode();
+
+      if (isOwnProfile) {
         act.innerHTML = `<button onclick="openEditProfile()" class="navy-btn-outline text-[10px] font-bold px-3 py-1 rounded-full">EDIT PROFILE</button>`;
       } else {
         const status = user.follow_status || (user.is_following ? 'following' : 'none');
@@ -1687,6 +2703,15 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
         loadStories();
       }
     });
+
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    if (darkModeToggle) {
+      darkModeToggle.checked = withlogIsDarkMode();
+      darkModeToggle.addEventListener('change', () => {
+        window.setWithlogDarkMode(darkModeToggle.checked);
+      });
+    }
+    applyWithlogTheme(withlogIsDarkMode() ? 'dark' : 'light', false);
 
     // --- DM（リアルタイム + 削除） ---
     function connectDmWebSocket() {
@@ -1780,6 +2805,71 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
         input.value = '';
         await loadDmMessages();
       }
+    });
+
+    // --- 投稿の3点メニュー ---
+    window.closeAllPostMenus = function() {
+      document.querySelectorAll('.post-action-menu.is-open').forEach(menu => menu.classList.remove('is-open'));
+      document.querySelectorAll('.post-action-btn[aria-expanded="true"]').forEach(btn => btn.setAttribute('aria-expanded', 'false'));
+    };
+
+    window.togglePostMenu = function(event, spotId) {
+      event.preventDefault();
+      event.stopPropagation();
+      const menu = document.getElementById(`post-menu-${spotId}`);
+      if (!menu) return;
+      const shouldOpen = !menu.classList.contains('is-open');
+      closeAllPostMenus();
+      if (shouldOpen) {
+        menu.classList.add('is-open');
+        const btn = event.currentTarget;
+        if (btn) btn.setAttribute('aria-expanded', 'true');
+      }
+    };
+
+    window.openSpotMap = function(spotId) {
+      closeAllPostMenus();
+      const data = spotMenuData.get(String(spotId));
+      if (!data || !data.mapUrl) {
+        alert('この投稿にはマップ情報がありません。');
+        return;
+      }
+      window.open(data.mapUrl, '_blank', 'noopener,noreferrer');
+    };
+
+    window.shareSpot = async function(spotId) {
+      closeAllPostMenus();
+      const data = spotMenuData.get(String(spotId));
+      const shareUrl = new URL(window.location.href);
+      shareUrl.hash = `spot-${spotId}`;
+      const title = data?.name || 'WITHLOGの投稿';
+      const text = data?.username ? `${data.username}さんのWITHLOG「${title}」` : `WITHLOG「${title}」`;
+
+      try {
+        if (navigator.share) {
+          await navigator.share({ title, text, url: shareUrl.toString() });
+          return;
+        }
+        await navigator.clipboard.writeText(shareUrl.toString());
+        alert('共有リンクをコピーしました。');
+      } catch (error) {
+        if (error && error.name === 'AbortError') return;
+        try {
+          await navigator.clipboard.writeText(shareUrl.toString());
+          alert('共有リンクをコピーしました。');
+        } catch (_) {
+          prompt('このリンクをコピーしてください。', shareUrl.toString());
+        }
+      }
+    };
+
+    window.deleteSpotFromMenu = function(spotId) {
+      closeAllPostMenus();
+      deleteSpot(spotId);
+    };
+
+    document.addEventListener('click', (event) => {
+      if (!event.target.closest('.post-action-wrap')) closeAllPostMenus();
     });
 
     // --- 投稿削除 ---

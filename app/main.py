@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import shutil
 import time
 import traceback
@@ -14,6 +15,7 @@ from fastapi import (
     Form,
     HTTPException,
     Query,
+    Request,
     UploadFile,
     WebSocket,
     WebSocketDisconnect,
@@ -26,6 +28,7 @@ from jose import jwt
 from pydantic import BaseModel
 from shapely.geometry import Point
 from sqlalchemy import and_, desc, func, or_, text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.database import Base, engine, get_db
@@ -56,6 +59,79 @@ class PrivacyUpdate(BaseModel):
 class FollowDecision(BaseModel):
     target_username: str
     action: str
+
+
+USERNAME_PATTERN = re.compile(r"^[A-Za-z0-9_]+$")
+
+
+def validate_new_username(raw_username: str) -> str:
+    raw_username = raw_username or ""
+    if re.search(r"\s", raw_username):
+        raise HTTPException(
+            status_code=400,
+            detail='User IDにスペースは使用できません。スペースの代わりに「_」を使用してください。',
+        )
+
+    username = raw_username.strip()
+    if not username:
+        raise HTTPException(status_code=400, detail="User IDを入力してください。")
+    if len(username) > 50:
+        raise HTTPException(status_code=400, detail="User IDは50文字以内で入力してください。")
+    if not USERNAME_PATTERN.fullmatch(username):
+        raise HTTPException(
+            status_code=400,
+            detail='User IDに使用できるのは半角英数字と「_」のみです。',
+        )
+    return username
+
+def find_user_by_username_exact_ci(db: Session, raw_username: str) -> Optional[User]:
+    """Case-insensitive exact username lookup.
+
+    Do not use ILIKE for login/profile lookups because SQL treats '_' as
+    a single-character wildcard. For example, 'OKEYA_RUI' could otherwise
+    match an older account named 'OKEYA RUI'.
+    """
+    username = (raw_username or "").strip()
+    if not username:
+        return None
+    return db.query(User).filter(func.lower(User.username) == username.lower()).first()
+
+
+def _current_user_from_request(request: Request, db: Session) -> Optional[User]:
+    """Resolve the JWT subject with exact, case-insensitive username matching."""
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        return None
+
+    token = auth_header.split(" ", 1)[1].strip()
+    if not token:
+        return None
+
+    secret_key = getattr(auth_module, "SECRET_KEY", None) or os.getenv("SECRET_KEY", "")
+    algorithm = getattr(auth_module, "ALGORITHM", None) or os.getenv("JWT_ALGORITHM", "HS256")
+    if not secret_key:
+        return None
+
+    try:
+        payload = jwt.decode(token, secret_key, algorithms=[algorithm])
+        username = payload.get("sub")
+        if not username:
+            return None
+        return find_user_by_username_exact_ci(db, username)
+    except Exception:
+        return None
+
+
+def get_current_user(request: Request, db: Session = Depends(get_db)) -> Optional[User]:
+    return _current_user_from_request(request, db)
+
+
+def require_current_user(request: Request, db: Session = Depends(get_db)) -> User:
+    user = _current_user_from_request(request, db)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="認証が必要です")
+    return user
+
 
 
 def migrate_social_features():
@@ -108,7 +184,7 @@ for i in range(10):
         time.sleep(2)
 
 
-app = FastAPI(title="Travel Log API")
+app = FastAPI(title="WITHLOG API")
 
 upload_dir = "static/uploads"
 os.makedirs(upload_dir, exist_ok=True)
@@ -212,9 +288,16 @@ def add_notification(
 
 @app.post("/auth/register", response_model=TokenResponse)
 def register(user_in: UserRegister, db: Session = Depends(get_db)):
-    username = user_in.username.strip()
-    if db.query(User).filter(or_(User.username == username, User.username.ilike(username))).first():
-        raise HTTPException(status_code=400, detail="このIDは既に使われています")
+    username = validate_new_username(user_in.username)
+
+    # User ID is unique regardless of upper/lower case.
+    existing_user = db.query(User).filter(func.lower(User.username) == username.lower()).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=400,
+            detail="このUser IDはすでに使用されています。別のIDを入力してください。",
+        )
+
     if db.query(User).filter(User.email == user_in.email).first():
         raise HTTPException(status_code=400, detail="このメールアドレスは既に使われています")
 
@@ -226,7 +309,14 @@ def register(user_in: UserRegister, db: Session = Depends(get_db)):
         is_private=False,
     )
     db.add(user)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail="このUser IDまたはメールアドレスはすでに使用されています。",
+        )
     db.refresh(user)
 
     token = create_access_token(data={"sub": user.username})
@@ -236,7 +326,7 @@ def register(user_in: UserRegister, db: Session = Depends(get_db)):
 @app.post("/auth/login", response_model=TokenResponse)
 def login(user_in: UserLogin, db: Session = Depends(get_db)):
     username = user_in.username.strip()
-    user = db.query(User).filter(or_(User.username == username, User.username.ilike(username))).first()
+    user = find_user_by_username_exact_ci(db, username)
     if not user or not verify_password(user_in.password, user.hashed_password):
         raise HTTPException(status_code=400, detail="IDまたはパスワードが正しくありません")
 
@@ -285,7 +375,7 @@ def get_user_profile(
     db: Session = Depends(get_db),
 ):
     clean = username.strip()
-    user = db.query(User).filter(or_(User.username == clean, User.username.ilike(clean))).first()
+    user = find_user_by_username_exact_ci(db, clean)
     if not user:
         raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
     return build_extended_profile(user, current_user, db)
@@ -335,7 +425,7 @@ def toggle_follow(
     db: Session = Depends(get_db),
 ):
     clean = username.strip()
-    target_user = db.query(User).filter(or_(User.username == clean, User.username.ilike(clean))).first()
+    target_user = find_user_by_username_exact_ci(db, clean)
     if not target_user:
         raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
     if target_user.id == current_user.id:
@@ -434,7 +524,7 @@ def handle_follow_decision(
     db: Session = Depends(get_db),
 ):
     clean = payload.target_username.strip()
-    sender = db.query(User).filter(or_(User.username == clean, User.username.ilike(clean))).first()
+    sender = find_user_by_username_exact_ci(db, clean)
     if not sender:
         raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
 
@@ -473,7 +563,7 @@ def get_followers(user_id: str, db: Session = Depends(get_db)):
     try:
         target = db.query(User).filter(User.id == uuid.UUID(clean)).first()
     except ValueError:
-        target = db.query(User).filter(or_(User.username == clean, User.username.ilike(clean))).first()
+        target = find_user_by_username_exact_ci(db, clean)
     if not target:
         raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
 
@@ -501,7 +591,7 @@ def get_following(user_id: str, db: Session = Depends(get_db)):
     try:
         target = db.query(User).filter(User.id == uuid.UUID(clean)).first()
     except ValueError:
-        target = db.query(User).filter(or_(User.username == clean, User.username.ilike(clean))).first()
+        target = find_user_by_username_exact_ci(db, clean)
     if not target:
         raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
 
@@ -657,7 +747,7 @@ def get_spots(
         query = query.filter(Spot.user_id.in_(following_ids))
     elif feed_type == "user" and target_username:
         clean = target_username.strip()
-        author = db.query(User).filter(or_(User.username == clean, User.username.ilike(clean))).first()
+        author = find_user_by_username_exact_ci(db, clean)
         if author:
             query = query.filter(Spot.user_id == author.id)
         else:
@@ -839,7 +929,7 @@ def get_messages(
     db: Session = Depends(get_db),
 ):
     clean = partner_username.strip()
-    partner = db.query(User).filter(or_(User.username == clean, User.username.ilike(clean))).first()
+    partner = find_user_by_username_exact_ci(db, clean)
     if not partner:
         raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
 
@@ -871,7 +961,7 @@ async def send_message(
     db: Session = Depends(get_db),
 ):
     clean = msg_in.recipient_username.strip()
-    recipient = db.query(User).filter(or_(User.username == clean, User.username.ilike(clean))).first()
+    recipient = find_user_by_username_exact_ci(db, clean)
     if not recipient:
         raise HTTPException(status_code=404, detail="送信先のユーザーが見つかりません")
 
@@ -940,7 +1030,7 @@ async def websocket_dm_endpoint(
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
             return
 
-        user = db.query(User).filter(or_(User.username == username, User.username.ilike(username))).first()
+        user = find_user_by_username_exact_ci(db, username)
         if not user:
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
             return

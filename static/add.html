@@ -4,8 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#eee7e6" />
-  <title>Photo Diary | 今日の1曲</title>
+  <title>WITHLOG | 今日の記録</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" />
   <style>
 :root {
   font-family: Inter, "Noto Sans JP", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -70,7 +71,7 @@ svg { display: block; }
   background: var(--paper);
   backdrop-filter: blur(22px) saturate(115%);
   -webkit-backdrop-filter: blur(22px) saturate(115%);
-  box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.7);
+  box-shadow: none !important;
 }
 .card {
   position: relative;
@@ -127,7 +128,7 @@ h2 {
   border: 1px solid rgba(255,255,255,.56);
   border-radius: 13px;
   background: var(--gradient);
-  box-shadow: 0 8px 24px rgba(116, 94, 110, .19), inset 0 1px 0 rgba(255,255,255,.34);
+  box-shadow: none !important;
 }
 .gradient-icon svg { width: 20px; height: 20px; fill: rgba(255,255,255,.94); }
 .gradient-icon-sm { width: 27px; height: 27px; border-radius: 9px; }
@@ -144,7 +145,7 @@ h2 {
   border-radius: 999px;
   background: rgba(255,255,255,.48);
   color: #655d63;
-  box-shadow: 0 8px 24px rgba(83,72,79,.07);
+  box-shadow: none !important;
   font-size: 11px;
   font-weight: 800;
   white-space: nowrap;
@@ -154,7 +155,7 @@ h2 {
   height: 8px;
   border-radius: 50%;
   background: var(--gradient);
-  box-shadow: 0 0 0 4px rgba(169,154,182,.13);
+  box-shadow: none !important;
 }
 
 #postForm { display: grid; gap: 19px; margin-top: 26px; }
@@ -168,14 +169,14 @@ input, textarea {
   border-radius: 17px;
   padding: 14px 15px;
   outline: none;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.72);
+  box-shadow: none !important;
   transition: border-color .18s ease, box-shadow .18s ease, background .18s ease, transform .18s ease;
 }
 input::placeholder, textarea::placeholder { color: #9a9297; }
 input:focus, textarea:focus {
   border-color: rgba(154, 137, 167, .48);
   background: rgba(255,255,255,.88);
-  box-shadow: 0 0 0 4px rgba(169,154,182,.12), inset 0 1px 0 rgba(255,255,255,.8);
+  box-shadow: none !important;
 }
 textarea { min-height: 98px; resize: vertical; line-height: 1.7; }
 input[type="file"] { padding: 11px; }
@@ -196,7 +197,7 @@ input[type="file"]::file-selector-button {
   border: 1px solid rgba(255,255,255,.7);
   border-radius: 25px;
   background: linear-gradient(135deg, #ded8dd, #dce2dd);
-  box-shadow: 0 18px 45px rgba(74, 63, 71, .11);
+  box-shadow: none !important;
 }
 .preview-wrap > img, .post-image { display: block; width: 100%; aspect-ratio: 4/5; object-fit: cover; }
 
@@ -209,7 +210,7 @@ input[type="file"]::file-selector-button {
   background:
     linear-gradient(135deg, rgba(183,166,191,.14), rgba(165,186,172,.13) 52%, rgba(202,168,171,.15)),
     rgba(255,255,255,.48);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.72);
+  box-shadow: none !important;
 }
 .music-box::after {
   content: "";
@@ -259,16 +260,16 @@ input[type="file"]::file-selector-button {
   gap: 9px;
   background: var(--gradient);
   color: #fff;
-  box-shadow: 0 14px 32px rgba(120, 100, 114, .24), inset 0 1px 0 rgba(255,255,255,.25);
+  box-shadow: none !important;
 }
-.primary:hover { box-shadow: 0 16px 36px rgba(120, 100, 114, .3); filter: saturate(105%); }
+.primary:hover { box-shadow: none !important; filter: saturate(105%); }
 .button-icon svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 .secondary {
   min-width: 74px;
   border: 1px solid rgba(255,255,255,.57);
   background: rgba(255,255,255,.62);
   color: #5f565c;
-  box-shadow: 0 8px 20px rgba(91,75,84,.08);
+  box-shadow: none !important;
 }
 .text-button {
   border: 0;
@@ -294,10 +295,10 @@ input[type="file"]::file-selector-button {
   border: 1px solid rgba(123,109,118,.12);
   background: rgba(255,255,255,.66);
   border-radius: 17px;
-  box-shadow: 0 7px 18px rgba(81,67,76,.05);
+  box-shadow: none !important;
   transition: transform .16s ease, background .16s ease, box-shadow .16s ease;
 }
-.track:hover { transform: translateY(-1px); background: rgba(255,255,255,.84); box-shadow: 0 10px 24px rgba(81,67,76,.09); }
+.track:hover { transform: translateY(-1px); background: rgba(255,255,255,.84); box-shadow: none !important; }
 .track > img, .thumb-placeholder { width: 92px; height: 52px; object-fit: cover; border-radius: 11px; background: linear-gradient(135deg,#d8cfd8,#d3ddd6); }
 .track-meta { min-width: 0; }
 .track-title { color: #4f474d; font-weight: 900; font-size: 13px; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -309,7 +310,7 @@ input[type="file"]::file-selector-button {
   padding: 9px 11px;
   background: linear-gradient(135deg, #a99ab6, #9daea3);
   color: #fff;
-  box-shadow: 0 8px 18px rgba(112,94,106,.18);
+  box-shadow: none !important;
   font-size: 11px;
   font-weight: 900;
   white-space: nowrap;
@@ -334,7 +335,7 @@ input[type="file"]::file-selector-button {
   -webkit-backdrop-filter: blur(17px) saturate(125%);
   color: #fff;
   text-decoration: none;
-  box-shadow: 0 12px 34px rgba(49,41,47,.24), inset 0 1px 0 rgba(255,255,255,.22);
+  box-shadow: none !important;
 }
 .music-overlay::before {
   content: "♪";
@@ -388,7 +389,7 @@ input[type="file"]::file-selector-button {
   border-radius: 24px;
   background: #292629;
   color: #fff;
-  box-shadow: 0 34px 110px rgba(31,26,29,.48);
+  box-shadow: none !important;
 }
 .player-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; }
 .player-bar strong { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -408,7 +409,7 @@ input[type="file"]::file-selector-button {
   background:
     linear-gradient(135deg, rgba(157,174,163,.14), rgba(183,166,191,.12) 52%, rgba(200,179,157,.15)),
     rgba(255,255,255,.48);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.72);
+  box-shadow: none !important;
 }
 .location-box::after {
   content: "";
@@ -455,7 +456,7 @@ input[type="file"]::file-selector-button {
   line-height: 1.45;
   font-size: 12px;
   font-weight: 700;
-  box-shadow: 0 6px 16px rgba(81,67,76,.05);
+  box-shadow: none !important;
 }
 .location-result:hover {
   background: rgba(255,255,255,.9);
@@ -471,7 +472,7 @@ input[type="file"]::file-selector-button {
   border-radius: 20px;
   overflow: hidden;
   background: #e8e5df;
-  box-shadow: 0 12px 30px rgba(75,64,71,.09);
+  box-shadow: none !important;
 }
 .location-status {
   position: relative;
@@ -526,6 +527,447 @@ input[type="file"]::file-selector-button {
 }
 
 </style>
+<style id="flat-pop-round-add-theme">
+:root {
+  --pop-ink: #44375f;
+  --pop-purple: #8066c7;
+  --pop-pink: #ffb8d0;
+  --pop-mint: #bfe8d2;
+  --pop-yellow: #ffe7a3;
+  --pop-blue: #cfe8ff;
+  --pop-lavender: #eadfff;
+  --pop-white: #fffdfb;
+  --shadow: none;
+}
+
+*, *::before, *::after {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+body {
+  background:
+    radial-gradient(circle at 8% 8%, rgba(234,223,255,.9) 0, rgba(234,223,255,0) 28%),
+    radial-gradient(circle at 92% 20%, rgba(191,232,210,.8) 0, rgba(191,232,210,0) 30%),
+    radial-gradient(circle at 76% 90%, rgba(255,184,208,.5) 0, rgba(255,184,208,0) 28%),
+    #fff8f4 !important;
+  color: var(--pop-ink) !important;
+}
+
+.ambient { display: none !important; }
+
+.card,
+.post {
+  border: 0 !important;
+  border-radius: 38px !important;
+  background: rgba(255,253,251,.96) !important;
+  backdrop-filter: none !important;
+}
+.card::before {
+  height: 9px !important;
+  border-radius: 9999px !important;
+  margin: 12px 22px 0 !important;
+  background: linear-gradient(90deg, #a58be0, #8ed2ae, #ffb7ce, #ffd778) !important;
+}
+
+.gradient-icon {
+  border: 0 !important;
+  border-radius: 9999px !important;
+  background: #8a70ca !important;
+}
+.gradient-icon-sm { background: #79c49a !important; }
+.gradient-icon-xs { background: #f49ab7 !important; }
+
+.pill {
+  border: 0 !important;
+  border-radius: 9999px !important;
+  background: #f0e7ff !important;
+  color: #604b86 !important;
+}
+.pill-dot { background: #78c89d !important; }
+
+input, select {
+  border: 0 !important;
+  border-radius: 9999px !important;
+  background: #f5effb !important;
+}
+textarea {
+  border: 0 !important;
+  border-radius: 24px !important;
+  background: #f5effb !important;
+}
+input:focus, select:focus, textarea:focus {
+  outline: 3px solid rgba(128,102,199,.18) !important;
+}
+input[type="file"]::file-selector-button {
+  border: 0 !important;
+  border-radius: 9999px !important;
+  background: #e5f4eb !important;
+  color: #4a765d !important;
+}
+
+.preview-wrap,
+.post-image-wrap {
+  border: 0 !important;
+  border-radius: 34px !important;
+  background: #eee8f5 !important;
+}
+
+.location-box {
+  border: 0 !important;
+  border-radius: 34px !important;
+  background: #e8f7ef !important;
+}
+.music-box {
+  border: 0 !important;
+  border-radius: 34px !important;
+  background: linear-gradient(135deg, #f0e6ff, #ffe8ef 56%, #fff3c9) !important;
+}
+.music-box::after { display: none !important; }
+
+.primary,
+.secondary,
+.text-button,
+.track button {
+  border: 0 !important;
+  border-radius: 9999px !important;
+}
+.primary {
+  background: linear-gradient(90deg, #8a70ca, #7fc79d, #f29ab6) !important;
+  color: #fff !important;
+}
+.secondary {
+  background: #fff !important;
+  color: #65527f !important;
+}
+.text-button { background: #fff3c7 !important; color: #7e6723 !important; }
+
+.track {
+  border: 0 !important;
+  border-radius: 26px !important;
+  background: rgba(255,255,255,.82) !important;
+}
+.track > img,
+.thumb-placeholder { border-radius: 18px !important; }
+.track button { background: #8a70ca !important; }
+
+.music-overlay {
+  border: 0 !important;
+  border-radius: 24px !important;
+  background: rgba(91,71,121,.88) !important;
+}
+.music-overlay::before { border-radius: 9999px !important; }
+.music-overlay img { border-radius: 14px !important; }
+
+#travelMap {
+  border: 0 !important;
+  border-radius: 30px !important;
+}
+.location-result {
+  border: 0 !important;
+  border-radius: 20px !important;
+  background: #fff !important;
+}
+
+.player-dialog {
+  border: 0 !important;
+  border-radius: 32px !important;
+}
+.player-bar button { border: 0 !important; border-radius: 9999px !important; }
+
+@media (max-width: 560px) {
+  .card { border-radius: 32px !important; }
+  .location-box, .music-box { border-radius: 28px !important; }
+  .preview-wrap, .post-image-wrap { border-radius: 28px !important; }
+}
+</style>
+
+
+<style id="absolute-no-shadow-override">
+/* Final no-shadow override: keep the pop/rounded UI completely flat. */
+*, *::before, *::after {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+button, .btn, [role="button"], input, textarea, select,
+.navy-card, .tl-post-card, .tl-filter-card, .home-song-card,
+#appView > header, #userSearchModal > div, #postModal > div,
+#profileModal > div, #editProfileModal > div, #notificationsModal > div,
+#friendRequestsModal > div, #userListModal > div, #conversationsModal > div, #dmModal > div {
+  box-shadow: none !important;
+  filter: none !important;
+}
+button:hover, .btn:hover, [role="button"]:hover {
+  box-shadow: none !important;
+}
+</style>
+
+<style id="withlog-custom-file-picker">
+.with-file-picker {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 74px;
+  padding: 12px 16px;
+  border-radius: 9999px;
+  background: #f5effb;
+}
+.with-file-button {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 20px;
+  border-radius: 9999px;
+  background: #e5f4eb;
+  color: #4a765d;
+  font-weight: 900;
+  cursor: pointer;
+  user-select: none;
+}
+.with-file-name {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #3f3a40;
+  font-weight: 800;
+}
+.with-file-input {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+.with-file-button:focus-visible {
+  outline: 3px solid rgba(128,102,199,.18);
+  outline-offset: 2px;
+}
+@media (max-width: 560px) {
+  .with-file-picker { gap: 10px; padding: 10px 12px; min-height: 66px; }
+  .with-file-button { min-height: 42px; padding: 0 16px; }
+  .with-file-name { font-size: 12px; }
+}
+</style>
+
+
+<style id="withlog-add-dark-mode-style">
+html.withlog-dark { color-scheme: dark; background: #202126; }
+html.withlog-dark body { background: #202126 !important; color: #f4f1f5 !important; }
+html.withlog-dark .ambient { opacity: .12 !important; }
+html.withlog-dark .card,
+html.withlog-dark .post { background: #2b2c31 !important; border-color: #3d3e45 !important; color: #f4f1f5 !important; }
+html.withlog-dark h1,
+html.withlog-dark h2,
+html.withlog-dark .field,
+html.withlog-dark .section-label,
+html.withlog-dark .track-title { color: #f4f1f5 !important; }
+html.withlog-dark .lead,
+html.withlog-dark .eyebrow,
+html.withlog-dark .muted,
+html.withlog-dark .track-artist,
+html.withlog-dark .location-status { color: #aaa4b2 !important; }
+html.withlog-dark input,
+html.withlog-dark textarea { background: #37383f !important; color: #f4f1f5 !important; border-color: #474850 !important; }
+html.withlog-dark input::placeholder,
+html.withlog-dark textarea::placeholder { color: #8f8997 !important; }
+html.withlog-dark .music-box,
+html.withlog-dark .location-box { background: #323339 !important; border-color: #44454d !important; }
+html.withlog-dark .track,
+html.withlog-dark .location-result { background: #3a3b42 !important; color: #f4f1f5 !important; border-color: #4b4c54 !important; }
+html.withlog-dark .pill,
+html.withlog-dark .secondary { background: #393a41 !important; color: #ece7ef !important; border-color: #4b4c54 !important; }
+html.withlog-dark .primary { background: linear-gradient(135deg, #71659a, #5f8171 52%, #8b626b) !important; }
+html.withlog-dark #travelMap { border-color: #45464d !important; background: #303137 !important; }
+html.withlog-dark .with-file-picker { background: #34353b !important; }
+html.withlog-dark .with-file-button { background: #3d4b43 !important; color: #bfe1cd !important; }
+html.withlog-dark .with-file-name { color: #e6e1e9 !important; }
+html.withlog-dark *, html.withlog-dark *::before, html.withlog-dark *::after {
+  box-shadow: none !important; text-shadow: none !important;
+}
+</style>
+<style id="withlog-photo-editor-style">
+:root {
+  --withlog-crop-bg: #f2eee9;
+  --withlog-crop-panel: #f7f2fb;
+  --withlog-crop-text: #5b5265;
+  --withlog-crop-stage: #e9e5e1;
+}
+.preview-wrap.crop-editor {
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+.crop-stage {
+  position: relative;
+  width: 100%;
+  height: clamp(360px, 58vw, 560px);
+  overflow: hidden;
+  border-radius: 30px;
+  background: var(--withlog-crop-stage);
+}
+.crop-stage #imagePreview {
+  display: block;
+  max-width: 100%;
+}
+.crop-stage .music-overlay {
+  z-index: 30;
+  pointer-events: none;
+}
+.crop-controls {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 15px;
+  border-radius: 24px;
+  background: var(--withlog-crop-panel);
+}
+.crop-control-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+.crop-control-label, .crop-zoom-value {
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--withlog-crop-text);
+  letter-spacing: .08em;
+}
+.crop-zoom-value { min-width: 44px; text-align: right; }
+#cropZoom {
+  width: 100%;
+  accent-color: #8066c7;
+  background: transparent !important;
+  padding: 0 !important;
+}
+.crop-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.crop-action {
+  border: 0;
+  border-radius: 999px;
+  padding: 9px 13px;
+  background: #fffdfb;
+  color: #64586f;
+  font-size: 11px;
+  font-weight: 900;
+}
+.crop-action.is-active {
+  background: #e7ddfb;
+  color: #60499b;
+}
+.crop-help {
+  margin: 0;
+  color: #8b8290;
+  font-size: 10px;
+  line-height: 1.65;
+}
+.crop-ratio-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: #edf5ef;
+  color: #668070;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+/* Cropper.js: movable fixed-ratio frame, matching the reference image. */
+.crop-stage .cropper-container { width: 100% !important; height: 100% !important; }
+.crop-stage .cropper-bg { background-image: none !important; background: var(--withlog-crop-stage) !important; }
+.crop-stage .cropper-modal { background: #17191e !important; opacity: .58 !important; }
+.crop-stage .cropper-view-box {
+  outline: 3px solid rgba(255,255,255,.96) !important;
+  outline-color: rgba(255,255,255,.96) !important;
+}
+.crop-stage .cropper-face { background: transparent !important; opacity: 0 !important; }
+.crop-stage .cropper-dashed { display: none !important; }
+.crop-stage .cropper-center { display: none !important; }
+.crop-stage .cropper-line {
+  background-color: rgba(255,255,255,.95) !important;
+  opacity: 1 !important;
+}
+.crop-stage .cropper-point {
+  width: 11px !important;
+  height: 11px !important;
+  border-radius: 2px !important;
+  background-color: #ffffff !important;
+  opacity: 1 !important;
+}
+.crop-stage .cropper-point.point-se,
+.crop-stage .cropper-point.point-sw,
+.crop-stage .cropper-point.point-ne,
+.crop-stage .cropper-point.point-nw {
+  width: 13px !important;
+  height: 13px !important;
+}
+html.withlog-dark {
+  --withlog-crop-bg: #38393f;
+  --withlog-crop-panel: #323339;
+  --withlog-crop-text: #d8d2df;
+  --withlog-crop-stage: #292a2f;
+}
+html.withlog-dark .crop-action {
+  background: #3d3e45;
+  color: #e8e2eb;
+}
+html.withlog-dark .crop-action.is-active {
+  background: #51476f;
+  color: #f0eafd;
+}
+html.withlog-dark .crop-help { color: #aaa4b2; }
+html.withlog-dark .crop-ratio-badge { background: #3b4941; color: #c7dfd0; }
+html.withlog-dark .crop-stage .cropper-modal { background: #111216 !important; opacity: .63 !important; }
+@media (max-width: 560px) {
+  .crop-stage { height: clamp(330px, 92vw, 470px); border-radius: 26px; }
+  .crop-controls { padding: 13px; border-radius: 21px; }
+  .crop-action { flex: 1 1 auto; text-align: center; }
+}
+</style>
+
+<script>
+(function () {
+  try {
+    const dark = localStorage.getItem('withlog_theme') === 'dark';
+    document.documentElement.classList.toggle('withlog-dark', dark);
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', dark ? '#202126' : '#eee7e6');
+  } catch (_) {}
+})();
+</script>
+
+<style id="withlog-daily-with-composer-style">
+.daily-with-composer{position:relative;overflow:hidden;isolation:isolate;margin:22px 0 4px;padding:18px 20px;border-radius:28px;border:1px solid rgba(129,112,145,.10);color:#443b50}
+.daily-with-composer::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:
+radial-gradient(circle at 8% 22%,rgba(255,225,94,.58) 0 31px,transparent 32px),
+radial-gradient(circle at 27% 74%,rgba(121,217,197,.42) 0 43px,transparent 44px),
+radial-gradient(circle at 49% 18%,rgba(164,169,244,.38) 0 37px,transparent 38px),
+radial-gradient(circle at 69% 69%,rgba(244,155,181,.34) 0 46px,transparent 47px),
+radial-gradient(circle at 90% 25%,rgba(132,218,219,.38) 0 32px,transparent 33px),
+linear-gradient(135deg,#fff9ea,#f7f1ff 38%,#e9fbf5 70%,#fff0f3)}
+.daily-with-composer>*{position:relative;z-index:1}
+.daily-with-composer .kicker{display:inline-flex;padding:6px 10px;margin-bottom:8px;border-radius:999px;background:rgba(255,255,255,.74);color:#695689;font-size:9px;font-weight:900;letter-spacing:.16em}
+.daily-with-composer strong{display:block;font-size:17px;line-height:1.5}.daily-with-composer p{margin:7px 0 0;color:#746a7a;font-size:11px;line-height:1.65}
+html.withlog-dark .daily-with-composer{color:#fff8ff;border-color:#494850;background:#2d2e33}
+html.withlog-dark .daily-with-composer::before{opacity:.72;filter:saturate(.85) brightness(.72)}
+html.withlog-dark .daily-with-composer .kicker{background:rgba(45,46,52,.84);color:#ded1ff}
+html.withlog-dark .daily-with-composer p{color:#c5becb}
+@media(max-width:560px){.daily-with-composer{padding:16px;border-radius:24px}.daily-with-composer strong{font-size:15px}}
+</style>
 </head>
 <body>
   <div class="ambient ambient-a" aria-hidden="true"></div>
@@ -554,25 +996,51 @@ input[type="file"]::file-selector-button {
         </div>
       </div>
 
+      <div id="dailyWithComposer" class="daily-with-composer hidden" aria-live="polite">
+        <span class="kicker">● TODAY'S WITH</span>
+        <strong id="dailyWithComposerQuestion"></strong>
+        <p>このお題へのあなたの答えを、いつものWITHと同じように残せます。</p>
+      </div>
+
       <form id="postForm">
-        <label class="field upload-field">
+        <div class="field upload-field">
           <span class="field-label">
             <span class="gradient-icon gradient-icon-xs" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v13a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 18.5v-13Zm3 11.9h10l-3.2-4-2.4 2.8-1.7-2-2.7 3.2ZM15.8 9A1.8 1.8 0 1 0 15.8 5.4 1.8 1.8 0 0 0 15.8 9Z"/></svg>
             </span>
             写真
           </span>
-          <input id="image" name="image" type="file" accept="image/*" required />
-        </label>
+          <div class="with-file-picker">
+            <label for="image" class="with-file-button">WITH！</label>
+            <span id="imageFileName" class="with-file-name">WITHを選ぶ</span>
+            <input id="image" name="image" type="file" accept="image/*" required class="with-file-input" />
+          </div>
+        </div>
 
-        <div id="previewWrap" class="preview-wrap hidden">
-          <img id="imagePreview" alt="投稿画像プレビュー" />
-          <div id="musicOverlay" class="music-overlay hidden"></div>
+        <div id="previewWrap" class="preview-wrap crop-editor hidden">
+          <div id="cropStage" class="crop-stage" aria-label="4:5の切り取り範囲を調整">
+            <img id="imagePreview" alt="投稿画像プレビュー" draggable="false" />
+            <div id="musicOverlay" class="music-overlay hidden"></div>
+          </div>
+          <div class="crop-controls">
+            <span class="crop-ratio-badge">CROP 4:5</span>
+            <div class="crop-control-row">
+              <span class="crop-control-label">SIZE</span>
+              <input id="cropZoom" type="range" min="50" max="250" step="1" value="100" aria-label="写真サイズ" />
+              <span id="cropZoomValue" class="crop-zoom-value">100%</span>
+            </div>
+            <div class="crop-actions">
+              <button type="button" id="cropFitBtn" class="crop-action is-active">全体を表示</button>
+              <button type="button" id="cropFillBtn" class="crop-action">枠いっぱい</button>
+              <button type="button" id="cropCenterBtn" class="crop-action">枠を中央に戻す</button>
+            </div>
+            <p class="crop-help">白い4:5の枠をドラッグして切り取り位置を決められます。四隅をドラッグすると、4:5を保ったまま枠の大きさも変更できます。</p>
+          </div>
         </div>
 
         <label class="field">
           <span class="field-label">スポット名 / タイトル</span>
-          <input id="travelSpotName" name="name" type="text" maxlength="120" placeholder="例：広安里海水浴場 / 釜山 DAY1" required />
+          <input id="travelSpotName" name="name" type="text" maxlength="120" placeholder="例：お気に入りのカフェ / 放課後 / 今日の出来事" required />
         </label>
 
 
@@ -686,6 +1154,7 @@ input[type="file"]::file-selector-button {
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
 
   <script>
 const postForm = document.getElementById("postForm");
@@ -712,9 +1181,35 @@ const locationMessage = document.getElementById("locationMessage");
 const selectedLocationName = document.getElementById("selectedLocationName");
 const selectedLatitudeLabel = document.getElementById("selectedLatitude");
 const selectedLongitudeLabel = document.getElementById("selectedLongitude");
+const cropStage = document.getElementById("cropStage");
+const cropZoom = document.getElementById("cropZoom");
+const cropZoomValue = document.getElementById("cropZoomValue");
+const cropFitBtn = document.getElementById("cropFitBtn");
+const cropFillBtn = document.getElementById("cropFillBtn");
+const cropCenterBtn = document.getElementById("cropCenterBtn");
+
+const dailyWithComposer=document.getElementById("dailyWithComposer");
+const dailyWithComposerQuestion=document.getElementById("dailyWithComposerQuestion");
+const dailyWithParams=new URLSearchParams(window.location.search);
+const activeDailyPrompt=(dailyWithParams.get("with_prompt")||"").trim();
+const activeDailyDay=(dailyWithParams.get("with_day")||"").trim();
+function initDailyWithComposer(){
+  if(!activeDailyPrompt)return;
+  dailyWithComposerQuestion.textContent=activeDailyPrompt;
+  dailyWithComposer.classList.remove("hidden");
+  const titleInput=document.getElementById("travelSpotName");
+  if(titleInput&&!titleInput.value.trim())titleInput.value="今日のWITH！";
+  const captionInput=postForm.querySelector('textarea[name="caption"]');
+  if(captionInput)captionInput.placeholder="お題への答えを書いてみよう";
+  document.title="WITHLOG | TODAY'S WITH";
+}
+initDailyWithComposer();
 
 let selectedVideo = null;
 let currentPreviewUrl = null;
+let cropper = null;
+let cropInitialRatio = 1;
+let cropReady = false;
 
 let travelMap = null;
 let travelMarker = null;
@@ -907,16 +1402,190 @@ useCurrentLocationButton.addEventListener("click", () => {
 
 initTravelMap();
 
+function getCropBackgroundColor() {
+  return document.documentElement.classList.contains("withlog-dark") ? "#38393f" : "#f2eee9";
+}
+
+function setCropMode(mode) {
+  cropFitBtn?.classList.toggle("is-active", mode === "fit");
+  cropFillBtn?.classList.toggle("is-active", mode === "fill");
+}
+
+function syncCropZoomDisplay(percent) {
+  const safe = Math.max(Number(cropZoom?.min || 50), Math.min(Number(cropZoom?.max || 250), Math.round(percent)));
+  if (cropZoom) cropZoom.value = String(safe);
+  if (cropZoomValue) cropZoomValue.textContent = `${safe}%`;
+}
+
+function setCenteredCropBox(area = 0.62) {
+  if (!cropper) return;
+  const container = cropper.getContainerData();
+  if (!container.width || !container.height) return;
+  const ratio = 4 / 5;
+  let width = container.width * area;
+  let height = width / ratio;
+  if (height > container.height * area) {
+    height = container.height * area;
+    width = height * ratio;
+  }
+  cropper.setCropBoxData({
+    left: (container.width - width) / 2,
+    top: (container.height - height) / 2,
+    width,
+    height
+  });
+}
+
+function centerCropBox() {
+  if (!cropper) return;
+  const container = cropper.getContainerData();
+  const box = cropper.getCropBoxData();
+  cropper.setCropBoxData({
+    left: Math.max(0, (container.width - box.width) / 2),
+    top: Math.max(0, (container.height - box.height) / 2),
+    width: box.width,
+    height: box.height
+  });
+}
+
+function fitCropImage() {
+  if (!cropper) return;
+  cropper.reset();
+  requestAnimationFrame(() => {
+    cropInitialRatio = cropper.getImageData().ratio || 1;
+    syncCropZoomDisplay(100);
+    setCenteredCropBox(0.62);
+    setCropMode("fit");
+  });
+}
+
+function fillCropImage() {
+  if (!cropper) return;
+  const box = cropper.getCropBoxData();
+  const image = cropper.getImageData();
+  if (!box.width || !box.height || !image.naturalWidth || !image.naturalHeight) return;
+  const neededRatio = Math.max(box.width / image.naturalWidth, box.height / image.naturalHeight);
+  cropper.zoomTo(neededRatio);
+  const percent = cropInitialRatio ? (neededRatio / cropInitialRatio) * 100 : 100;
+  syncCropZoomDisplay(percent);
+  setCropMode("fill");
+}
+
+function centerCropImage() {
+  centerCropBox();
+  setCropMode("");
+}
+
+function destroyCropper() {
+  if (cropper) {
+    cropper.destroy();
+    cropper = null;
+  }
+  cropReady = false;
+}
+
+function initCropper() {
+  destroyCropper();
+  if (!window.Cropper) {
+    throw new Error("写真編集ツールを読み込めませんでした。インターネット接続を確認してください。");
+  }
+
+  cropper = new Cropper(imagePreview, {
+    aspectRatio: 4 / 5,
+    viewMode: 0,
+    dragMode: "none",
+    responsive: true,
+    restore: true,
+    checkCrossOrigin: false,
+    checkOrientation: true,
+    modal: true,
+    guides: false,
+    center: false,
+    highlight: false,
+    background: false,
+    autoCrop: true,
+    autoCropArea: 0.62,
+    movable: false,
+    rotatable: false,
+    scalable: false,
+    zoomable: true,
+    zoomOnTouch: false,
+    zoomOnWheel: false,
+    cropBoxMovable: true,
+    cropBoxResizable: true,
+    toggleDragModeOnDblclick: false,
+    minCropBoxWidth: 100,
+    minCropBoxHeight: 125,
+    ready() {
+      cropReady = true;
+      cropInitialRatio = cropper.getImageData().ratio || 1;
+      syncCropZoomDisplay(100);
+      setCenteredCropBox(0.62);
+      setCropMode("fit");
+      renderSelectedMusic();
+    }
+  });
+}
+
+function createCroppedImageBlob() {
+  return new Promise((resolve, reject) => {
+    if (!cropper || !cropReady) {
+      reject(new Error("写真の読み込みが完了していません。"));
+      return;
+    }
+
+    const canvas = cropper.getCroppedCanvas({
+      width: 1080,
+      height: 1350,
+      fillColor: getCropBackgroundColor(),
+      imageSmoothingEnabled: true,
+      imageSmoothingQuality: "high"
+    });
+
+    if (!canvas) {
+      reject(new Error("写真を切り取れませんでした。"));
+      return;
+    }
+
+    canvas.toBlob((blob) => {
+      if (blob) resolve(blob);
+      else reject(new Error("写真の書き出しに失敗しました。"));
+    }, "image/jpeg", 0.92);
+  });
+}
+
 imageInput.addEventListener("change", () => {
   const file = imageInput.files?.[0];
+  const fileNameEl = document.getElementById("imageFileName");
+  if (fileNameEl) fileNameEl.textContent = file ? file.name : "WITHを選ぶ";
   if (!file) return;
 
+  destroyCropper();
   if (currentPreviewUrl) URL.revokeObjectURL(currentPreviewUrl);
   currentPreviewUrl = URL.createObjectURL(file);
-  imagePreview.src = currentPreviewUrl;
+
   previewWrap.classList.remove("hidden");
-  renderSelectedMusic();
+  imagePreview.onload = () => {
+    try {
+      initCropper();
+    } catch (error) {
+      alert(error.message || "写真編集画面を開けませんでした。");
+    }
+  };
+  imagePreview.src = currentPreviewUrl;
 });
+
+cropZoom?.addEventListener("input", () => {
+  if (!cropper || !cropReady) return;
+  const percent = Math.max(50, Number(cropZoom.value || 100));
+  cropper.zoomTo(cropInitialRatio * (percent / 100));
+  if (cropZoomValue) cropZoomValue.textContent = `${Math.round(percent)}%`;
+  setCropMode("");
+});
+
+cropFitBtn?.addEventListener("click", fitCropImage);
+cropFillBtn?.addEventListener("click", fillCropImage);
+cropCenterBtn?.addEventListener("click", centerCropImage);
 
 searchMusicButton.addEventListener("click", searchMusic);
 musicQuery.addEventListener("keydown", (event) => {
@@ -1030,22 +1699,32 @@ postForm.addEventListener("submit", async (event) => {
 
     const formData = new FormData();
     formData.append("name", name);
-    formData.append("memo", caption);
     formData.append("visited_at", new Date().toISOString());
     formData.append("latitude", String(selectedLatitude));
     formData.append("longitude", String(selectedLongitude));
-    formData.append("file", imageFile, imageFile.name);
 
-    // The current Travel Log upload API has no dedicated music columns yet.
-    // Keep the selected music metadata in memo so it is not lost.
+    // Export exactly what the user arranged in the 4:5 editor.
+    // Empty areas are filled with WITHLOG's muted white / muted gray depending on the theme.
+    const croppedBlob = await createCroppedImageBlob();
+    const originalStem = imageFile.name.replace(/\.[^.]+$/, "") || "withlog";
+    formData.append("file", croppedBlob, `${originalStem}_WITHLOG.jpg`);
+
+    // Keep music and DAILY WITH metadata inside memo so the existing API/DB does not need to change.
+    let finalMemo = caption;
     if (selectedVideo) {
       const musicTitle = decodeEntities(selectedVideo.title || "");
       const artist = decodeEntities(selectedVideo.artist || "");
       const videoId = selectedVideo.youtube_video_id || "";
       const url = selectedVideo.external_url || (videoId ? `https://www.youtube.com/watch?v=${videoId}` : "");
       const musicLine = `\n\n🎵 ${musicTitle}${artist ? ` — ${artist}` : ""}${url ? `\n${url}` : ""}`;
-      formData.set("memo", `${caption}${musicLine}`.trim());
+      finalMemo = `${finalMemo}${musicLine}`.trim();
     }
+    if (activeDailyPrompt) {
+      const day = /^\d{4}-\d{2}-\d{2}$/.test(activeDailyDay) ? activeDailyDay : new Date().toISOString().slice(0,10);
+      const dailyMarker = `[[WITH_DAILY:${day}:${encodeURIComponent(activeDailyPrompt)}]]`;
+      finalMemo = `${finalMemo}${finalMemo ? "\n\n" : ""}${dailyMarker}`.trim();
+    }
+    formData.append("memo", finalMemo);
 
     // Support both cookie-session auth and Bearer-token auth.
     const headers = {};
@@ -1216,7 +1895,7 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-// Demo feed disabled. Real posts are shown on the Travel Log home page.
+// Demo feed disabled. Real posts are shown on the WITHLOG home page.
 
 </script>
 </body>
