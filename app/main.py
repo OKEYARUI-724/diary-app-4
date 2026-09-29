@@ -1,38 +1,112 @@
+import json
 import os
-import time
-import uuid
 import shutil
+import time
+import traceback
+import uuid
 from datetime import date, datetime
-from typing import List, Optional
-from fastapi import FastAPI, Depends, UploadFile, File, Form, HTTPException, status
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-from sqlalchemy.orm import Session
-from sqlalchemy import func, or_, and_
-from geoalchemy2.shape import from_shape, to_shape
-from shapely.geometry import Point
+from typing import Dict, List, Optional
 
-from app.database import get_db, engine, Base
-from app.models import Spot, User, SpotLike, Follow, DirectMessage
-from app.schemas import (
-    SpotResponse, UserRegister, UserLogin, UserProfile, TokenResponse, DMCreate, DMResponse
+from fastapi import (
+    Depends,
+    FastAPI,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    UploadFile,
+    WebSocket,
+    WebSocketDisconnect,
+    status,
 )
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+from geoalchemy2.shape import from_shape, to_shape
+from jose import jwt
+from pydantic import BaseModel
+from shapely.geometry import Point
+from sqlalchemy import and_, desc, func, or_, text
+from sqlalchemy.orm import Session
+
+from app.database import Base, engine, get_db
+from app.models import DirectMessage, Follow, Notification, Spot, SpotLike, User
+from app.schemas import (
+    DMCreate,
+    DMResponse,
+    SpotResponse,
+    TokenResponse,
+    UserLogin,
+    UserProfile,
+    UserRegister,
+)
+import app.auth as auth_module
 from app.auth import (
-    get_password_hash,
-    verify_password,
     create_access_token,
     get_current_user,
-    require_current_user
+    get_password_hash,
+    require_current_user,
+    verify_password,
 )
+
+
+class PrivacyUpdate(BaseModel):
+    is_private: bool
+
+
+class FollowDecision(BaseModel):
+    target_username: str
+    action: str
+
+
+def migrate_social_features():
+    """Add the friend's social columns/tables without deleting existing data."""
+    try:
+        with engine.begin() as conn:
+            conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis;"))
+            conn.execute(text("""
+                ALTER TABLE users
+                ADD COLUMN IF NOT EXISTS is_private BOOLEAN NOT NULL DEFAULT FALSE;
+            """))
+            conn.execute(text("""
+                ALTER TABLE follows
+                ADD COLUMN IF NOT EXISTS status VARCHAR(20) NOT NULL DEFAULT 'accepted';
+            """))
+            conn.execute(text("""
+                UPDATE follows SET status = 'accepted' WHERE status IS NULL;
+            """))
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS notifications (
+                    id UUID PRIMARY KEY,
+                    recipient_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    sender_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    type VARCHAR(50) NOT NULL,
+                    message VARCHAR(255) NOT NULL,
+                    is_read BOOLEAN NOT NULL DEFAULT FALSE,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+                );
+            """))
+            conn.execute(text("""
+                CREATE INDEX IF NOT EXISTS idx_notifications_recipient_created
+                ON notifications(recipient_id, created_at DESC);
+            """))
+            conn.execute(text("""
+                CREATE INDEX IF NOT EXISTS idx_follows_status
+                ON follows(status);
+            """))
+    except Exception as exc:
+        print(f"[DB Migration Note] {exc}")
+
 
 for i in range(10):
     try:
+        migrate_social_features()
         Base.metadata.create_all(bind=engine)
         print("Database connected successfully!")
         break
-    except Exception as e:
-        print(f"Waiting for database... ({i+1}/10)")
+    except Exception as exc:
+        print(f"Waiting for database... ({i + 1}/10): {exc}")
         time.sleep(2)
+
 
 app = FastAPI(title="Travel Log API")
 
@@ -40,18 +114,32 @@ upload_dir = "static/uploads"
 os.makedirs(upload_dir, exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+
 @app.get("/")
 def serve_ui():
     return FileResponse("static/index.html")
 
+
+def accepted_follow_filter():
+    return Follow.status == "accepted"
+
+
 def build_user_profile(target_user: User, current_user: Optional[User], db: Session) -> UserProfile:
-    followers_count = db.query(Follow).filter(Follow.following_id == target_user.id).count()
-    following_count = db.query(Follow).filter(Follow.follower_id == target_user.id).count()
+    followers_count = db.query(Follow).filter(
+        Follow.following_id == target_user.id,
+        accepted_follow_filter(),
+    ).count()
+    following_count = db.query(Follow).filter(
+        Follow.follower_id == target_user.id,
+        accepted_follow_filter(),
+    ).count()
+
     is_following = False
     if current_user:
         is_following = db.query(Follow).filter(
             Follow.follower_id == current_user.id,
-            Follow.following_id == target_user.id
+            Follow.following_id == target_user.id,
+            accepted_follow_filter(),
         ).first() is not None
 
     return UserProfile(
@@ -63,23 +151,79 @@ def build_user_profile(target_user: User, current_user: Optional[User], db: Sess
         cover_url=target_user.cover_url,
         followers_count=followers_count,
         following_count=following_count,
-        is_following=is_following
+        is_following=is_following,
     )
 
-# --- 認証 & プロフィール ---
+
+def build_extended_profile(target_user: User, current_user: Optional[User], db: Session) -> dict:
+    followers_count = db.query(Follow).filter(
+        Follow.following_id == target_user.id,
+        accepted_follow_filter(),
+    ).count()
+    following_count = db.query(Follow).filter(
+        Follow.follower_id == target_user.id,
+        accepted_follow_filter(),
+    ).count()
+
+    follow_status = "none"
+    if current_user and current_user.id != target_user.id:
+        relation = db.query(Follow).filter(
+            Follow.follower_id == current_user.id,
+            Follow.following_id == target_user.id,
+        ).first()
+        if relation:
+            follow_status = "following" if relation.status == "accepted" else "pending"
+
+    return {
+        "id": str(target_user.id),
+        "username": target_user.username,
+        "display_name": target_user.display_name or target_user.username,
+        "bio": target_user.bio,
+        "avatar_url": target_user.avatar_url,
+        "cover_url": target_user.cover_url,
+        "followers_count": followers_count,
+        "following_count": following_count,
+        "is_following": follow_status == "following",
+        "follow_status": follow_status,
+        "is_private": bool(target_user.is_private),
+    }
+
+
+def add_notification(
+    db: Session,
+    recipient_id,
+    sender_id,
+    notification_type: str,
+    message: str,
+):
+    if recipient_id == sender_id:
+        return
+    db.add(
+        Notification(
+            recipient_id=recipient_id,
+            sender_id=sender_id,
+            type=notification_type,
+            message=message[:255],
+        )
+    )
+
+
+# --- Authentication & profile ---
 
 @app.post("/auth/register", response_model=TokenResponse)
 def register(user_in: UserRegister, db: Session = Depends(get_db)):
-    if db.query(User).filter(User.username == user_in.username).first():
+    username = user_in.username.strip()
+    if db.query(User).filter(or_(User.username == username, User.username.ilike(username))).first():
         raise HTTPException(status_code=400, detail="このIDは既に使われています")
     if db.query(User).filter(User.email == user_in.email).first():
         raise HTTPException(status_code=400, detail="このメールアドレスは既に使われています")
 
     user = User(
-        username=user_in.username,
-        display_name=user_in.display_name or user_in.username,
+        username=username,
+        display_name=(user_in.display_name or username).strip(),
         email=user_in.email,
-        hashed_password=get_password_hash(user_in.password)
+        hashed_password=get_password_hash(user_in.password),
+        is_private=False,
     )
     db.add(user)
     db.commit()
@@ -88,38 +232,64 @@ def register(user_in: UserRegister, db: Session = Depends(get_db)):
     token = create_access_token(data={"sub": user.username})
     return TokenResponse(access_token=token, user=build_user_profile(user, user, db))
 
+
 @app.post("/auth/login", response_model=TokenResponse)
 def login(user_in: UserLogin, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.username == user_in.username).first()
+    username = user_in.username.strip()
+    user = db.query(User).filter(or_(User.username == username, User.username.ilike(username))).first()
     if not user or not verify_password(user_in.password, user.hashed_password):
         raise HTTPException(status_code=400, detail="IDまたはパスワードが正しくありません")
 
     token = create_access_token(data={"sub": user.username})
     return TokenResponse(access_token=token, user=build_user_profile(user, user, db))
 
+
 @app.get("/auth/me", response_model=UserProfile)
 def get_me(current_user: User = Depends(require_current_user), db: Session = Depends(get_db)):
     return build_user_profile(current_user, current_user, db)
 
-# ユーザーID / 表示名 検索
+
 @app.get("/users/search", response_model=List[UserProfile])
-def search_users(q: str, current_user: Optional[User] = Depends(get_current_user), db: Session = Depends(get_db)):
+def search_users(
+    q: str,
+    current_user: Optional[User] = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     query_str = f"%{q.strip().lstrip('@')}%"
     users = db.query(User).filter(
-        or_(
-            User.username.ilike(query_str),
-            User.display_name.ilike(query_str)
-        )
+        or_(User.username.ilike(query_str), User.display_name.ilike(query_str))
     ).limit(10).all()
-
     return [build_user_profile(u, current_user, db) for u in users]
 
-@app.get("/users/{username}", response_model=UserProfile)
-def get_user_profile(username: str, current_user: Optional[User] = Depends(get_current_user), db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.username == username).first()
+
+@app.get("/users/privacy")
+def get_privacy(current_user: User = Depends(require_current_user)):
+    return {"is_private": bool(current_user.is_private)}
+
+
+@app.post("/users/privacy")
+def update_privacy(
+    payload: PrivacyUpdate,
+    current_user: User = Depends(require_current_user),
+    db: Session = Depends(get_db),
+):
+    current_user.is_private = payload.is_private
+    db.commit()
+    return {"status": "ok", "is_private": bool(current_user.is_private)}
+
+
+@app.get("/users/{username}")
+def get_user_profile(
+    username: str,
+    current_user: Optional[User] = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    clean = username.strip()
+    user = db.query(User).filter(or_(User.username == clean, User.username.ilike(clean))).first()
     if not user:
         raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
-    return build_user_profile(user, current_user, db)
+    return build_extended_profile(user, current_user, db)
+
 
 @app.post("/users/profile", response_model=UserProfile)
 async def update_profile(
@@ -128,12 +298,12 @@ async def update_profile(
     avatar: Optional[UploadFile] = File(None),
     cover: Optional[UploadFile] = File(None),
     current_user: User = Depends(require_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     if display_name is not None:
-        current_user.display_name = display_name
+        current_user.display_name = display_name.strip()
     if bio is not None:
-        current_user.bio = bio
+        current_user.bio = bio.strip()
 
     if avatar and avatar.filename:
         ext = os.path.splitext(avatar.filename)[1].lower()
@@ -155,11 +325,17 @@ async def update_profile(
     db.refresh(current_user)
     return build_user_profile(current_user, current_user, db)
 
-# --- フォロー ---
+
+# --- Following / private accounts / friend requests ---
 
 @app.post("/users/{username}/follow")
-def toggle_follow(username: str, current_user: User = Depends(require_current_user), db: Session = Depends(get_db)):
-    target_user = db.query(User).filter(User.username == username).first()
+def toggle_follow(
+    username: str,
+    current_user: User = Depends(require_current_user),
+    db: Session = Depends(get_db),
+):
+    clean = username.strip()
+    target_user = db.query(User).filter(or_(User.username == clean, User.username.ilike(clean))).first()
     if not target_user:
         raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
     if target_user.id == current_user.id:
@@ -167,20 +343,221 @@ def toggle_follow(username: str, current_user: User = Depends(require_current_us
 
     existing = db.query(Follow).filter(
         Follow.follower_id == current_user.id,
-        Follow.following_id == target_user.id
+        Follow.following_id == target_user.id,
     ).first()
 
     if existing:
         db.delete(existing)
         db.commit()
-        return {"following": False}
-    else:
-        new_follow = Follow(follower_id=current_user.id, following_id=target_user.id)
-        db.add(new_follow)
-        db.commit()
-        return {"following": True}
+        return {"following": False, "follow_status": "none"}
 
-# --- スポット & いいね ---
+    relation_status = "pending" if target_user.is_private else "accepted"
+    new_follow = Follow(
+        follower_id=current_user.id,
+        following_id=target_user.id,
+        status=relation_status,
+    )
+    db.add(new_follow)
+
+    if relation_status == "pending":
+        add_notification(
+            db,
+            target_user.id,
+            current_user.id,
+            "follow_request",
+            f"@{current_user.username} さんからフォロー申請が届きました！",
+        )
+    else:
+        add_notification(
+            db,
+            target_user.id,
+            current_user.id,
+            "follow",
+            f"@{current_user.username} さんにフォローされました！",
+        )
+
+    db.commit()
+    return {
+        "following": relation_status == "accepted",
+        "follow_status": "pending" if relation_status == "pending" else "following",
+    }
+
+
+@app.get("/friends/outgoing-requests")
+def get_outgoing_requests(
+    current_user: User = Depends(require_current_user),
+    db: Session = Depends(get_db),
+):
+    reqs = db.query(Follow).filter(
+        Follow.follower_id == current_user.id,
+        Follow.status == "pending",
+    ).all()
+    ids = [r.following_id for r in reqs]
+    users = db.query(User).filter(User.id.in_(ids)).all() if ids else []
+    return [
+        {
+            "id": str(u.id),
+            "username": u.username,
+            "display_name": u.display_name or u.username,
+            "avatar_url": u.avatar_url,
+        }
+        for u in users
+    ]
+
+
+@app.get("/friends/incoming-requests")
+def get_incoming_requests(
+    current_user: User = Depends(require_current_user),
+    db: Session = Depends(get_db),
+):
+    reqs = db.query(Follow).filter(
+        Follow.following_id == current_user.id,
+        Follow.status == "pending",
+    ).all()
+    ids = [r.follower_id for r in reqs]
+    users = db.query(User).filter(User.id.in_(ids)).all() if ids else []
+    return [
+        {
+            "id": str(u.id),
+            "username": u.username,
+            "display_name": u.display_name or u.username,
+            "avatar_url": u.avatar_url,
+        }
+        for u in users
+    ]
+
+
+@app.post("/friends/decision")
+def handle_follow_decision(
+    payload: FollowDecision,
+    current_user: User = Depends(require_current_user),
+    db: Session = Depends(get_db),
+):
+    clean = payload.target_username.strip()
+    sender = db.query(User).filter(or_(User.username == clean, User.username.ilike(clean))).first()
+    if not sender:
+        raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
+
+    relation = db.query(Follow).filter(
+        Follow.follower_id == sender.id,
+        Follow.following_id == current_user.id,
+        Follow.status == "pending",
+    ).first()
+    if not relation:
+        raise HTTPException(status_code=404, detail="対象のフォロー申請がありません")
+
+    action = payload.action.strip().lower()
+    if action == "accept":
+        relation.status = "accepted"
+        add_notification(
+            db,
+            sender.id,
+            current_user.id,
+            "follow_accepted",
+            f"@{current_user.username} さんへのフォロー申請が承認されました！",
+        )
+        db.commit()
+        return {"status": "accepted"}
+
+    if action in {"decline", "reject"}:
+        db.delete(relation)
+        db.commit()
+        return {"status": "declined"}
+
+    raise HTTPException(status_code=400, detail="action は accept または decline を指定してください")
+
+
+@app.get("/api/users/{user_id}/followers")
+def get_followers(user_id: str, db: Session = Depends(get_db)):
+    clean = user_id.strip()
+    try:
+        target = db.query(User).filter(User.id == uuid.UUID(clean)).first()
+    except ValueError:
+        target = db.query(User).filter(or_(User.username == clean, User.username.ilike(clean))).first()
+    if not target:
+        raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
+
+    follows = db.query(Follow).filter(
+        Follow.following_id == target.id,
+        Follow.status == "accepted",
+    ).all()
+    ids = [f.follower_id for f in follows]
+    users = db.query(User).filter(User.id.in_(ids)).all() if ids else []
+    return [
+        {
+            "id": str(u.id),
+            "username": u.username,
+            "display_name": u.display_name or u.username,
+            "avatar_url": u.avatar_url,
+            "is_private": bool(u.is_private),
+        }
+        for u in users
+    ]
+
+
+@app.get("/api/users/{user_id}/following")
+def get_following(user_id: str, db: Session = Depends(get_db)):
+    clean = user_id.strip()
+    try:
+        target = db.query(User).filter(User.id == uuid.UUID(clean)).first()
+    except ValueError:
+        target = db.query(User).filter(or_(User.username == clean, User.username.ilike(clean))).first()
+    if not target:
+        raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
+
+    follows = db.query(Follow).filter(
+        Follow.follower_id == target.id,
+        Follow.status == "accepted",
+    ).all()
+    ids = [f.following_id for f in follows]
+    users = db.query(User).filter(User.id.in_(ids)).all() if ids else []
+    return [
+        {
+            "id": str(u.id),
+            "username": u.username,
+            "display_name": u.display_name or u.username,
+            "avatar_url": u.avatar_url,
+            "is_private": bool(u.is_private),
+        }
+        for u in users
+    ]
+
+
+@app.get("/users/following/stories")
+def get_following_stories(
+    current_user: Optional[User] = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if not current_user:
+        return []
+
+    follows = db.query(Follow).filter(
+        Follow.follower_id == current_user.id,
+        Follow.status == "accepted",
+    ).all()
+    ids = [f.following_id for f in follows]
+    if not ids:
+        return []
+
+    users = db.query(User).filter(User.id.in_(ids)).all()
+    result = []
+    for user in users:
+        latest_spot = db.query(Spot).filter(
+            Spot.user_id == user.id
+        ).order_by(desc(Spot.visited_at)).first()
+        result.append(
+            {
+                "id": str(user.id),
+                "username": user.username,
+                "display_name": user.display_name or user.username,
+                "avatar_url": user.avatar_url,
+                "has_recent_spot": latest_spot is not None,
+            }
+        )
+    return result
+
+
+# --- Spots & likes ---
 
 @app.post("/spots/upload", response_model=SpotResponse)
 async def create_spot(
@@ -192,7 +569,7 @@ async def create_spot(
     rating: Optional[int] = Form(None),
     file: Optional[UploadFile] = File(None),
     current_user: Optional[User] = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     media_url = None
     media_type = None
@@ -219,9 +596,25 @@ async def create_spot(
         google_map_url=google_url,
         media_url=media_url,
         media_type=media_type,
-        visited_at=visited_at or datetime.now()
+        visited_at=visited_at or datetime.now(),
     )
     db.add(spot)
+    db.flush()
+
+    if current_user:
+        followers = db.query(Follow).filter(
+            Follow.following_id == current_user.id,
+            Follow.status == "accepted",
+        ).all()
+        for relation in followers:
+            add_notification(
+                db,
+                relation.follower_id,
+                current_user.id,
+                "new_post",
+                f"@{current_user.username} さんが新しい思い出「{spot.name}」を投稿しました！",
+            )
+
     db.commit()
     db.refresh(spot)
 
@@ -242,8 +635,9 @@ async def create_spot(
         rating=spot.rating,
         visited_at=spot.visited_at,
         likes_count=0,
-        is_liked=False
+        is_liked=False,
     )
+
 
 @app.get("/spots", response_model=List[SpotResponse])
 def get_spots(
@@ -251,15 +645,19 @@ def get_spots(
     feed_type: str = "all",
     target_username: Optional[str] = None,
     current_user: Optional[User] = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     query = db.query(Spot)
 
     if feed_type == "following" and current_user:
-        following_ids = db.query(Follow.following_id).filter(Follow.follower_id == current_user.id).subquery()
+        following_ids = db.query(Follow.following_id).filter(
+            Follow.follower_id == current_user.id,
+            Follow.status == "accepted",
+        ).subquery()
         query = query.filter(Spot.user_id.in_(following_ids))
     elif feed_type == "user" and target_username:
-        author = db.query(User).filter(User.username == target_username).first()
+        clean = target_username.strip()
+        author = db.query(User).filter(or_(User.username == clean, User.username.ilike(clean))).first()
         if author:
             query = query.filter(Spot.user_id == author.id)
         else:
@@ -271,47 +669,52 @@ def get_spots(
     records = query.order_by(Spot.visited_at.desc()).all()
     results = []
 
-    for s in records:
-        pt = to_shape(s.geom)
-        likes_count = db.query(SpotLike).filter(SpotLike.spot_id == s.id).count()
+    for spot in records:
+        pt = to_shape(spot.geom)
+        likes_count = db.query(SpotLike).filter(SpotLike.spot_id == spot.id).count()
         is_liked = False
         if current_user:
             is_liked = db.query(SpotLike).filter(
-                SpotLike.spot_id == s.id,
-                SpotLike.user_id == current_user.id
+                SpotLike.spot_id == spot.id,
+                SpotLike.user_id == current_user.id,
             ).first() is not None
 
         results.append(
             SpotResponse(
-                id=s.id,
-                user_id=s.user_id,
-                username=s.author.username if s.author else "guest",
-                display_name=s.author.display_name or s.author.username if s.author else "Guest",
-                author_avatar_url=s.author.avatar_url if s.author else None,
-                name=s.name,
-                memo=s.memo,
-                media_url=s.media_url,
-                media_type=s.media_type,
-                google_map_url=s.google_map_url,
+                id=spot.id,
+                user_id=spot.user_id,
+                username=spot.author.username if spot.author else "guest",
+                display_name=spot.author.display_name or spot.author.username if spot.author else "Guest",
+                author_avatar_url=spot.author.avatar_url if spot.author else None,
+                name=spot.name,
+                memo=spot.memo,
+                media_url=spot.media_url,
+                media_type=spot.media_type,
+                google_map_url=spot.google_map_url,
                 latitude=pt.y,
                 longitude=pt.x,
-                rating=s.rating,
-                visited_at=s.visited_at,
+                rating=spot.rating,
+                visited_at=spot.visited_at,
                 likes_count=likes_count,
-                is_liked=is_liked
+                is_liked=is_liked,
             )
         )
     return results
 
+
 @app.post("/spots/{spot_id}/like")
-def toggle_like(spot_id: uuid.UUID, current_user: User = Depends(require_current_user), db: Session = Depends(get_db)):
+def toggle_like(
+    spot_id: uuid.UUID,
+    current_user: User = Depends(require_current_user),
+    db: Session = Depends(get_db),
+):
     spot = db.query(Spot).filter(Spot.id == spot_id).first()
     if not spot:
         raise HTTPException(status_code=404, detail="Spot not found")
 
     existing = db.query(SpotLike).filter(
         SpotLike.spot_id == spot_id,
-        SpotLike.user_id == current_user.id
+        SpotLike.user_id == current_user.id,
     ).first()
 
     if existing:
@@ -319,19 +722,19 @@ def toggle_like(spot_id: uuid.UUID, current_user: User = Depends(require_current
         db.commit()
         is_liked = False
     else:
-        new_like = SpotLike(user_id=current_user.id, spot_id=spot_id)
-        db.add(new_like)
+        db.add(SpotLike(user_id=current_user.id, spot_id=spot_id))
         db.commit()
         is_liked = True
 
     count = db.query(SpotLike).filter(SpotLike.spot_id == spot_id).count()
     return {"liked": is_liked, "likes_count": count}
 
+
 @app.delete("/spots/{spot_id}")
 def delete_spot(
     spot_id: uuid.UUID,
     current_user: Optional[User] = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     spot = db.query(Spot).filter(Spot.id == spot_id).first()
     if not spot:
@@ -351,68 +754,145 @@ def delete_spot(
     db.commit()
     return {"message": "deleted successfully"}
 
-# --- DM（ダイレクトメッセージ） ---
 
-# やり取りしたユーザー一覧を取得
+# --- Notifications ---
+
+@app.get("/notifications")
+def get_notifications(
+    current_user: User = Depends(require_current_user),
+    db: Session = Depends(get_db),
+):
+    notifications = db.query(Notification).filter(
+        Notification.recipient_id == current_user.id
+    ).order_by(desc(Notification.created_at)).limit(30).all()
+
+    return [
+        {
+            "id": str(item.id),
+            "type": item.type,
+            "message": item.message,
+            "is_read": item.is_read,
+            "created_at": item.created_at.isoformat() if item.created_at else None,
+            "sender_username": item.sender.username if item.sender else "someone",
+            "sender_avatar_url": item.sender.avatar_url if item.sender else None,
+        }
+        for item in notifications
+    ]
+
+
+@app.post("/notifications/read")
+def mark_notifications_read(
+    current_user: User = Depends(require_current_user),
+    db: Session = Depends(get_db),
+):
+    db.query(Notification).filter(
+        Notification.recipient_id == current_user.id,
+        Notification.is_read.is_(False),
+    ).update({"is_read": True}, synchronize_session=False)
+    db.commit()
+    return {"status": "ok"}
+
+
+# --- Direct messages + WebSocket ---
+
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: Dict[str, WebSocket] = {}
+
+    async def connect(self, username: str, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections[username.lower()] = websocket
+
+    def disconnect(self, username: str):
+        self.active_connections.pop(username.lower(), None)
+
+    async def send_personal_message(self, message: dict, recipient_username: str):
+        websocket = self.active_connections.get(recipient_username.lower())
+        if websocket:
+            await websocket.send_text(json.dumps(message, ensure_ascii=False))
+
+
+manager = ConnectionManager()
+
+
 @app.get("/messages/conversations", response_model=List[UserProfile])
 def get_conversations(
     current_user: User = Depends(require_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
-    user_ids = db.query(DirectMessage.recipient_id).filter(DirectMessage.sender_id == current_user.id).union(
-        db.query(DirectMessage.sender_id).filter(DirectMessage.recipient_id == current_user.id)
+    user_ids = db.query(DirectMessage.recipient_id).filter(
+        DirectMessage.sender_id == current_user.id
+    ).union(
+        db.query(DirectMessage.sender_id).filter(
+            DirectMessage.recipient_id == current_user.id
+        )
     ).all()
     unique_ids = [uid[0] for uid in user_ids]
-    users = db.query(User).filter(User.id.in_(unique_ids)).all()
-    return [build_user_profile(u, current_user, db) for u in users]
+    users = db.query(User).filter(User.id.in_(unique_ids)).all() if unique_ids else []
+    return [build_user_profile(user, current_user, db) for user in users]
+
 
 @app.get("/messages/{partner_username}", response_model=List[DMResponse])
 def get_messages(
     partner_username: str,
     current_user: User = Depends(require_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
-    partner = db.query(User).filter(User.username == partner_username).first()
+    clean = partner_username.strip()
+    partner = db.query(User).filter(or_(User.username == clean, User.username.ilike(clean))).first()
     if not partner:
         raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
 
     messages = db.query(DirectMessage).filter(
         or_(
             and_(DirectMessage.sender_id == current_user.id, DirectMessage.recipient_id == partner.id),
-            and_(DirectMessage.sender_id == partner.id, DirectMessage.recipient_id == current_user.id)
+            and_(DirectMessage.sender_id == partner.id, DirectMessage.recipient_id == current_user.id),
         )
     ).order_by(DirectMessage.created_at.asc()).all()
 
     sender_cache = {current_user.id: current_user.username, partner.id: partner.username}
     return [
         DMResponse(
-            id=m.id,
-            sender_id=m.sender_id,
-            sender_username=sender_cache.get(m.sender_id, "unknown"),
-            recipient_id=m.recipient_id,
-            content=m.content,
-            created_at=m.created_at
-        ) for m in messages
+            id=message.id,
+            sender_id=message.sender_id,
+            sender_username=sender_cache.get(message.sender_id, "unknown"),
+            recipient_id=message.recipient_id,
+            content=message.content,
+            created_at=message.created_at,
+        )
+        for message in messages
     ]
 
+
 @app.post("/messages", response_model=DMResponse)
-def send_message(
+async def send_message(
     msg_in: DMCreate,
     current_user: User = Depends(require_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
-    recipient = db.query(User).filter(User.username == msg_in.recipient_username).first()
+    clean = msg_in.recipient_username.strip()
+    recipient = db.query(User).filter(or_(User.username == clean, User.username.ilike(clean))).first()
     if not recipient:
         raise HTTPException(status_code=404, detail="送信先のユーザーが見つかりません")
 
     msg = DirectMessage(
         sender_id=current_user.id,
         recipient_id=recipient.id,
-        content=msg_in.content
+        content=msg_in.content.strip(),
     )
     db.add(msg)
     db.commit()
     db.refresh(msg)
+
+    msg_data = {
+        "id": str(msg.id),
+        "sender_username": current_user.username,
+        "recipient_username": recipient.username,
+        "content": msg.content,
+        "created_at": msg.created_at.isoformat() if msg.created_at else None,
+    }
+    await manager.send_personal_message(msg_data, recipient.username)
+    await manager.send_personal_message(msg_data, current_user.username)
 
     return DMResponse(
         id=msg.id,
@@ -420,15 +900,69 @@ def send_message(
         sender_username=current_user.username,
         recipient_id=msg.recipient_id,
         content=msg.content,
-        created_at=msg.created_at
+        created_at=msg.created_at,
     )
 
-# === YouTube music search API (ASCII-safe repair) ===
+
+@app.delete("/messages/{message_id}")
+def delete_message(
+    message_id: uuid.UUID,
+    current_user: User = Depends(require_current_user),
+    db: Session = Depends(get_db),
+):
+    msg = db.query(DirectMessage).filter(DirectMessage.id == message_id).first()
+    if not msg:
+        raise HTTPException(status_code=404, detail="メッセージが見つかりません")
+    if msg.sender_id != current_user.id:
+        raise HTTPException(status_code=403, detail="自分の送信メッセージのみ削除できます")
+
+    db.delete(msg)
+    db.commit()
+    return {"status": "deleted", "id": str(message_id)}
+
+
+@app.websocket("/ws/dm")
+async def websocket_dm_endpoint(
+    websocket: WebSocket,
+    token: str = Query(...),
+    db: Session = Depends(get_db),
+):
+    try:
+        secret_key = getattr(auth_module, "SECRET_KEY", None) or os.getenv("SECRET_KEY", "")
+        algorithm = getattr(auth_module, "ALGORITHM", None) or os.getenv("JWT_ALGORITHM", "HS256")
+        if not secret_key:
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+            return
+
+        payload = jwt.decode(token, secret_key, algorithms=[algorithm])
+        username = payload.get("sub")
+        if not username:
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+            return
+
+        user = db.query(User).filter(or_(User.username == username, User.username.ilike(username))).first()
+        if not user:
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+            return
+    except Exception:
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
+    await manager.connect(user.username, websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(user.username)
+    except Exception:
+        manager.disconnect(user.username)
+
+
+# --- YouTube music search ---
+
 @app.get("/api/music/search")
 async def youtube_music_search(q: str, limit: int = 10):
-    import os
     import httpx
-    from fastapi import HTTPException
 
     query = (q or "").strip()
     if not query:
@@ -484,14 +1018,15 @@ async def youtube_music_search(q: str, limit: int = 10):
             or ""
         )
 
-        items.append({
-            "youtube_video_id": video_id,
-            "title": snippet.get("title") or "",
-            "artist": snippet.get("channelTitle") or "",
-            "cover_url": cover_url,
-            "external_url": f"https://www.youtube.com/watch?v={video_id}",
-            "embed_url": f"https://www.youtube.com/embed/{video_id}",
-        })
+        items.append(
+            {
+                "youtube_video_id": video_id,
+                "title": snippet.get("title") or "",
+                "artist": snippet.get("channelTitle") or "",
+                "cover_url": cover_url,
+                "external_url": f"https://www.youtube.com/watch?v={video_id}",
+                "embed_url": f"https://www.youtube.com/embed/{video_id}",
+            }
+        )
 
     return {"items": items}
-# === end YouTube music search API ===

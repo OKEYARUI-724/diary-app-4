@@ -373,6 +373,13 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
           </svg>
         </button>
 
+        <button onclick="openNotificationsModal()" class="text-slate-700 hover:text-slate-950 p-1 transition relative" title="通知">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 11-6 0m6 0H9" />
+          </svg>
+          <span id="notifBadge" class="hidden absolute top-0 right-0 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white"></span>
+        </button>
+
         <button onclick="openConversationsModal()" class="text-slate-700 hover:text-slate-950 p-1 transition relative" title="メッセージ">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -392,6 +399,17 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
       <button id="tabAll" onclick="switchFeedTab('all')" class="pb-2 text-slate-900 border-b-2 border-slate-900">ALL</button>
       <button id="tabFollowing" onclick="switchFeedTab('following')" class="pb-2 text-slate-400 hover:text-slate-700">FOLLOWING</button>
     </div>
+
+    <!-- フォロー中ストーリーバー -->
+    <section id="storiesSection" class="hidden px-4 pt-3">
+      <div class="tl-filter-card px-3 py-3 overflow-hidden">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-[10px] font-black tracking-[0.16em] text-slate-500 uppercase">Following Stories</span>
+          <span class="text-[9px] text-slate-400">最近の投稿</span>
+        </div>
+        <div id="storiesBar" class="flex gap-3 overflow-x-auto pb-1"></div>
+      </div>
+    </section>
 
     <!-- メインコンテンツ -->
     <main class="p-4 flex-1">
@@ -532,14 +550,14 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
 
           <!-- スタッツカウンター（パスポートスタンプ風） -->
           <div class="grid grid-cols-2 gap-2 pt-1 font-mono">
-            <div class="border border-slate-200 rounded-xl p-2.5 text-center bg-white shadow-sm">
+            <button type="button" onclick="openUserListModal('following')" class="border border-slate-200 rounded-xl p-2.5 text-center bg-white shadow-sm hover:bg-slate-50 transition">
               <span class="text-[9px] text-slate-400 block tracking-widest uppercase">Following</span>
               <span id="profileFollowingCount" class="text-sm font-black text-slate-900">0</span>
-            </div>
-            <div class="border border-slate-200 rounded-xl p-2.5 text-center bg-white shadow-sm">
+            </button>
+            <button type="button" onclick="openUserListModal('followers')" class="border border-slate-200 rounded-xl p-2.5 text-center bg-white shadow-sm hover:bg-slate-50 transition">
               <span class="text-[9px] text-slate-400 block tracking-widest uppercase">Followers</span>
               <span id="profileFollowersCount" class="text-sm font-black text-slate-900">0</span>
-            </div>
+            </button>
           </div>
         </div>
       </div>
@@ -562,6 +580,13 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Bio (自己紹介)</label>
             <textarea id="editBio" name="bio" rows="2" class="w-full rounded-xl p-2 text-xs navy-input"></textarea>
           </div>
+          <label class="flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50">
+            <span>
+              <span class="block text-[10px] font-bold text-slate-700">非公開アカウント</span>
+              <span class="block text-[9px] text-slate-400 mt-0.5">ONの場合はフォロー申請の承認が必要です</span>
+            </span>
+            <input id="editIsPrivate" type="checkbox" class="w-4 h-4 accent-slate-900">
+          </label>
           <div>
             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Avatar Image (アイコン)</label>
             <input type="file" name="avatar" accept="image/*" class="w-full text-xs text-slate-600">
@@ -573,6 +598,42 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
 
           <button type="submit" class="w-full navy-btn font-bold py-2.5 rounded-xl text-xs tracking-wider uppercase mt-3">Save Changes</button>
         </form>
+      </div>
+    </div>
+
+    <!-- フォロー / フォロワー一覧 -->
+    <div id="userListModal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+      <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-5 shadow-2xl">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
+          <h2 id="userListModalTitle" class="text-xs font-bold tracking-widest text-slate-900 uppercase">Users</h2>
+          <button onclick="closeUserListModal()" class="text-slate-400 hover:text-slate-900 text-xs font-medium">✕</button>
+        </div>
+        <div id="userListContent" class="max-h-72 overflow-y-auto divide-y divide-slate-100 text-xs"></div>
+      </div>
+    </div>
+
+    <!-- 通知 / フォロー申請 -->
+    <div id="notificationsModal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+      <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-5 shadow-2xl max-h-[82vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
+          <h2 class="text-xs font-bold tracking-widest text-slate-900 uppercase">Notifications</h2>
+          <button onclick="closeNotificationsModal()" class="text-slate-400 hover:text-slate-900 text-xs font-medium">✕</button>
+        </div>
+
+        <section class="mb-4">
+          <div class="text-[10px] font-black tracking-widest text-slate-500 uppercase mb-2">Follow Requests</div>
+          <div id="incomingRequestsList" class="space-y-2 text-xs"></div>
+        </section>
+
+        <section class="mb-4">
+          <div class="text-[10px] font-black tracking-widest text-slate-500 uppercase mb-2">Pending</div>
+          <div id="outgoingRequestsList" class="space-y-2 text-xs"></div>
+        </section>
+
+        <section>
+          <div class="text-[10px] font-black tracking-widest text-slate-500 uppercase mb-2">Recent</div>
+          <div id="notificationsList" class="divide-y divide-slate-100 text-xs"></div>
+        </section>
       </div>
     </div>
 
@@ -614,6 +675,9 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
     let currentFeedTab = 'all';
     let currentUser = null;
     let activeDmPartner = null;
+    let currentProfileUsername = null;
+    let dmSocket = null;
+    let notificationTimer = null;
     let map = null;
     let currentMarker = null;
 
@@ -655,6 +719,9 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
           updateViewState(true);
           renderAuthUI(currentUser);
           loadSpots();
+          loadStories();
+          connectDmWebSocket();
+          startNotificationPolling();
         } else {
           removeToken();
           updateViewState(false);
@@ -687,6 +754,14 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
     window.logout = function() {
       removeToken();
       currentUser = null;
+      if (dmSocket) {
+        try { dmSocket.close(); } catch (_) {}
+        dmSocket = null;
+      }
+      if (notificationTimer) {
+        clearInterval(notificationTimer);
+        notificationTimer = null;
+      }
       renderAuthUI(null);
       updateViewState(false);
     };
@@ -839,6 +914,9 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
       gateAuthForm.reset();
       setGateStatus('');
       loadSpots();
+      loadStories();
+      connectDmWebSocket();
+      startNotificationPolling();
     }
 
     gateAuthForm.addEventListener('submit', async (e) => {
@@ -1018,6 +1096,174 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
         executeUserSearch();
       }
     });
+
+    // --- ストーリー / 通知 / フォロー申請 / ユーザー一覧 ---
+    async function loadStories() {
+      const section = document.getElementById('storiesSection');
+      const bar = document.getElementById('storiesBar');
+      const token = getToken();
+      if (!token || !section || !bar) return;
+
+      try {
+        const res = await fetch('/users/following/stories', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const users = res.ok ? await res.json() : [];
+        if (!Array.isArray(users) || users.length === 0) {
+          section.classList.add('hidden');
+          bar.innerHTML = '';
+          return;
+        }
+
+        bar.innerHTML = users.map(u => `
+          <button type="button" onclick="openProfile('${escapeHtml(u.username)}')" class="shrink-0 w-[72px] text-center group">
+            <span class="mx-auto w-12 h-12 rounded-2xl border-2 ${u.has_recent_spot ? 'border-rose-300' : 'border-slate-200'} bg-slate-100 bg-cover bg-center flex items-center justify-center text-xs font-black shadow-sm"
+              ${u.avatar_url ? `style="background-image:url('${escapeHtml(u.avatar_url)}')"` : ''}>
+              ${u.avatar_url ? '' : escapeHtml((u.display_name || u.username).charAt(0).toUpperCase())}
+            </span>
+            <span class="block mt-1 text-[9px] font-bold text-slate-600 truncate">@${escapeHtml(u.username)}</span>
+          </button>
+        `).join('');
+        section.classList.remove('hidden');
+      } catch (err) {
+        console.warn('stories:', err);
+      }
+    }
+
+    function startNotificationPolling() {
+      if (notificationTimer) clearInterval(notificationTimer);
+      refreshNotificationBadge();
+      notificationTimer = setInterval(refreshNotificationBadge, 30000);
+    }
+
+    async function refreshNotificationBadge() {
+      const token = getToken();
+      const badge = document.getElementById('notifBadge');
+      if (!token || !badge) return;
+
+      try {
+        const [notifRes, reqRes] = await Promise.all([
+          fetch('/notifications', { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch('/friends/incoming-requests', { headers: { 'Authorization': `Bearer ${token}` } })
+        ]);
+        const notifications = notifRes.ok ? await notifRes.json() : [];
+        const requests = reqRes.ok ? await reqRes.json() : [];
+        const hasUnread = Array.isArray(notifications) && notifications.some(n => !n.is_read);
+        const hasRequests = Array.isArray(requests) && requests.length > 0;
+        badge.classList.toggle('hidden', !(hasUnread || hasRequests));
+      } catch (_) {}
+    }
+
+    window.openNotificationsModal = async function() {
+      const token = getToken();
+      if (!token) return;
+
+      document.getElementById('notificationsModal').classList.remove('hidden');
+      const incomingEl = document.getElementById('incomingRequestsList');
+      const outgoingEl = document.getElementById('outgoingRequestsList');
+      const notifEl = document.getElementById('notificationsList');
+      incomingEl.innerHTML = '<p class="text-slate-400 py-2">読み込み中...</p>';
+      outgoingEl.innerHTML = '<p class="text-slate-400 py-2">読み込み中...</p>';
+      notifEl.innerHTML = '<p class="text-slate-400 py-2">読み込み中...</p>';
+
+      try {
+        const headers = { 'Authorization': `Bearer ${token}` };
+        const [incomingRes, outgoingRes, notifRes] = await Promise.all([
+          fetch('/friends/incoming-requests', { headers }),
+          fetch('/friends/outgoing-requests', { headers }),
+          fetch('/notifications', { headers })
+        ]);
+
+        const incoming = incomingRes.ok ? await incomingRes.json() : [];
+        const outgoing = outgoingRes.ok ? await outgoingRes.json() : [];
+        const notifications = notifRes.ok ? await notifRes.json() : [];
+
+        incomingEl.innerHTML = incoming.length ? incoming.map(u => `
+          <div class="p-2.5 rounded-xl border border-slate-200 bg-slate-50">
+            <div class="font-bold text-slate-800">${escapeHtml(u.display_name || u.username)} <span class="font-normal text-slate-400">@${escapeHtml(u.username)}</span></div>
+            <div class="flex gap-2 mt-2">
+              <button onclick="decideFollow('${escapeHtml(u.username)}','accept')" class="navy-btn text-[10px] px-3 py-1.5 rounded-full font-bold">承認</button>
+              <button onclick="decideFollow('${escapeHtml(u.username)}','decline')" class="navy-btn-outline text-[10px] px-3 py-1.5 rounded-full font-bold">拒否</button>
+            </div>
+          </div>
+        `).join('') : '<p class="text-slate-400 py-2">承認待ちの申請はありません</p>';
+
+        outgoingEl.innerHTML = outgoing.length ? outgoing.map(u => `
+          <div class="p-2.5 rounded-xl border border-slate-200 bg-white">
+            <span class="font-bold text-slate-700">${escapeHtml(u.display_name || u.username)}</span>
+            <span class="text-slate-400"> @${escapeHtml(u.username)} · 承認待ち</span>
+          </div>
+        `).join('') : '<p class="text-slate-400 py-2">送信中の申請はありません</p>';
+
+        notifEl.innerHTML = notifications.length ? notifications.map(n => `
+          <div class="py-3 ${n.is_read ? 'opacity-70' : ''}">
+            <div class="font-semibold text-slate-700">${escapeHtml(n.message)}</div>
+            <div class="text-[9px] text-slate-400 mt-1">${n.created_at ? new Date(n.created_at).toLocaleString() : ''}</div>
+          </div>
+        `).join('') : '<p class="text-slate-400 py-2">通知はありません</p>';
+
+        await fetch('/notifications/read', { method: 'POST', headers });
+        refreshNotificationBadge();
+      } catch (err) {
+        console.error(err);
+        notifEl.innerHTML = '<p class="text-rose-500 py-2">通知の取得に失敗しました</p>';
+      }
+    };
+
+    window.closeNotificationsModal = function() {
+      document.getElementById('notificationsModal').classList.add('hidden');
+    };
+
+    window.decideFollow = async function(username, action) {
+      const token = getToken();
+      const res = await fetch('/friends/decision', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ target_username: username, action })
+      });
+      if (res.ok) {
+        await openNotificationsModal();
+        await loadStories();
+      }
+    };
+
+    window.openUserListModal = async function(type) {
+      if (!currentProfileUsername) return;
+      const modal = document.getElementById('userListModal');
+      const titleEl = document.getElementById('userListModalTitle');
+      const contentEl = document.getElementById('userListContent');
+
+      titleEl.innerText = type === 'following' ? 'FOLLOWING' : 'FOLLOWERS';
+      contentEl.innerHTML = '<p class="text-center text-slate-400 py-6">読み込み中...</p>';
+      modal.classList.remove('hidden');
+
+      try {
+        const res = await fetch(`/api/users/${encodeURIComponent(currentProfileUsername)}/${type}`);
+        const users = res.ok ? await res.json() : [];
+        if (!Array.isArray(users) || users.length === 0) {
+          contentEl.innerHTML = '<p class="text-center text-slate-400 py-6">ユーザーはいません</p>';
+          return;
+        }
+        contentEl.innerHTML = users.map(u => `
+          <button type="button" class="w-full p-3 flex items-center justify-between text-left hover:bg-slate-50 transition" onclick="closeUserListModal(); closeProfileModal(); openProfile('${escapeHtml(u.username)}');">
+            <span>
+              <span class="font-bold text-slate-900">${escapeHtml(u.display_name || u.username)}</span>
+              <span class="text-slate-400 font-normal"> @${escapeHtml(u.username)}</span>
+            </span>
+            <span class="text-[10px] text-slate-800 font-bold">VIEW ↗</span>
+          </button>
+        `).join('');
+      } catch (_) {
+        contentEl.innerHTML = '<p class="text-center text-slate-400 py-6">取得に失敗しました</p>';
+      }
+    };
+
+    window.closeUserListModal = function() {
+      document.getElementById('userListModal').classList.add('hidden');
+    };
 
     // --- DM会話一覧モーダル ---
     window.openConversationsModal = async function() {
@@ -1330,18 +1576,19 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
 
     // --- 独自デザインのプロフィール表示 ---
     window.openProfile = async function(username) {
+      currentProfileUsername = username;
       const token = getToken();
-      const res = await fetch(`/users/${username}`, {
+      const res = await fetch(`/users/${encodeURIComponent(username)}`, {
         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
       });
       if (!res.ok) return;
       const user = await res.json();
 
       document.getElementById('profileDisplayName').innerText = user.display_name || user.username;
-      document.getElementById('profileUsername').innerText = `@${user.username}`;
+      document.getElementById('profileUsername').innerText = `@${user.username}${user.is_private ? ' 🔒' : ''}`;
       document.getElementById('profileBio').innerText = user.bio || '自己紹介がまだ記入されていません';
-      document.getElementById('profileFollowingCount').innerText = user.following_count;
-      document.getElementById('profileFollowersCount').innerText = user.followers_count;
+      document.getElementById('profileFollowingCount').innerText = user.following_count ?? 0;
+      document.getElementById('profileFollowersCount').innerText = user.followers_count ?? 0;
 
       const avatarEl = document.getElementById('profileAvatar');
       if (user.avatar_url) {
@@ -1359,11 +1606,13 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
       if (currentUser && currentUser.username === user.username) {
         act.innerHTML = `<button onclick="openEditProfile()" class="navy-btn-outline text-[10px] font-bold px-3 py-1 rounded-full">EDIT PROFILE</button>`;
       } else {
+        const status = user.follow_status || (user.is_following ? 'following' : 'none');
+        const label = status === 'following' ? 'フォロー中' : status === 'pending' ? '承認待ち' : 'フォロー';
         act.innerHTML = `
-          <button onclick="toggleFollowUser('${user.username}')" class="navy-btn text-[10px] font-bold px-3 py-1 rounded-full">
-            ${user.is_following ? 'フォロー中' : 'フォロー'}
+          <button onclick="toggleFollowUser('${escapeHtml(user.username)}')" class="navy-btn text-[10px] font-bold px-3 py-1 rounded-full">
+            ${label}
           </button>
-          <button onclick="openDmChat('${user.username}')" class="navy-btn-outline text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+          <button onclick="openDmChat('${escapeHtml(user.username)}')" class="navy-btn-outline text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
             <span>✉️</span><span>DM</span>
           </button>
         `;
@@ -1378,18 +1627,30 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
 
     window.toggleFollowUser = async function(username) {
       const token = getToken();
-      const res = await fetch(`/users/${username}/follow`, {
+      const res = await fetch(`/users/${encodeURIComponent(username)}/follow`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      if (res.ok) openProfile(username);
+      if (res.ok) {
+        await openProfile(username);
+        await loadStories();
+        refreshNotificationBadge();
+      }
     };
 
     // --- プロフィール編集 ---
-    window.openEditProfile = function() {
+    window.openEditProfile = async function() {
       closeProfileModal();
       document.getElementById('editDisplayName').value = currentUser.display_name || '';
       document.getElementById('editBio').value = currentUser.bio || '';
+      const token = getToken();
+      try {
+        const res = await fetch('/users/privacy', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = res.ok ? await res.json() : {};
+        document.getElementById('editIsPrivate').checked = !!data.is_private;
+      } catch (_) {
+        document.getElementById('editIsPrivate').checked = false;
+      }
       document.getElementById('editProfileModal').classList.remove('hidden');
     };
 
@@ -1408,20 +1669,57 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
       });
       if (res.ok) {
         currentUser = await res.json();
+
+        const privacyValue = !!document.getElementById('editIsPrivate').checked;
+        await fetch('/users/privacy', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ is_private: privacyValue })
+        });
+
         renderAuthUI(currentUser);
         closeEditProfileModal();
         openProfile(currentUser.username);
         loadSpots();
+        loadStories();
       }
     });
 
-    // --- DM（チャット） ---
+    // --- DM（リアルタイム + 削除） ---
+    function connectDmWebSocket() {
+      const token = getToken();
+      if (!token) return;
+
+      if (dmSocket) {
+        try { dmSocket.close(); } catch (_) {}
+        dmSocket = null;
+      }
+
+      const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+      dmSocket = new WebSocket(`${scheme}://${window.location.host}/ws/dm?token=${encodeURIComponent(token)}`);
+
+      dmSocket.onmessage = () => {
+        if (activeDmPartner) loadDmMessages();
+      };
+
+      dmSocket.onclose = () => {
+        if (getToken()) {
+          setTimeout(() => {
+            if (!dmSocket || dmSocket.readyState === WebSocket.CLOSED) connectDmWebSocket();
+          }, 3000);
+        }
+      };
+    }
+
     window.openDmChat = async function(username) {
       activeDmPartner = username;
       closeProfileModal();
       document.getElementById('dmPartnerTitle').innerText = `@${username} とのDM`;
       document.getElementById('dmModal').classList.remove('hidden');
-      loadDmMessages();
+      await loadDmMessages();
     };
 
     window.closeDmModal = function() {
@@ -1432,7 +1730,7 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
     async function loadDmMessages() {
       if (!activeDmPartner) return;
       const token = getToken();
-      const res = await fetch(`/messages/${activeDmPartner}`, {
+      const res = await fetch(`/messages/${encodeURIComponent(activeDmPartner)}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -1443,14 +1741,25 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
           return `
             <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
               <div class="max-w-[75%] p-2 rounded-2xl ${isMe ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-800'}">
-                ${m.content}
+                ${escapeHtml(m.content)}
               </div>
+              ${isMe ? `<button type="button" onclick="deleteDmMessage('${m.id}')" class="mt-1 text-[9px] text-slate-400 hover:text-rose-500">削除</button>` : ''}
             </div>
           `;
         }).join('');
         list.scrollTop = list.scrollHeight;
       }
     }
+
+    window.deleteDmMessage = async function(messageId) {
+      if (!confirm('このメッセージを削除しますか？')) return;
+      const token = getToken();
+      const res = await fetch(`/messages/${encodeURIComponent(messageId)}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) loadDmMessages();
+    };
 
     document.getElementById('dmSendForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -1469,7 +1778,7 @@ a{color:inherit}.tabs,.tab-list,.filters{border-color:rgba(103,91,99,.14)!import
       });
       if (res.ok) {
         input.value = '';
-        loadDmMessages();
+        await loadDmMessages();
       }
     });
 
