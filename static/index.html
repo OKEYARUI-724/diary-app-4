@@ -1528,6 +1528,40 @@ html.withlog-dark .withlog-notification-user { color: #d7c8ff !important; }
 html.withlog-dark .withlog-notification-user:hover { color: #f0eaff !important; }
 </style>
 
+
+<style id="withlog-post-media-border-style">
+/* Give post photos/videos a small inset frame so they do not touch adjacent sections. */
+.tl-post-card .post-media-frame {
+  width: calc(100% - 12px) !important;
+  margin: 6px !important;
+  border: 1px solid rgba(105, 88, 118, .13) !important;
+  border-radius: 20px !important;
+  background: #f7f2f6 !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+.tl-post-card .post-media-frame > img,
+.tl-post-card .post-media-frame > video {
+  width: 100% !important;
+  border-radius: 18px !important;
+}
+html.withlog-dark .tl-post-card .post-media-frame {
+  border-color: rgba(216, 207, 226, .14) !important;
+  background: #292a30 !important;
+}
+@media (max-width: 560px) {
+  .tl-post-card .post-media-frame {
+    width: calc(100% - 10px) !important;
+    margin: 5px !important;
+    border-radius: 18px !important;
+  }
+  .tl-post-card .post-media-frame > img,
+  .tl-post-card .post-media-frame > video {
+    border-radius: 16px !important;
+  }
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
