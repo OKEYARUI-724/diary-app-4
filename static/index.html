@@ -692,6 +692,43 @@ html.withlog-dark #darkModeToggle:checked + .withlog-theme-switch { background: 
 .withlog-liked-posts-arrow {
   flex: 0 0 auto; color: #9b91a3; font-size: 22px; font-weight: 800; line-height: 1;
 }
+/* いいねした投稿モーダル：ヘッダー固定、投稿一覧だけスクロール */
+.withlog-liked-modal-panel {
+  padding: 0 !important;
+}
+.withlog-liked-header {
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 20;
+  width: 100%;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #fffaf7;
+}
+.withlog-liked-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 16px 20px 20px;
+  background: #ffffff;
+}
+.withlog-liked-close {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 9999px;
+}
+html.withlog-dark #likedPostsModal .withlog-liked-header {
+  background: #2f3036 !important;
+  border-color: #4c4d56 !important;
+}
+html.withlog-dark #likedPostsModal .withlog-liked-scroll {
+  background: #2f3036 !important;
+}
+
 .withlog-liked-post-card {
   overflow: hidden; border: 1px solid rgba(92,78,105,.12); border-radius: 24px;
   background: #fffaf7;
@@ -1607,16 +1644,21 @@ html.withlog-dark .post-media-frame > video {
 
     <!-- いいねした投稿モーダル -->
     <div id="likedPostsModal" class="fixed inset-0 z-[60] bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
-      <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-5 max-h-[88vh] overflow-y-auto">
-        <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4 sticky top-0 bg-inherit z-10">
+      <div class="withlog-liked-modal-panel bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl max-h-[88vh] overflow-hidden flex flex-col">
+        <!-- ヘッダーはスクロール領域の外に置き、投稿が上側へはみ出さないようにする -->
+        <div class="withlog-liked-header flex items-center justify-between">
           <div>
             <p class="text-[9px] font-black tracking-[0.2em] text-slate-400 uppercase">Saved Memories</p>
             <h2 class="text-sm font-black text-slate-900 mt-0.5">♥ いいねした投稿</h2>
           </div>
-          <button type="button" onclick="closeLikedPostsModal()" class="text-slate-400 hover:text-slate-900 text-sm font-bold" aria-label="閉じる">✕</button>
+          <button type="button" onclick="closeLikedPostsModal()" class="withlog-liked-close text-slate-400 hover:text-slate-900 text-sm font-bold" aria-label="閉じる">✕</button>
         </div>
-        <div id="likedPostsContent" class="space-y-3">
-          <div class="withlog-liked-empty">読み込み中...</div>
+
+        <!-- この中だけをスクロールさせる -->
+        <div id="likedPostsScroll" class="withlog-liked-scroll">
+          <div id="likedPostsContent" class="space-y-3">
+            <div class="withlog-liked-empty">読み込み中...</div>
+          </div>
         </div>
       </div>
     </div>
@@ -2849,6 +2891,10 @@ html.withlog-dark .post-media-frame > video {
       const content = document.getElementById('likedPostsContent');
       content.innerHTML = '<div class="withlog-liked-empty">読み込み中...</div>';
       modal.classList.remove('hidden');
+
+      // 開くたびに一覧を先頭から表示する。
+      const scrollArea = document.getElementById('likedPostsScroll');
+      if (scrollArea) scrollArea.scrollTop = 0;
 
       try {
         const res = await fetch('/users/me/liked-spots', {
