@@ -201,7 +201,15 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
 def serve_ui():
-    return FileResponse("static/index.html")
+    # Always revalidate the main HTML so users do not keep an old UI after deploys.
+    return FileResponse(
+        "static/index.html",
+        headers={
+            "Cache-Control": "no-cache, max-age=0, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        },
+    )
 
 
 def accepted_follow_filter():
