@@ -1368,6 +1368,25 @@ html.withlog-dark .post-media-frame > video {
 .withlog-privacy-explanation strong { color:#61516f; font-size:12px; }
 .withlog-privacy-explanation p { margin:8px 0 0; }
 .withlog-settings-link { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; margin-top:10px; padding:14px 16px; border:0; border-radius:18px; background:#f2eef8; color:#6a557f; font-weight:700; font-size:12px; text-align:left; }
+.withlog-danger-zone { margin-top:24px; padding-top:20px; border-top:1px solid #eee6ec; }
+.withlog-delete-account-button { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:15px 16px; border:1px solid #f0cbd5; border-radius:18px; background:#fff3f6; color:#a74864; font-size:12px; font-weight:800; text-align:left; }
+.withlog-delete-account-button span:last-child { font-size:18px; line-height:1; }
+.withlog-delete-modal-panel { width:100%; max-width:420px; border-radius:30px; overflow:hidden; background:#fffdfb; color:#38313f; }
+.withlog-delete-body { padding:22px 24px 24px; }
+.withlog-delete-warning { padding:15px 16px; border-radius:18px; background:#fff2f5; color:#8f4a5e; font-size:11px; line-height:1.75; }
+.withlog-delete-warning strong { display:block; margin-bottom:5px; color:#9c3f59; font-size:12px; }
+.withlog-delete-list { margin:10px 0 0; padding-left:18px; }
+.withlog-delete-list li { margin-top:4px; }
+.withlog-delete-field { display:block; margin-top:16px; }
+.withlog-delete-field > span { display:block; margin:0 0 7px 2px; color:#75677f; font-size:10px; font-weight:800; letter-spacing:.08em; }
+.withlog-delete-input { width:100%; border:1px solid #dfd6e4 !important; border-radius:15px !important; background:#fff !important; padding:12px 13px !important; color:#3f3447 !important; font-size:12px; outline:none; }
+.withlog-delete-input:focus { border-color:#b88698 !important; }
+.withlog-delete-status { min-height:18px; margin:10px 2px 0; color:#a74864; font-size:11px; line-height:1.5; }
+.withlog-delete-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:18px; }
+.withlog-delete-cancel, .withlog-delete-confirm { min-height:44px; border:0; border-radius:16px; font-size:11px; font-weight:800; }
+.withlog-delete-cancel { background:#f1edf5; color:#6c5d78; }
+.withlog-delete-confirm { background:#b64967; color:#fff; }
+.withlog-delete-confirm:disabled { opacity:.5; cursor:not-allowed; }
 .withlog-privacy-retry { padding:8px 12px; border-radius:14px; background:#f2eef8; font-size:12px; margin:0 0 12px; }
 .withlog-profile-privacy { padding:13px 15px; background:#f4eff9; border-radius:18px; color:#716181; font-size:11px; line-height:1.8; }
 .withlog-follower-row { display:flex; align-items:center; gap:10px; padding:10px 0; }
@@ -1386,6 +1405,15 @@ html.withlog-dark .withlog-privacy-explanation { background:#36333e; color:#c2b6
 html.withlog-dark .withlog-privacy-explanation strong { color:#e2d3f0; }
 html.withlog-dark .withlog-advanced-icon { background:#4a3f5c; color:#d5bff2; }
 html.withlog-dark .withlog-follower-remove { background:#503c46; color:#efb7ca; }
+html.withlog-dark .withlog-danger-zone { border-color:#4d454e; }
+html.withlog-dark .withlog-delete-account-button { border-color:#694454; background:#4b343d; color:#f1b4c6; }
+html.withlog-dark .withlog-delete-modal-panel { background:#2f3036; color:#f5f1f7; }
+html.withlog-dark .withlog-delete-warning { background:#49343d; color:#e6b2c0; }
+html.withlog-dark .withlog-delete-warning strong { color:#f2bed0; }
+html.withlog-dark .withlog-delete-field > span { color:#c7b8ce; }
+html.withlog-dark .withlog-delete-input { background:#383940 !important; border-color:#55515d !important; color:#f5f1f7 !important; }
+html.withlog-dark .withlog-delete-cancel { background:#413b48; color:#ddd0e7; }
+html.withlog-dark .withlog-delete-confirm { background:#a94663; color:#fff; }
 @media (max-width:380px) { .withlog-settings-header { padding:19px; } .withlog-settings-body { padding:18px; } }
 </style>
 
@@ -1758,7 +1786,51 @@ html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;borde
           </div>
           <button type="button" class="withlog-settings-link" onclick="openRequestsFromSettings()"><span>フォロー申請を確認</span><span aria-hidden="true">›</span></button>
           <button type="button" class="withlog-settings-link" onclick="manageMyFollowers()"><span>フォロワーを管理</span><span aria-hidden="true">›</span></button>
+
+          <div class="withlog-danger-zone">
+            <p class="withlog-settings-section">アカウント</p>
+            <button type="button" class="withlog-delete-account-button" onclick="openDeleteAccountModal()">
+              <span>アカウントを削除</span><span aria-hidden="true">›</span>
+            </button>
+          </div>
         </div>
+      </div>
+    </div>
+
+    <!-- アカウント削除確認モーダル -->
+    <div id="deleteAccountModal" class="withlog-settings-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="deleteAccountTitle" tabindex="-1">
+      <div class="withlog-delete-modal-panel">
+        <div class="withlog-settings-header">
+          <div><p class="withlog-settings-kicker">DANGER ZONE</p><h2 id="deleteAccountTitle">アカウントを削除</h2></div>
+          <button type="button" class="withlog-settings-close" onclick="closeDeleteAccountModal()" aria-label="アカウント削除画面を閉じる">×</button>
+        </div>
+        <form id="deleteAccountForm" class="withlog-delete-body">
+          <div class="withlog-delete-warning">
+            <strong>この操作は取り消せません</strong>
+            <span>アカウントを削除すると、登録した情報は完全に削除されます。</span>
+            <ul class="withlog-delete-list">
+              <li>プロフィール・メールアドレス・ログイン情報</li>
+              <li>投稿・写真・動画</li>
+              <li>コメント・いいね</li>
+              <li>フォロー・フォロー申請</li>
+              <li>通知・DM</li>
+            </ul>
+          </div>
+
+          <label class="withlog-delete-field">
+            <span>確認のためユーザーIDを入力</span>
+            <input id="deleteAccountUsername" class="withlog-delete-input" type="text" autocomplete="off" spellcheck="false" required>
+          </label>
+          <label class="withlog-delete-field">
+            <span>現在のパスワード</span>
+            <input id="deleteAccountPassword" class="withlog-delete-input" type="password" autocomplete="current-password" required>
+          </label>
+          <p id="deleteAccountStatus" class="withlog-delete-status" role="status" aria-live="polite"></p>
+          <div class="withlog-delete-actions">
+            <button type="button" class="withlog-delete-cancel" onclick="closeDeleteAccountModal()">キャンセル</button>
+            <button id="deleteAccountConfirmButton" type="submit" class="withlog-delete-confirm">完全に削除する</button>
+          </div>
+        </form>
       </div>
     </div>
 
@@ -2000,14 +2072,7 @@ html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;borde
       }
     }
 
-    window.logout = async function() {
-      try {
-        const res = await fetch('/auth/logout', {method:'POST', credentials:'same-origin', cache:'no-store'});
-        if (!res.ok) throw new Error('logout');
-      } catch (_) {
-        window.alert('ログアウトできませんでした。通信を確認してもう一度お試しください。');
-        return;
-      }
+    function clearSignedInState() {
       ++feedRequestSerial;
       ++privacyRequestSerial;
       savedPrivacy = null;
@@ -2031,6 +2096,17 @@ html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;borde
       }
       renderAuthUI(null);
       updateViewState(false);
+    }
+
+    window.logout = async function() {
+      try {
+        const res = await fetch('/auth/logout', {method:'POST', credentials:'same-origin', cache:'no-store'});
+        if (!res.ok) throw new Error('logout');
+      } catch (_) {
+        window.alert('ログアウトできませんでした。通信を確認してもう一度お試しください。');
+        return;
+      }
+      clearSignedInState();
     };
 
     // --- ゲート画面の認証制御（ログイン / 新規登録） ---
@@ -3324,6 +3400,88 @@ html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;borde
       currentProfileUsername = currentUser.username;
       openUserListModal('followers');
     };
+
+    let accountDeleting = false;
+    window.openDeleteAccountModal = function() {
+      if (privacySaving || accountDeleting || !currentUser || !getToken()) return;
+      document.getElementById('advancedSettingsModal').classList.add('hidden');
+      document.getElementById('deleteAccountUsername').value = '';
+      document.getElementById('deleteAccountPassword').value = '';
+      document.getElementById('deleteAccountStatus').textContent = `削除するには @${currentUser.username} と現在のパスワードを入力してください。`;
+      const modal = document.getElementById('deleteAccountModal');
+      modal.classList.remove('hidden');
+      modal.focus();
+      setTimeout(() => document.getElementById('deleteAccountUsername').focus(), 0);
+    };
+
+    window.closeDeleteAccountModal = function() {
+      if (accountDeleting) return;
+      document.getElementById('deleteAccountModal').classList.add('hidden');
+      document.getElementById('deleteAccountPassword').value = '';
+      if (currentUser) {
+        document.getElementById('advancedSettingsModal').classList.remove('hidden');
+        document.getElementById('advancedSettingsModal').focus();
+      }
+    };
+
+    document.getElementById('deleteAccountForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      if (accountDeleting || !currentUser) return;
+      const username = document.getElementById('deleteAccountUsername').value.trim();
+      const password = document.getElementById('deleteAccountPassword').value;
+      const statusEl = document.getElementById('deleteAccountStatus');
+      if (username !== currentUser.username) {
+        statusEl.textContent = 'ユーザーIDが一致していません。';
+        return;
+      }
+      if (!password) {
+        statusEl.textContent = '現在のパスワードを入力してください。';
+        return;
+      }
+      if (!window.confirm('アカウントと登録データを完全に削除します。\nこの操作は取り消せません。削除しますか？')) return;
+
+      accountDeleting = true;
+      const button = document.getElementById('deleteAccountConfirmButton');
+      button.disabled = true;
+      button.textContent = '削除しています...';
+      statusEl.textContent = '登録データを削除しています。画面を閉じないでください。';
+      const token = getToken();
+      try {
+        const res = await fetch('/users/me/account', {
+          method:'DELETE',
+          credentials:'same-origin',
+          cache:'no-store',
+          headers:{
+            'Authorization':`Bearer ${token}`,
+            'Content-Type':'application/json',
+          },
+          body:JSON.stringify({password, confirm_username:username}),
+        });
+        let data = {};
+        try { data = await res.json(); } catch (_) {}
+        if (!res.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'アカウントを削除できませんでした。');
+        clearSignedInState();
+        gateStatusMessage.className = 'mt-3 rounded-xl border px-3 py-2 text-[11px] leading-relaxed border-emerald-200 bg-emerald-50 text-emerald-700';
+        gateStatusMessage.textContent = 'アカウントと登録データを削除しました。';
+        gateStatusMessage.classList.remove('hidden');
+      } catch (error) {
+        statusEl.textContent = error.message;
+      } finally {
+        accountDeleting = false;
+        button.disabled = false;
+        button.textContent = '完全に削除する';
+      }
+    });
+
+    document.getElementById('deleteAccountModal').addEventListener('click', event => {
+      if (event.target === event.currentTarget) closeDeleteAccountModal();
+    });
+    document.getElementById('deleteAccountModal').addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeDeleteAccountModal();
+      }
+    });
 
     window.viewCurrentProfilePosts = function() {
       if (!currentProfileUsername) return;

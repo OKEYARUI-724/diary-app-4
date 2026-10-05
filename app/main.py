@@ -70,6 +70,11 @@ class CommentCreate(BaseModel):
     content: str
 
 
+class AccountDeleteRequest(BaseModel):
+    password: str
+    confirm_username: str
+
+
 USERNAME_PATTERN = re.compile(r"^[A-Za-z0-9_]+$")
 
 
@@ -657,6 +662,78 @@ async def update_profile(
     db.commit()
     db.refresh(current_user)
     return build_user_profile(current_user, current_user, db)
+
+
+@app.delete("/users/me/account")
+def delete_my_account(
+    payload: AccountDeleteRequest,
+    response: Response,
+    current_user: User = Depends(require_current_user),
+    db: Session = Depends(get_db),
+):
+    """Permanently delete the signed-in account and all account-owned data.
+
+    Database records are removed through PostgreSQL foreign-key ON DELETE CASCADE
+    rules (posts/media, comments, likes, follows, notifications and DMs). Legacy
+    files stored under static/uploads are removed on a best-effort basis after the
+    database commit.
+    """
+    password = payload.password or ""
+    confirm_username = (payload.confirm_username or "").strip()
+    if confirm_username != current_user.username:
+        raise HTTPException(status_code=400, detail="確認用のユーザーIDが一致しません")
+    if not verify_password(password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="パスワードが正しくありません")
+
+    # Collect legacy local files before deleting their database references.
+    local_files = set()
+    for url in (current_user.avatar_url, current_user.cover_url):
+        candidate = local_upload_path(url) if url else None
+        if candidate is not None:
+            local_files.add(candidate)
+
+    # Current builds include the user UUID in profile filenames. Also sweep older
+    # replaced avatars/covers for this account that may no longer be referenced.
+    upload_base = Path(upload_dir).resolve()
+    for pattern in (f"avatar_{current_user.id}_*", f"cover_{current_user.id}_*"):
+        for candidate in upload_base.glob(pattern):
+            if candidate.is_file():
+                local_files.add(candidate.resolve())
+
+    legacy_media_urls = db.query(Spot.media_url).filter(
+        Spot.user_id == current_user.id,
+        Spot.media_url.like("/static/uploads/%"),
+    ).all()
+    for (url,) in legacy_media_urls:
+        candidate = local_upload_path(url) if url else None
+        if candidate is not None:
+            local_files.add(candidate)
+
+    user_id = current_user.id
+    try:
+        # Use a direct DELETE so the database, not partial ORM relationships, is
+        # the single source of truth for cascading deletion.
+        result = db.execute(text("DELETE FROM users WHERE id = :user_id"), {"user_id": user_id})
+        if result.rowcount != 1:
+            db.rollback()
+            raise HTTPException(status_code=404, detail="アカウントが見つかりません")
+        db.commit()
+    except HTTPException:
+        raise
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="アカウントを削除できませんでした。時間をおいてもう一度お試しください")
+
+    for path in local_files:
+        try:
+            path.unlink(missing_ok=True)
+        except Exception:
+            # After the DB deletion, ProtectedStaticFiles no longer serves
+            # unreferenced uploads, even if filesystem cleanup fails.
+            pass
+
+    response.delete_cookie(MEDIA_COOKIE, path="/", httponly=True, samesite="lax")
+    return {"status": "deleted"}
 
 
 # --- Following / private accounts / friend requests ---
