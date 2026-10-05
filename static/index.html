@@ -1389,6 +1389,25 @@ html.withlog-dark .withlog-follower-remove { background:#503c46; color:#efb7ca; 
 @media (max-width:380px) { .withlog-settings-header { padding:19px; } .withlog-settings-body { padding:18px; } }
 </style>
 
+
+<style id="withlog-comments-style">
+.withlog-post-actions-left{display:inline-flex;align-items:center;gap:8px}
+.withlog-comment-toggle{min-height:46px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 14px;border:0;border-radius:9999px;background:#f4f0f8;color:#6c6078;font-size:11px;font-weight:900;line-height:1}
+.withlog-comment-toggle svg{width:20px;height:20px}.withlog-comment-count:empty{display:none}
+.withlog-comments-panel{margin-top:14px;padding-top:13px;border-top:1px solid #ece6ee}
+.withlog-comments-list{display:flex;flex-direction:column;gap:10px;max-height:280px;overflow-y:auto;padding-right:2px}
+.withlog-comment-empty{padding:17px 12px;border:1px dashed #ddd3e3;border-radius:16px;background:#fbf8fc;color:#9b919f;text-align:center;font-size:10px;line-height:1.6}
+.withlog-comment-item{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:9px;align-items:start}
+.withlog-comment-avatar{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:#eee7f3 center/cover no-repeat;color:#62556e;font-size:11px;font-weight:900}
+.withlog-comment-name{display:flex;align-items:baseline;gap:5px;min-width:0;color:#3d3542;font-size:10px;line-height:1.35}.withlog-comment-name strong{font-size:11px}.withlog-comment-name span{min-width:0;overflow:hidden;color:#a097a5;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;white-space:nowrap;text-overflow:ellipsis}
+.withlog-comment-text{margin-top:3px;color:#665d6a;font-size:11px;line-height:1.65;overflow-wrap:anywhere}.withlog-comment-time{margin-top:4px;color:#aaa1ae;font-size:8px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.withlog-comment-delete{padding:4px 6px;border:0;background:transparent;color:#b49aa4;font-size:9px;font-weight:800}
+.withlog-comment-form{display:flex;align-items:center;gap:8px;margin-top:12px}.withlog-comment-input{min-width:0;flex:1;height:40px;padding:0 13px;border:1px solid #e1d9e6!important;border-radius:9999px!important;background:#fbf8fc!important;color:#4f4654!important;font-size:11px!important;outline:none}.withlog-comment-input:focus{border-color:#b7a5c7!important}
+.withlog-comment-submit{height:40px;padding:0 14px;border:0;border-radius:9999px;background:linear-gradient(135deg,#b9a5ca,#c9a7b5);color:#fff;font-size:10px;font-weight:900}.withlog-comment-submit:disabled{opacity:.55;cursor:wait}.withlog-comment-status{min-height:14px;margin-top:6px;color:#9a8e9e;font-size:9px}
+html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;border:1px solid #55565f}html.withlog-dark .withlog-comments-panel{border-top-color:#4c4d56}html.withlog-dark .withlog-comment-empty{background:#34353b;border-color:#55565f;color:#aaa4b2}html.withlog-dark .withlog-comment-avatar{background-color:#4a4551;color:#f1edf3}html.withlog-dark .withlog-comment-name{color:#f4f0f5}html.withlog-dark .withlog-comment-name span{color:#9d96a3}html.withlog-dark .withlog-comment-text{color:#c9c2cd}html.withlog-dark .withlog-comment-time{color:#8f8994}html.withlog-dark .withlog-comment-delete{color:#d3a9b8}html.withlog-dark .withlog-comment-input{background:#34353b!important;border-color:#55565f!important;color:#f3eef5!important}html.withlog-dark .withlog-comment-status{color:#aaa4b2}
+@media(max-width:420px){.withlog-comment-toggle{padding:10px 11px}.withlog-comment-toggle .withlog-comment-label{display:none}}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -2916,17 +2935,36 @@ html.withlog-dark .withlog-follower-remove { background:#503c46; color:#efb7ca; 
             ) : ''}
 
             <div class="p-4 bg-white">
-              <div class="flex items-center justify-between mb-2">
-                <button onclick="toggleSpotLike('${s.id}', this)" class="flex items-center gap-1.5 text-xs text-slate-700 hover:text-slate-950">
-                  <svg class="w-4 h-4 heart-icon transition-colors ${s.is_liked ? 'text-rose-500 fill-current' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                  <span class="like-count font-mono font-bold text-xs">${s.likes_count}</span>
-                </button>
-                <span class="text-[10px] text-slate-400 font-mono">${dateText} ${timeText}</span>
+              <div class="flex items-center justify-between mb-2 gap-2">
+                <div class="withlog-post-actions-left">
+                  <button onclick="toggleSpotLike('${s.id}', this)" class="flex items-center gap-1.5 text-xs text-slate-700 hover:text-slate-950">
+                    <svg class="w-4 h-4 heart-icon transition-colors ${s.is_liked ? 'text-rose-500 fill-current' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                    <span class="like-count font-mono font-bold text-xs">${s.likes_count}</span>
+                  </button>
+                  <button type="button" onclick="toggleSpotComments('${s.id}', this)" class="withlog-comment-toggle" aria-expanded="false" aria-controls="comments-${s.id}">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 8h10M7 12h6m8 0a8 8 0 11-3.2-6.4A8 8 0 0121 12z"/></svg>
+                    <span class="withlog-comment-label">コメント</span>
+                    <span class="withlog-comment-count" data-comment-count="${s.id}"></span>
+                  </button>
+                </div>
+                <span class="text-[10px] text-slate-400 font-mono shrink-0">${dateText} ${timeText}</span>
               </div>
               ${musicCard}
               ${parsedMemo.memo ? `<p class="text-xs text-slate-600 leading-relaxed">${escapeHtml(parsedMemo.memo).replace(/\n/g, '<br>')}</p>` : ''}
+              <div id="comments-${s.id}" class="withlog-comments-panel hidden" data-comments-loaded="false">
+                <div class="withlog-comments-list" data-comments-list="${s.id}">
+                  <div class="withlog-comment-empty">コメントを読み込んでいます...</div>
+                </div>
+                ${getToken() ? `
+                  <form class="withlog-comment-form" onsubmit="submitSpotComment(event, '${s.id}')">
+                    <input class="withlog-comment-input" data-comment-input="${s.id}" maxlength="500" autocomplete="off" placeholder="コメントを追加..." aria-label="コメントを追加">
+                    <button type="submit" class="withlog-comment-submit">送信</button>
+                  </form>
+                  <div class="withlog-comment-status" data-comment-status="${s.id}"></div>
+                ` : '<div class="withlog-comment-status">コメントするにはログインしてください。</div>'}
+              </div>
             </div>
           </article>
         `;
@@ -2987,6 +3025,128 @@ html.withlog-dark .withlog-follower-remove { background:#503c46; color:#efb7ca; 
             }, 180);
           }
         }
+      }
+    };
+
+
+    // --- コメント ---
+    function setCommentCount(spotId, count) {
+      document.querySelectorAll(`[data-comment-count="${spotId}"]`).forEach(el => {
+        const value = Number(count) || 0;
+        el.textContent = value > 0 ? String(value) : '';
+      });
+    }
+
+    function commentTimeText(value) {
+      if (!value) return '';
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? '' : date.toLocaleString();
+    }
+
+    function renderSpotComments(spotId, comments, count) {
+      const list = document.querySelector(`[data-comments-list="${spotId}"]`);
+      if (!list) return;
+      setCommentCount(spotId, count);
+      if (!Array.isArray(comments) || comments.length === 0) {
+        list.innerHTML = '<div class="withlog-comment-empty">まだコメントはありません。最初のコメントを残してみましょう。</div>';
+        return;
+      }
+      list.innerHTML = comments.map(comment => {
+        const avatarStyle = comment.avatar_url ? `style="background-image:url('${comment.avatar_url}')"` : '';
+        const avatarText = comment.avatar_url ? '' : escapeHtml((comment.display_name || comment.username || '?').charAt(0).toUpperCase());
+        return `
+          <div class="withlog-comment-item" data-comment-id="${escapeHtml(comment.id)}">
+            <div class="withlog-comment-avatar" ${avatarStyle}>${avatarText}</div>
+            <div class="min-w-0">
+              <div class="withlog-comment-name">
+                <strong class="truncate">${escapeHtml(comment.display_name || comment.username || '')}</strong>
+                <span>@${escapeHtml(comment.username || '')}</span>
+              </div>
+              <div class="withlog-comment-text">${escapeHtml(comment.content || '').replace(/\n/g, '<br>')}</div>
+              <div class="withlog-comment-time">${escapeHtml(commentTimeText(comment.created_at))}</div>
+            </div>
+            ${comment.can_delete ? `<button type="button" class="withlog-comment-delete" onclick="deleteSpotComment('${escapeHtml(comment.id)}','${spotId}',this)">削除</button>` : '<span></span>'}
+          </div>`;
+      }).join('');
+      list.scrollTop = list.scrollHeight;
+    }
+
+    window.loadSpotComments = async function(spotId, {force = false} = {}) {
+      const panel = document.getElementById(`comments-${spotId}`);
+      if (!panel) return;
+      if (!force && panel.dataset.commentsLoaded === 'true') return;
+      const list = panel.querySelector(`[data-comments-list="${spotId}"]`);
+      if (list) list.innerHTML = '<div class="withlog-comment-empty">コメントを読み込んでいます...</div>';
+      const token = getToken();
+      const headers = token ? {'Authorization': `Bearer ${token}`} : {};
+      try {
+        const res = await fetch(`/spots/${encodeURIComponent(spotId)}/comments`, {headers, cache:'no-store'});
+        let data = {};
+        try { data = await res.json(); } catch (_) {}
+        if (!res.ok) throw new Error(data.detail || 'コメントを読み込めませんでした');
+        panel.dataset.commentsLoaded = 'true';
+        renderSpotComments(spotId, data.comments || [], data.count || 0);
+      } catch (error) {
+        panel.dataset.commentsLoaded = 'false';
+        if (list) list.innerHTML = `<div class="withlog-comment-empty">${escapeHtml(error.message || 'コメントを読み込めませんでした')}</div>`;
+      }
+    };
+
+    window.toggleSpotComments = async function(spotId, button) {
+      const panel = document.getElementById(`comments-${spotId}`);
+      if (!panel) return;
+      const opening = panel.classList.contains('hidden');
+      panel.classList.toggle('hidden', !opening);
+      if (button) button.setAttribute('aria-expanded', opening ? 'true' : 'false');
+      if (opening) await loadSpotComments(spotId);
+    };
+
+    window.submitSpotComment = async function(event, spotId) {
+      event.preventDefault();
+      const token = getToken();
+      if (!token) return;
+      const form = event.currentTarget;
+      const input = form.querySelector(`[data-comment-input="${spotId}"]`);
+      const submit = form.querySelector('button[type="submit"]');
+      const statusEl = document.querySelector(`[data-comment-status="${spotId}"]`);
+      const content = (input?.value || '').trim();
+      if (!content) { if (statusEl) statusEl.textContent = 'コメントを入力してください。'; return; }
+      if (content.length > 500) { if (statusEl) statusEl.textContent = 'コメントは500文字以内で入力してください。'; return; }
+      submit.disabled = true;
+      if (statusEl) statusEl.textContent = '送信しています...';
+      try {
+        const res = await fetch(`/spots/${encodeURIComponent(spotId)}/comments`, {
+          method:'POST', headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
+          body:JSON.stringify({content}), cache:'no-store',
+        });
+        let data = {};
+        try { data = await res.json(); } catch (_) {}
+        if (!res.ok) throw new Error(data.detail || 'コメントを送信できませんでした');
+        input.value = '';
+        if (statusEl) statusEl.textContent = 'コメントしました。';
+        await loadSpotComments(spotId, {force:true});
+        window.setTimeout(() => { if (statusEl?.textContent === 'コメントしました。') statusEl.textContent = ''; }, 1800);
+      } catch (error) {
+        if (statusEl) statusEl.textContent = error.message || 'コメントを送信できませんでした。';
+      } finally { submit.disabled = false; }
+    };
+
+    window.deleteSpotComment = async function(commentId, spotId, button) {
+      if (!getToken()) return;
+      if (!window.confirm('このコメントを削除しますか？')) return;
+      button.disabled = true;
+      try {
+        const res = await fetch(`/comments/${encodeURIComponent(commentId)}`, {
+          method:'DELETE', headers:{'Authorization':`Bearer ${getToken()}`}, cache:'no-store',
+        });
+        let data = {};
+        try { data = await res.json(); } catch (_) {}
+        if (!res.ok) throw new Error(data.detail || 'コメントを削除できませんでした');
+        await loadSpotComments(spotId, {force:true});
+        setCommentCount(spotId, data.count || 0);
+      } catch (error) {
+        alert(error.message || 'コメントを削除できませんでした。');
+        button.disabled = false;
       }
     };
 

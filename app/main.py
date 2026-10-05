@@ -66,6 +66,10 @@ class FollowDecision(BaseModel):
     action: str
 
 
+class CommentCreate(BaseModel):
+    content: str
+
+
 USERNAME_PATTERN = re.compile(r"^[A-Za-z0-9_]+$")
 
 
@@ -168,6 +172,23 @@ def migrate_social_features():
                 CREATE INDEX IF NOT EXISTS idx_follows_status
                 ON follows(status);
             """))
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS spot_comments (
+                    id UUID PRIMARY KEY,
+                    spot_id UUID NOT NULL REFERENCES spots(id) ON DELETE CASCADE,
+                    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    content VARCHAR(500) NOT NULL,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+                );
+            """))
+            conn.execute(text("""
+                CREATE INDEX IF NOT EXISTS idx_spot_comments_spot_created
+                ON spot_comments(spot_id, created_at);
+            """))
+            conn.execute(text("""
+                CREATE INDEX IF NOT EXISTS idx_spot_comments_user
+                ON spot_comments(user_id);
+            """))
     except Exception as exc:
         print(f"[DB Migration Note] {exc}")
 
@@ -179,8 +200,8 @@ def _background_db_setup():
     """Run DB maintenance without blocking Render from opening its web port."""
     for i in range(10):
         try:
-            migrate_social_features()
             Base.metadata.create_all(bind=engine)
+            migrate_social_features()
             print("Database connected successfully!", flush=True)
             return
         except Exception as exc:
@@ -1139,6 +1160,142 @@ def toggle_like(
 
     count = db.query(SpotLike).filter(SpotLike.spot_id == spot_id).count()
     return {"liked": is_liked, "likes_count": count}
+
+
+@app.get("/spots/{spot_id}/comments")
+def get_spot_comments(
+    spot_id: uuid.UUID,
+    current_user: Optional[User] = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    spot = db.query(Spot).filter(Spot.id == spot_id).first()
+    if not can_view_spot(spot, current_user, db):
+        raise HTTPException(status_code=404, detail="投稿が見つかりません")
+
+    rows = db.execute(text("""
+        SELECT
+            c.id, c.content, c.created_at, c.user_id,
+            u.username, COALESCE(u.display_name, u.username) AS display_name, u.avatar_url
+        FROM spot_comments c
+        JOIN users u ON u.id = c.user_id
+        WHERE c.spot_id = :spot_id
+        ORDER BY c.created_at ASC
+        LIMIT 200
+    """), {"spot_id": spot_id}).mappings().all()
+
+    count = db.execute(text("""
+        SELECT COUNT(*) AS count
+        FROM spot_comments
+        WHERE spot_id = :spot_id
+    """), {"spot_id": spot_id}).scalar() or 0
+
+    viewer_id = current_user.id if current_user else None
+    owner_id = spot.user_id
+    comments = []
+    for row in rows:
+        comments.append({
+            "id": str(row["id"]),
+            "user_id": str(row["user_id"]),
+            "username": row["username"],
+            "display_name": row["display_name"],
+            "avatar_url": row["avatar_url"],
+            "content": row["content"],
+            "created_at": row["created_at"].isoformat() if row["created_at"] else None,
+            "can_delete": bool(viewer_id and (viewer_id == row["user_id"] or viewer_id == owner_id)),
+        })
+
+    return {"comments": comments, "count": int(count)}
+
+
+@app.post("/spots/{spot_id}/comments")
+def create_spot_comment(
+    spot_id: uuid.UUID,
+    payload: CommentCreate,
+    current_user: User = Depends(require_current_user),
+    db: Session = Depends(get_db),
+):
+    spot = db.query(Spot).filter(Spot.id == spot_id).first()
+    if not can_view_spot(spot, current_user, db):
+        raise HTTPException(status_code=404, detail="投稿が見つかりません")
+
+    content = (payload.content or "").strip()
+    if not content:
+        raise HTTPException(status_code=400, detail="コメントを入力してください")
+    if len(content) > 500:
+        raise HTTPException(status_code=400, detail="コメントは500文字以内で入力してください")
+
+    comment_id = uuid.uuid4()
+    created_at = datetime.utcnow()
+    db.execute(text("""
+        INSERT INTO spot_comments (id, spot_id, user_id, content, created_at)
+        VALUES (:id, :spot_id, :user_id, :content, :created_at)
+    """), {
+        "id": comment_id,
+        "spot_id": spot.id,
+        "user_id": current_user.id,
+        "content": content,
+        "created_at": created_at,
+    })
+
+    if spot.user_id and spot.user_id != current_user.id:
+        preview = content.replace("\n", " ")[:80]
+        add_notification(
+            db,
+            spot.user_id,
+            current_user.id,
+            "comment",
+            f"@{current_user.username} さんが『{spot.name}』にコメントしました: {preview}",
+        )
+
+    db.commit()
+    count = db.execute(
+        text("SELECT COUNT(*) FROM spot_comments WHERE spot_id = :spot_id"),
+        {"spot_id": spot.id},
+    ).scalar() or 0
+    return {
+        "comment": {
+            "id": str(comment_id),
+            "user_id": str(current_user.id),
+            "username": current_user.username,
+            "display_name": current_user.display_name or current_user.username,
+            "avatar_url": current_user.avatar_url,
+            "content": content,
+            "created_at": created_at.isoformat(),
+            "can_delete": True,
+        },
+        "count": int(count),
+    }
+
+
+@app.delete("/comments/{comment_id}")
+def delete_spot_comment(
+    comment_id: uuid.UUID,
+    current_user: User = Depends(require_current_user),
+    db: Session = Depends(get_db),
+):
+    row = db.execute(text("""
+        SELECT id, spot_id, user_id
+        FROM spot_comments
+        WHERE id = :comment_id
+        FOR UPDATE
+    """), {"comment_id": comment_id}).mappings().first()
+    if not row:
+        raise HTTPException(status_code=404, detail="コメントが見つかりません")
+
+    spot = db.query(Spot).filter(Spot.id == row["spot_id"]).first()
+    if not spot:
+        raise HTTPException(status_code=404, detail="投稿が見つかりません")
+
+    if current_user.id != row["user_id"] and current_user.id != spot.user_id:
+        raise HTTPException(status_code=403, detail="このコメントは削除できません")
+
+    db.execute(text("DELETE FROM spot_comments WHERE id = :comment_id"), {"comment_id": comment_id})
+    db.commit()
+    count = db.execute(
+        text("SELECT COUNT(*) FROM spot_comments WHERE spot_id = :spot_id"),
+        {"spot_id": spot.id},
+    ).scalar() or 0
+    return {"status": "deleted", "count": int(count)}
 
 
 @app.delete("/spots/{spot_id}")
