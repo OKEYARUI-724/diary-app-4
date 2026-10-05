@@ -21,7 +21,7 @@ from fastapi import (
     WebSocketDisconnect,
     status,
 )
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from geoalchemy2.shape import from_shape, to_shape
 from jose import jwt
@@ -32,7 +32,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.database import Base, engine, get_db
-from app.models import DirectMessage, Follow, Notification, Spot, SpotLike, User
+from app.models import DirectMessage, Follow, Notification, Spot, SpotLike, SpotMedia, User
 from app.schemas import (
     DMCreate,
     DMResponse,
@@ -647,6 +647,27 @@ def get_following_stories(
     return result
 
 
+# --- Persistent post media (PostgreSQL BYTEA) ---
+
+@app.get("/media/{spot_id}")
+def serve_spot_media(
+    spot_id: uuid.UUID,
+    db: Session = Depends(get_db),
+):
+    media = db.query(SpotMedia).filter(SpotMedia.spot_id == spot_id).first()
+    if not media:
+        raise HTTPException(status_code=404, detail="Media not found")
+
+    return Response(
+        content=bytes(media.data),
+        media_type=media.content_type or "application/octet-stream",
+        headers={
+            "Cache-Control": "public, max-age=86400",
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
+
+
 # --- Spots & likes ---
 
 @app.post("/spots/upload", response_model=SpotResponse)
@@ -663,15 +684,17 @@ async def create_spot(
 ):
     media_url = None
     media_type = None
+    media_bytes = None
+    media_filename = None
+    media_content_type = None
 
     if file and file.filename:
-        ext = os.path.splitext(file.filename)[1].lower()
-        file_id = f"{uuid.uuid4()}{ext}"
-        save_path = os.path.join(upload_dir, file_id)
-        with open(save_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-        media_url = f"/static/uploads/{file_id}"
-        media_type = "video" if file.content_type and file.content_type.startswith("video") else "image"
+        media_bytes = await file.read()
+        if not media_bytes:
+            raise HTTPException(status_code=400, detail="アップロードされたファイルが空です")
+        media_filename = os.path.basename(file.filename)
+        media_content_type = file.content_type or "application/octet-stream"
+        media_type = "video" if media_content_type.startswith("video") else "image"
 
     google_url = f"https://www.google.com/maps/search/?api=1&query={latitude},{longitude}"
     point = Point(longitude, latitude)
@@ -690,6 +713,17 @@ async def create_spot(
     )
     db.add(spot)
     db.flush()
+
+    if media_bytes is not None:
+        db.add(
+            SpotMedia(
+                spot_id=spot.id,
+                filename=media_filename,
+                content_type=media_content_type,
+                data=media_bytes,
+            )
+        )
+        spot.media_url = f"/media/{spot.id}"
 
     if current_user:
         followers = db.query(Follow).filter(
@@ -832,7 +866,9 @@ def delete_spot(
     if spot.user_id and current_user and spot.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="他人の投稿は削除できません")
 
-    if spot.media_url:
+    # Legacy compatibility: remove an old local upload if it still exists.
+    # New uploads live in spot_media and are deleted automatically by ON DELETE CASCADE.
+    if spot.media_url and spot.media_url.startswith("/static/uploads/"):
         local_path = spot.media_url.lstrip("/")
         if os.path.exists(local_path):
             try:
