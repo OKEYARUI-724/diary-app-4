@@ -4,6 +4,7 @@ import re
 import shutil
 import time
 import traceback
+import threading
 import uuid
 from datetime import date, datetime
 from typing import Dict, List, Optional
@@ -173,18 +174,25 @@ def migrate_social_features():
         print(f"[DB Migration Note] {exc}")
 
 
-for i in range(10):
-    try:
-        migrate_social_features()
-        Base.metadata.create_all(bind=engine)
-        print("Database connected successfully!")
-        break
-    except Exception as exc:
-        print(f"Waiting for database... ({i + 1}/10): {exc}")
-        time.sleep(2)
-
-
 app = FastAPI(title="WITHLOG API")
+
+
+def _background_db_setup():
+    """Run DB maintenance without blocking Render from opening its web port."""
+    for i in range(10):
+        try:
+            migrate_social_features()
+            Base.metadata.create_all(bind=engine)
+            print("Database connected successfully!", flush=True)
+            return
+        except Exception as exc:
+            print(f"Waiting for database... ({i + 1}/10): {exc}", flush=True)
+            time.sleep(2)
+
+
+@app.on_event("startup")
+def start_background_db_setup():
+    threading.Thread(target=_background_db_setup, daemon=True).start()
 
 upload_dir = "static/uploads"
 os.makedirs(upload_dir, exist_ok=True)
