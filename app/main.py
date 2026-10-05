@@ -32,7 +32,7 @@ from geoalchemy2.shape import from_shape, to_shape
 from jose import jwt
 from pydantic import BaseModel
 from shapely.geometry import Point
-from sqlalchemy import and_, desc, func, or_, text
+from sqlalchemy import and_, bindparam, desc, func, or_, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -68,6 +68,10 @@ class FollowDecision(BaseModel):
 
 class CommentCreate(BaseModel):
     content: str
+
+
+class CommentCountsRequest(BaseModel):
+    spot_ids: List[uuid.UUID]
 
 
 class AccountDeleteRequest(BaseModel):
@@ -1237,6 +1241,38 @@ def toggle_like(
 
     count = db.query(SpotLike).filter(SpotLike.spot_id == spot_id).count()
     return {"liked": is_liked, "likes_count": count}
+
+
+@app.post("/comments/counts")
+def get_comment_counts(
+    payload: CommentCountsRequest,
+    current_user: Optional[User] = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    # One request supplies all counters shown in the current feed. Visibility is
+    # checked here as well so a private post count is never leaked.
+    requested_ids = list(dict.fromkeys(payload.spot_ids))[:200]
+    if not requested_ids:
+        return {"counts": {}}
+
+    visible_rows = visible_spots_query(db, current_user).filter(
+        Spot.id.in_(requested_ids)
+    ).with_entities(Spot.id).all()
+    visible_ids = [row[0] for row in visible_rows]
+    counts = {str(spot_id): 0 for spot_id in visible_ids}
+    if not visible_ids:
+        return {"counts": counts}
+
+    stmt = text("""
+        SELECT spot_id, COUNT(*) AS count
+        FROM spot_comments
+        WHERE spot_id IN :spot_ids
+        GROUP BY spot_id
+    """).bindparams(bindparam("spot_ids", expanding=True))
+    rows = db.execute(stmt, {"spot_ids": visible_ids}).mappings().all()
+    for row in rows:
+        counts[str(row["spot_id"])] = int(row["count"] or 0)
+    return {"counts": counts}
 
 
 @app.get("/spots/{spot_id}/comments")

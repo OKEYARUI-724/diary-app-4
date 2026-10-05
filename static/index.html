@@ -3048,6 +3048,8 @@ html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;borde
       }).join('');
 
       wireHomeSongPlayers();
+      // Populate comment counters without requiring users to open each comment panel.
+      void loadVisibleCommentCounts(spots);
 
       if (window.location.hash && window.location.hash.startsWith('#spot-')) {
         const target = document.getElementById(window.location.hash.slice(1));
@@ -3106,9 +3108,23 @@ html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;borde
 
 
     // --- コメント ---
+    // Each spot has its own request generation. If an older GET finishes after a
+    // newer POST/GET, its stale response is ignored instead of erasing the new comment.
+    const commentRequestGeneration = new Map();
+
+    function nextCommentGeneration(spotId) {
+      const next = (commentRequestGeneration.get(String(spotId)) || 0) + 1;
+      commentRequestGeneration.set(String(spotId), next);
+      return next;
+    }
+
+    function currentCommentGeneration(spotId) {
+      return commentRequestGeneration.get(String(spotId)) || 0;
+    }
+
     function setCommentCount(spotId, count) {
       document.querySelectorAll(`[data-comment-count="${spotId}"]`).forEach(el => {
-        const value = Number(count) || 0;
+        const value = Math.max(0, Number(count) || 0);
         el.textContent = value > 0 ? String(value) : '';
       });
     }
@@ -3119,6 +3135,24 @@ html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;borde
       return Number.isNaN(date.getTime()) ? '' : date.toLocaleString();
     }
 
+    function commentItemHtml(spotId, comment) {
+      const avatarStyle = comment.avatar_url ? `style="background-image:url('${comment.avatar_url}')"` : '';
+      const avatarText = comment.avatar_url ? '' : escapeHtml((comment.display_name || comment.username || '?').charAt(0).toUpperCase());
+      return `
+        <div class="withlog-comment-item" data-comment-id="${escapeHtml(comment.id)}">
+          <div class="withlog-comment-avatar" ${avatarStyle}>${avatarText}</div>
+          <div class="min-w-0">
+            <div class="withlog-comment-name">
+              <strong class="truncate">${escapeHtml(comment.display_name || comment.username || '')}</strong>
+              <span>@${escapeHtml(comment.username || '')}</span>
+            </div>
+            <div class="withlog-comment-text">${escapeHtml(comment.content || '').replace(/\n/g, '<br>')}</div>
+            <div class="withlog-comment-time">${escapeHtml(commentTimeText(comment.created_at))}</div>
+          </div>
+          ${comment.can_delete ? `<button type="button" class="withlog-comment-delete" onclick="deleteSpotComment('${escapeHtml(comment.id)}','${spotId}',this)">削除</button>` : '<span></span>'}
+        </div>`;
+    }
+
     function renderSpotComments(spotId, comments, count) {
       const list = document.querySelector(`[data-comments-list="${spotId}"]`);
       if (!list) return;
@@ -3127,44 +3161,82 @@ html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;borde
         list.innerHTML = '<div class="withlog-comment-empty">まだコメントはありません。最初のコメントを残してみましょう。</div>';
         return;
       }
-      list.innerHTML = comments.map(comment => {
-        const avatarStyle = comment.avatar_url ? `style="background-image:url('${comment.avatar_url}')"` : '';
-        const avatarText = comment.avatar_url ? '' : escapeHtml((comment.display_name || comment.username || '?').charAt(0).toUpperCase());
-        return `
-          <div class="withlog-comment-item" data-comment-id="${escapeHtml(comment.id)}">
-            <div class="withlog-comment-avatar" ${avatarStyle}>${avatarText}</div>
-            <div class="min-w-0">
-              <div class="withlog-comment-name">
-                <strong class="truncate">${escapeHtml(comment.display_name || comment.username || '')}</strong>
-                <span>@${escapeHtml(comment.username || '')}</span>
-              </div>
-              <div class="withlog-comment-text">${escapeHtml(comment.content || '').replace(/\n/g, '<br>')}</div>
-              <div class="withlog-comment-time">${escapeHtml(commentTimeText(comment.created_at))}</div>
-            </div>
-            ${comment.can_delete ? `<button type="button" class="withlog-comment-delete" onclick="deleteSpotComment('${escapeHtml(comment.id)}','${spotId}',this)">削除</button>` : '<span></span>'}
-          </div>`;
-      }).join('');
+      list.innerHTML = comments.map(comment => commentItemHtml(spotId, comment)).join('');
       list.scrollTop = list.scrollHeight;
     }
 
-    window.loadSpotComments = async function(spotId, {force = false} = {}) {
+    function showPostedCommentImmediately(spotId, comment, count) {
+      setCommentCount(spotId, count);
       const panel = document.getElementById(`comments-${spotId}`);
-      if (!panel) return;
-      if (!force && panel.dataset.commentsLoaded === 'true') return;
+      const list = panel?.querySelector(`[data-comments-list="${spotId}"]`);
+      if (!panel || !list || !comment) return;
+
+      const existing = Array.from(list.querySelectorAll('[data-comment-id]'))
+        .find(el => el.dataset.commentId === String(comment.id));
+      if (!existing) {
+        const placeholder = list.querySelector('.withlog-comment-empty');
+        if (placeholder) placeholder.remove();
+        list.insertAdjacentHTML('beforeend', commentItemHtml(spotId, comment));
+      }
+      panel.dataset.commentsLoaded = 'true';
+      list.scrollTop = list.scrollHeight;
+    }
+
+    async function loadVisibleCommentCounts(spots) {
+      const ids = Array.isArray(spots) ? spots.map(s => String(s.id)).filter(Boolean) : [];
+      if (!ids.length) return;
+      const snapshots = new Map(ids.map(id => [id, currentCommentGeneration(id)]));
+      const token = getToken();
+      try {
+        const res = await fetch('/comments/counts', {
+          method:'POST',
+          headers:{...(token ? {'Authorization':`Bearer ${token}`} : {}),'Content-Type':'application/json'},
+          body:JSON.stringify({spot_ids:ids}),
+          cache:'no-store',
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        Object.entries(data.counts || {}).forEach(([spotId, count]) => {
+          // Do not let an older feed-count request overwrite a comment that was
+          // posted or freshly loaded while this request was in flight.
+          if (currentCommentGeneration(spotId) === snapshots.get(spotId)) {
+            setCommentCount(spotId, count);
+          }
+        });
+      } catch (_) {}
+    }
+
+    window.loadSpotComments = async function(spotId, {force = false, silent = false} = {}) {
+      const panel = document.getElementById(`comments-${spotId}`);
+      if (!panel) return false;
+      if (!force && panel.dataset.commentsLoaded === 'true') return true;
+
+      const requestGeneration = nextCommentGeneration(spotId);
       const list = panel.querySelector(`[data-comments-list="${spotId}"]`);
-      if (list) list.innerHTML = '<div class="withlog-comment-empty">コメントを読み込んでいます...</div>';
+      if (!silent && list) list.innerHTML = '<div class="withlog-comment-empty">コメントを読み込んでいます...</div>';
       const token = getToken();
       const headers = token ? {'Authorization': `Bearer ${token}`} : {};
       try {
-        const res = await fetch(`/spots/${encodeURIComponent(spotId)}/comments`, {headers, cache:'no-store'});
+        const res = await fetch(`/spots/${encodeURIComponent(spotId)}/comments?ts=${Date.now()}`, {headers, cache:'no-store'});
         let data = {};
         try { data = await res.json(); } catch (_) {}
         if (!res.ok) throw new Error(data.detail || 'コメントを読み込めませんでした');
+
+        // A newer request/mutation already happened. Ignore this old response.
+        if (currentCommentGeneration(spotId) !== requestGeneration) return false;
+        const currentPanel = document.getElementById(`comments-${spotId}`);
+        if (currentPanel !== panel) return false;
+
         panel.dataset.commentsLoaded = 'true';
         renderSpotComments(spotId, data.comments || [], data.count || 0);
+        return true;
       } catch (error) {
+        if (currentCommentGeneration(spotId) !== requestGeneration) return false;
+        const currentPanel = document.getElementById(`comments-${spotId}`);
+        if (currentPanel !== panel) return false;
         panel.dataset.commentsLoaded = 'false';
-        if (list) list.innerHTML = `<div class="withlog-comment-empty">${escapeHtml(error.message || 'コメントを読み込めませんでした')}</div>`;
+        if (!silent && list) list.innerHTML = `<div class="withlog-comment-empty">${escapeHtml(error.message || 'コメントを読み込めませんでした')}</div>`;
+        return false;
       }
     };
 
@@ -3174,7 +3246,8 @@ html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;borde
       const opening = panel.classList.contains('hidden');
       panel.classList.toggle('hidden', !opening);
       if (button) button.setAttribute('aria-expanded', opening ? 'true' : 'false');
-      if (opening) await loadSpotComments(spotId);
+      // Refresh every time it opens so comments made from another account appear too.
+      if (opening) await loadSpotComments(spotId, {force:true});
     };
 
     window.submitSpotComment = async function(event, spotId) {
@@ -3188,6 +3261,9 @@ html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;borde
       const content = (input?.value || '').trim();
       if (!content) { if (statusEl) statusEl.textContent = 'コメントを入力してください。'; return; }
       if (content.length > 500) { if (statusEl) statusEl.textContent = 'コメントは500文字以内で入力してください。'; return; }
+
+      // Invalidate a GET that may have started before this submission.
+      nextCommentGeneration(spotId);
       submit.disabled = true;
       if (statusEl) statusEl.textContent = '送信しています...';
       try {
@@ -3198,9 +3274,18 @@ html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;borde
         let data = {};
         try { data = await res.json(); } catch (_) {}
         if (!res.ok) throw new Error(data.detail || 'コメントを送信できませんでした');
+        if (token !== getToken()) return;
+
         input.value = '';
         if (statusEl) statusEl.textContent = 'コメントしました。';
-        await loadSpotComments(spotId, {force:true});
+
+        // Use the POST response immediately. The user no longer has to wait for a
+        // second GET before the number and the new comment become visible.
+        showPostedCommentImmediately(spotId, data.comment, data.count || 0);
+
+        // Reconcile the complete list in the background. Request generations make
+        // it impossible for an older response to overwrite this newly posted item.
+        await loadSpotComments(spotId, {force:true, silent:true});
         window.setTimeout(() => { if (statusEl?.textContent === 'コメントしました。') statusEl.textContent = ''; }, 1800);
       } catch (error) {
         if (statusEl) statusEl.textContent = error.message || 'コメントを送信できませんでした。';
@@ -3208,18 +3293,29 @@ html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;borde
     };
 
     window.deleteSpotComment = async function(commentId, spotId, button) {
-      if (!getToken()) return;
+      const token = getToken();
+      if (!token) return;
       if (!window.confirm('このコメントを削除しますか？')) return;
+      nextCommentGeneration(spotId);
       button.disabled = true;
       try {
         const res = await fetch(`/comments/${encodeURIComponent(commentId)}`, {
-          method:'DELETE', headers:{'Authorization':`Bearer ${getToken()}`}, cache:'no-store',
+          method:'DELETE', headers:{'Authorization':`Bearer ${token}`}, cache:'no-store',
         });
         let data = {};
         try { data = await res.json(); } catch (_) {}
         if (!res.ok) throw new Error(data.detail || 'コメントを削除できませんでした');
-        await loadSpotComments(spotId, {force:true});
+        if (token !== getToken()) return;
+
+        const item = button.closest('[data-comment-id]');
+        if (item) item.remove();
         setCommentCount(spotId, data.count || 0);
+        const panel = document.getElementById(`comments-${spotId}`);
+        const list = panel?.querySelector(`[data-comments-list="${spotId}"]`);
+        if (list && !list.querySelector('[data-comment-id]')) {
+          list.innerHTML = '<div class="withlog-comment-empty">まだコメントはありません。最初のコメントを残してみましょう。</div>';
+        }
+        await loadSpotComments(spotId, {force:true, silent:true});
       } catch (error) {
         alert(error.message || 'コメントを削除できませんでした。');
         button.disabled = false;
