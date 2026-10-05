@@ -834,6 +834,58 @@ def get_spots(
     return results
 
 
+@app.get("/users/me/liked-spots", response_model=List[SpotResponse])
+def get_my_liked_spots(
+    current_user: User = Depends(require_current_user),
+    db: Session = Depends(get_db),
+):
+    """Return posts liked by the signed-in user, newest like first."""
+    liked_rows = (
+        db.query(Spot)
+        .join(SpotLike, SpotLike.spot_id == Spot.id)
+        .filter(SpotLike.user_id == current_user.id)
+        .order_by(SpotLike.created_at.desc())
+        .all()
+    )
+
+    results = []
+    for spot in liked_rows:
+        # Do not expose a private account's post after access has been lost.
+        if spot.author and spot.author.id != current_user.id and getattr(spot.author, "is_private", False):
+            can_view = db.query(Follow).filter(
+                Follow.follower_id == current_user.id,
+                Follow.following_id == spot.author.id,
+                Follow.status == "accepted",
+            ).first() is not None
+            if not can_view:
+                continue
+
+        pt = to_shape(spot.geom)
+        likes_count = db.query(SpotLike).filter(SpotLike.spot_id == spot.id).count()
+        results.append(
+            SpotResponse(
+                id=spot.id,
+                user_id=spot.user_id,
+                username=spot.author.username if spot.author else "guest",
+                display_name=spot.author.display_name or spot.author.username if spot.author else "Guest",
+                author_avatar_url=spot.author.avatar_url if spot.author else None,
+                name=spot.name,
+                memo=spot.memo,
+                media_url=spot.media_url,
+                media_type=spot.media_type,
+                google_map_url=spot.google_map_url,
+                latitude=pt.y,
+                longitude=pt.x,
+                rating=spot.rating,
+                visited_at=spot.visited_at,
+                likes_count=likes_count,
+                is_liked=True,
+            )
+        )
+
+    return results
+
+
 @app.post("/spots/{spot_id}/like")
 def toggle_like(
     spot_id: uuid.UUID,

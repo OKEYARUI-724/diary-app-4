@@ -678,6 +678,62 @@ html.withlog-dark .withlog-setting-title { color: #f5f2f6 !important; }
 html.withlog-dark .withlog-setting-desc { color: #a7a1ad !important; }
 html.withlog-dark .withlog-theme-switch { background: #50515a; }
 html.withlog-dark #darkModeToggle:checked + .withlog-theme-switch { background: #8a7dab; }
+
+/* Profile: liked posts */
+.withlog-liked-posts-row {
+  width: 100%; margin-top: 10px; border: 0; text-align: left; appearance: none;
+}
+.withlog-liked-posts-row:hover { transform: translateY(-1px); filter: brightness(.99); }
+.withlog-liked-posts-main { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.withlog-liked-posts-icon {
+  width: 38px; height: 38px; flex: 0 0 auto; display: grid; place-items: center;
+  border-radius: 15px; background: #eadfff; color: #df7897; font-size: 19px; line-height: 1;
+}
+.withlog-liked-posts-arrow {
+  flex: 0 0 auto; color: #9b91a3; font-size: 22px; font-weight: 800; line-height: 1;
+}
+.withlog-liked-post-card {
+  overflow: hidden; border: 1px solid rgba(92,78,105,.12); border-radius: 24px;
+  background: #fffaf7;
+}
+.withlog-liked-post-head { display: flex; align-items: center; gap: 10px; padding: 12px 13px; }
+.withlog-liked-post-avatar {
+  width: 34px; height: 34px; flex: 0 0 auto; border-radius: 13px; background: #e9e2f2 center/cover no-repeat;
+  display: grid; place-items: center; color: #51485a; font-size: 11px; font-weight: 900;
+}
+.withlog-liked-post-media { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; background: #eee9f1; }
+.withlog-liked-post-body { padding: 13px; }
+.withlog-liked-post-title { color: #38313f; font-size: 13px; font-weight: 900; line-height: 1.45; }
+.withlog-liked-post-meta { color: #9a91a0; font-size: 9px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.withlog-liked-post-memo { margin-top: 7px; color: #716878; font-size: 11px; line-height: 1.7; }
+.withlog-liked-post-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 11px; }
+.withlog-liked-post-like {
+  display: inline-flex; align-items: center; gap: 7px; min-height: 38px; padding: 7px 12px;
+  border: 0; border-radius: 9999px; background: #f2eaff; color: #675385; font-size: 11px; font-weight: 900;
+}
+.withlog-liked-post-like .heart-icon { width: 19px; height: 19px; color: #df7897; fill: currentColor; }
+.withlog-liked-post-jump {
+  border: 0; background: transparent; color: #6d6080; font-size: 10px; font-weight: 900; letter-spacing: .02em;
+}
+.withlog-liked-empty {
+  padding: 30px 18px; border: 1px dashed #d8cfdf; border-radius: 22px; background: #faf7fc;
+  text-align: center; color: #9a91a0;
+}
+html.withlog-dark #likedPostsModal > div { background: #2f3036 !important; border-color: #4c4d56 !important; }
+html.withlog-dark #likedPostsModal .withlog-liked-post-card { background: #36373d !important; border-color: #4d4e56 !important; }
+html.withlog-dark #likedPostsModal .withlog-liked-post-title { color: #f5f2f6 !important; }
+html.withlog-dark #likedPostsModal .withlog-liked-post-memo { color: #c1bac7 !important; }
+html.withlog-dark #likedPostsModal .withlog-liked-post-meta { color: #9e98a5 !important; }
+html.withlog-dark #likedPostsModal .withlog-liked-post-avatar { background-color: #47434f !important; color: #f5f2f6 !important; }
+html.withlog-dark #likedPostsModal .withlog-liked-post-like { background: #493f5c !important; color: #f3eaff !important; }
+html.withlog-dark #likedPostsModal .withlog-liked-post-jump { color: #cfbfff !important; }
+html.withlog-dark #likedPostsModal .withlog-liked-empty { background: #36373d !important; border-color: #55565f !important; color: #aaa4b2 !important; }
+html.withlog-dark #likedPostsModal .text-slate-900 { color: #f5f2f6 !important; }
+html.withlog-dark #likedPostsModal .text-slate-400 { color: #aaa4b2 !important; }
+html.withlog-dark #likedPostsModal [class*="border-slate"] { border-color: #4c4d56 !important; }
+html.withlog-dark .withlog-liked-posts-icon { background: #4a4058 !important; color: #f09bb5 !important; }
+html.withlog-dark .withlog-liked-posts-arrow { color: #aaa4b2 !important; }
+
 html.withlog-dark *, html.withlog-dark *::before, html.withlog-dark *::after {
   box-shadow: none !important; text-shadow: none !important;
 }
@@ -1533,7 +1589,34 @@ html.withlog-dark .post-media-frame > video {
               <input id="darkModeToggle" type="checkbox" class="sr-only" aria-label="ダークモード">
               <span class="withlog-theme-switch" aria-hidden="true"><span></span></span>
             </label>
+
+            <button type="button" onclick="openLikedPostsModal()" class="withlog-setting-row withlog-liked-posts-row">
+              <span class="withlog-liked-posts-main">
+                <span class="withlog-liked-posts-icon" aria-hidden="true">♥</span>
+                <span class="min-w-0">
+                  <span class="withlog-setting-title">いいねした投稿</span>
+                  <span class="withlog-setting-desc">ハートをつけた投稿をあとから見返せます</span>
+                </span>
+              </span>
+              <span class="withlog-liked-posts-arrow" aria-hidden="true">›</span>
+            </button>
           </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- いいねした投稿モーダル -->
+    <div id="likedPostsModal" class="fixed inset-0 z-[60] bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+      <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-5 max-h-[88vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4 sticky top-0 bg-inherit z-10">
+          <div>
+            <p class="text-[9px] font-black tracking-[0.2em] text-slate-400 uppercase">Saved Memories</p>
+            <h2 class="text-sm font-black text-slate-900 mt-0.5">♥ いいねした投稿</h2>
+          </div>
+          <button type="button" onclick="closeLikedPostsModal()" class="text-slate-400 hover:text-slate-900 text-sm font-bold" aria-label="閉じる">✕</button>
+        </div>
+        <div id="likedPostsContent" class="space-y-3">
+          <div class="withlog-liked-empty">読み込み中...</div>
         </div>
       </div>
     </div>
@@ -2672,6 +2755,21 @@ html.withlog-dark .post-media-frame > video {
         } else {
           heart.classList.remove('text-rose-500', 'fill-current', 'withlog-heart-pop');
           countEl.classList.remove('withlog-like-count-pop');
+
+          // 「いいねした投稿」画面で解除した場合は、その場で一覧から外す。
+          const likedCard = btn.closest('[data-liked-post-card]');
+          if (likedCard) {
+            likedCard.style.transition = 'opacity .18s ease, transform .18s ease';
+            likedCard.style.opacity = '0';
+            likedCard.style.transform = 'scale(.98)';
+            window.setTimeout(() => {
+              likedCard.remove();
+              const content = document.getElementById('likedPostsContent');
+              if (content && !content.querySelector('[data-liked-post-card]')) {
+                content.innerHTML = likedPostsEmptyHtml();
+              }
+            }, 180);
+          }
         }
       }
     };
@@ -2731,6 +2829,98 @@ html.withlog-dark .post-media-frame > video {
 
     window.closeProfileModal = function() {
       document.getElementById('profileModal').classList.add('hidden');
+    };
+
+    function likedPostsEmptyHtml() {
+      return `
+        <div class="withlog-liked-empty">
+          <div class="text-2xl mb-2">♡</div>
+          <p class="text-[11px] font-black tracking-wide">まだいいねした投稿はありません</p>
+          <p class="text-[9px] mt-1">気になる投稿のハートを押すと、ここに保存されます</p>
+        </div>`;
+    }
+
+    window.openLikedPostsModal = async function() {
+      const token = getToken();
+      if (!token) return;
+
+      closeProfileModal();
+      const modal = document.getElementById('likedPostsModal');
+      const content = document.getElementById('likedPostsContent');
+      content.innerHTML = '<div class="withlog-liked-empty">読み込み中...</div>';
+      modal.classList.remove('hidden');
+
+      try {
+        const res = await fetch('/users/me/liked-spots', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('liked posts request failed');
+
+        const spots = await res.json();
+        if (!Array.isArray(spots) || spots.length === 0) {
+          content.innerHTML = likedPostsEmptyHtml();
+          return;
+        }
+
+        content.innerHTML = spots.map(s => {
+          const visitDate = new Date(s.visited_at);
+          const dateText = Number.isNaN(visitDate.getTime())
+            ? ''
+            : `${visitDate.getFullYear()}.${String(visitDate.getMonth() + 1).padStart(2, '0')}.${String(visitDate.getDate()).padStart(2, '0')}`;
+          const dailyMeta = parseDailyWithMemo(s.memo);
+          const parsedMemo = parseSpotMusic(dailyMeta.memo);
+          const cleanMemo = parsedMemo.memo || '';
+          const avatarStyle = s.author_avatar_url ? `style="background-image:url('${s.author_avatar_url}')"` : '';
+          const avatarText = s.author_avatar_url ? '' : escapeHtml((s.display_name || s.username || '?').charAt(0).toUpperCase());
+          const mediaHtml = s.media_url
+            ? (s.media_type === 'video'
+              ? `<video class="withlog-liked-post-media" src="${s.media_url}" controls></video>`
+              : `<img class="withlog-liked-post-media" src="${s.media_url}" alt="${escapeHtml(s.name || 'いいねした投稿')}" loading="lazy">`)
+            : '';
+
+          return `
+            <article class="withlog-liked-post-card" data-liked-post-card="${s.id}">
+              <div class="withlog-liked-post-head">
+                <div class="withlog-liked-post-avatar" ${avatarStyle}>${avatarText}</div>
+                <div class="min-w-0 flex-1">
+                  <div class="text-[11px] font-black text-slate-900 truncate">${escapeHtml(s.display_name || s.username)}</div>
+                  <div class="withlog-liked-post-meta truncate">@${escapeHtml(s.username || '')} · ${dateText}</div>
+                </div>
+              </div>
+              ${mediaHtml}
+              <div class="withlog-liked-post-body">
+                <div class="withlog-liked-post-title">${escapeHtml(s.name || 'WITHLOGの投稿')}</div>
+                ${cleanMemo ? `<div class="withlog-liked-post-memo">${escapeHtml(cleanMemo).replace(/\n/g, '<br>')}</div>` : ''}
+                <div class="withlog-liked-post-actions">
+                  <button type="button" onclick="toggleSpotLike('${s.id}', this)" class="withlog-liked-post-like">
+                    <svg class="heart-icon" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                    <span class="like-count">${s.likes_count}</span>
+                  </button>
+                  <button type="button" onclick="jumpToLikedSpot('${s.id}')" class="withlog-liked-post-jump">投稿を見る →</button>
+                </div>
+              </div>
+            </article>`;
+        }).join('');
+      } catch (error) {
+        content.innerHTML = `
+          <div class="withlog-liked-empty">
+            <p class="text-[11px] font-black">いいねした投稿を読み込めませんでした</p>
+            <button type="button" onclick="openLikedPostsModal()" class="mt-3 text-[10px] font-black underline">もう一度試す</button>
+          </div>`;
+      }
+    };
+
+    window.closeLikedPostsModal = function() {
+      document.getElementById('likedPostsModal').classList.add('hidden');
+    };
+
+    window.jumpToLikedSpot = function(spotId) {
+      closeLikedPostsModal();
+      if (dateFilterEl) dateFilterEl.value = '';
+      window.location.hash = `spot-${spotId}`;
+      switchFeedTab('all');
     };
 
     window.toggleFollowUser = async function(username) {
