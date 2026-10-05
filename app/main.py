@@ -1,5 +1,8 @@
 import json
 import os
+import mimetypes
+import posixpath
+from pathlib import Path
 import re
 import shutil
 import time
@@ -24,6 +27,7 @@ from fastapi import (
 )
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
+from starlette.concurrency import run_in_threadpool
 from geoalchemy2.shape import from_shape, to_shape
 from jose import jwt
 from pydantic import BaseModel
@@ -99,26 +103,20 @@ def find_user_by_username_exact_ci(db: Session, raw_username: str) -> Optional[U
 
 
 def _current_user_from_request(request: Request, db: Session) -> Optional[User]:
-    """Resolve the JWT subject with exact, case-insensitive username matching."""
-    auth_header = request.headers.get("Authorization", "")
-    if not auth_header.startswith("Bearer "):
+    # Only Bearer tokens authenticate API requests. Media cookies cannot change data.
+    header = request.headers.get("Authorization", "")
+    if not header.startswith("Bearer "):
         return None
-
-    token = auth_header.split(" ", 1)[1].strip()
+    token = header.split(" ", 1)[1].strip()
     if not token:
         return None
-
-    secret_key = getattr(auth_module, "SECRET_KEY", None) or os.getenv("SECRET_KEY", "")
-    algorithm = getattr(auth_module, "ALGORITHM", None) or os.getenv("JWT_ALGORITHM", "HS256")
-    if not secret_key:
-        return None
-
+    key, algorithm = authentication_key()
     try:
-        payload = jwt.decode(token, secret_key, algorithms=[algorithm])
-        username = payload.get("sub")
-        if not username:
+        payload = jwt.decode(token, key, algorithms=[algorithm],
+                             options={"require_exp": True, "require_sub": True})
+        if payload.get("purpose") or payload.get("aud"):
             return None
-        return find_user_by_username_exact_ci(db, username)
+        return find_user_by_username_exact_ci(db, payload.get("sub", ""))
     except Exception:
         return None
 
@@ -194,9 +192,195 @@ def _background_db_setup():
 def start_background_db_setup():
     threading.Thread(target=_background_db_setup, daemon=True).start()
 
+
+# --- Privacy: all reads use the same ownership / accepted-follower policy. ---
+MEDIA_COOKIE = "withlog_media_v1"
+MEDIA_AUDIENCE = "withlog-media"
+PRIVACY_VERSION = "privacy-v1"
+NO_STORE = "private, no-store, max-age=0"
+SAFE_MEDIA_TYPES = {
+    "image/jpeg", "image/png", "image/gif", "image/webp", "image/avif",
+    "video/mp4", "video/webm", "video/ogg", "video/quicktime",
+}
+
+def authentication_key():
+    # The old auth module has a development fallback. Never trust that public key.
+    key = getattr(auth_module, "SECRET_KEY", None) or os.getenv("SECRET_KEY", "")
+    weak_keys = {
+        "your-secret-travel-log-super-key-2026",
+        "travel-log-production-secret-2026",
+    }
+    if not isinstance(key, str) or len(key.strip()) < 32 or key in weak_keys:
+        raise HTTPException(
+            status_code=503,
+            detail="安全な認証のため、RenderのEnvironmentに32文字以上のランダムなSECRET_KEYを設定してください。",
+        )
+    return key, getattr(auth_module, "ALGORITHM", "HS256")
+
+def can_view_user_posts(author: Optional[User], viewer: Optional[User], db: Session) -> bool:
+    if author is None:
+        return False
+    if viewer and viewer.id == author.id:
+        return True
+    if author.is_private is False:
+        return True
+    if viewer is None:
+        return False
+    return db.query(Follow.id).filter(
+        Follow.follower_id == viewer.id,
+        Follow.following_id == author.id,
+        Follow.status == "accepted",
+    ).first() is not None
+
+def can_view_spot(spot: Optional[Spot], viewer: Optional[User], db: Session) -> bool:
+    if spot is None:
+        return False
+    # Keep historical guest posts public; new posts always require authentication.
+    return spot.user_id is None or can_view_user_posts(spot.author, viewer, db)
+
+def visible_spots_query(db: Session, viewer: Optional[User]):
+    allowed = [Spot.user_id.is_(None), Spot.author.has(User.is_private.is_(False))]
+    if viewer:
+        accepted = db.query(Follow.id).filter(
+            Follow.following_id == Spot.user_id,
+            Follow.follower_id == viewer.id,
+            Follow.status == "accepted",
+        ).exists()
+        allowed.extend([Spot.user_id == viewer.id, accepted])
+    return db.query(Spot).filter(or_(*allowed))
+
+def protected_media_url(spot: Spot):
+    # A versioned, access-checked URL also avoids earlier public image-cache entries.
+    return f"/media/{spot.id}?v={PRIVACY_VERSION}" if spot.media_url else None
+
+def _lock_user(db: Session, user_id):
+    return db.query(User).filter(User.id == user_id).with_for_update().populate_existing().one()
+
+def _clear_request_notifications(db: Session, owner_id, requester_id):
+    db.query(Notification).filter(
+        Notification.recipient_id == owner_id,
+        Notification.sender_id == requester_id,
+        Notification.type == "follow_request",
+    ).delete(synchronize_session=False)
+
+def set_media_cookie(response: Response, request: Request, user: User, access_token: str):
+    key, algorithm = authentication_key()
+    payload = jwt.decode(access_token, key, algorithms=[algorithm],
+                         options={"require_exp": True, "require_sub": True})
+    # Separate, read-only token. It is never accepted as an API Bearer token.
+    now = int(time.time())
+    expires = min(int(payload["exp"]), now + 8 * 3600)
+    media_token = jwt.encode({
+        "sub": str(user.id), "aud": MEDIA_AUDIENCE, "purpose": MEDIA_AUDIENCE,
+        "iat": now, "exp": expires,
+    }, key, algorithm=algorithm)
+    response.set_cookie(
+        MEDIA_COOKIE, media_token, max_age=max(1, expires-now), path="/",
+        httponly=True, samesite="lax",
+        secure=bool(os.getenv("RENDER")) or request.url.scheme == "https",
+    )
+
+def media_current_user(request: Request, db: Session) -> Optional[User]:
+    if request.headers.get("Authorization"):
+        return _current_user_from_request(request, db)
+    token = request.cookies.get(MEDIA_COOKIE)
+    if not token:
+        return None
+    key, algorithm = authentication_key()
+    try:
+        payload = jwt.decode(token, key, algorithms=[algorithm], audience=MEDIA_AUDIENCE,
+                             options={"require_exp": True, "require_sub": True})
+        if payload.get("purpose") != MEDIA_AUDIENCE:
+            return None
+        return db.query(User).filter(User.id == uuid.UUID(payload["sub"])).first()
+    except Exception:
+        return None
+
+def safe_media_headers(content_type):
+    headers = {
+        "Cache-Control": NO_STORE, "Vary": "Cookie, Authorization",
+        "X-Content-Type-Options": "nosniff", "Content-Security-Policy": "sandbox",
+    }
+    if content_type not in SAFE_MEDIA_TYPES:
+        headers["Content-Disposition"] = "attachment"
+    return headers
+
+def local_upload_path(media_url: str):
+    # Resolve against a fixed directory; do not allow traversal or arbitrary files.
+    prefix = "/static/uploads/"
+    clean = "/" + (media_url or "").lstrip("/")
+    if not clean.startswith(prefix) or "?" in clean or "#" in clean:
+        return None
+    base = Path(upload_dir).resolve()
+    candidate = (base / clean[len(prefix):]).resolve()
+    try:
+        candidate.relative_to(base)
+    except ValueError:
+        return None
+    return candidate if candidate.is_file() else None
+
+def legacy_upload_response(path: str, scope):
+    request = Request(scope)
+    relative = posixpath.normpath(path.replace("\\", "/"))
+    url = "/static/" + relative
+    candidate = local_upload_path(url)
+    if candidate is None:
+        raise HTTPException(status_code=404, detail="Media not found")
+    with Session(engine) as db:
+        viewer = media_current_user(request, db)
+        matches = db.query(Spot).filter(Spot.media_url.in_([url, url.lstrip("/")])).all()
+        if matches:
+            if not all(can_view_spot(spot, viewer, db) for spot in matches):
+                raise HTTPException(status_code=404, detail="Media not found")
+        else:
+            # Profile photos/covers are public. Unreferenced uploads are denied.
+            is_profile = db.query(User.id).filter(or_(
+                User.avatar_url == url, User.cover_url == url,
+            )).first() is not None
+            if not is_profile:
+                raise HTTPException(status_code=404, detail="Media not found")
+    ctype = mimetypes.guess_type(str(candidate))[0] or "application/octet-stream"
+    return FileResponse(candidate, media_type=ctype if ctype in SAFE_MEDIA_TYPES else "application/octet-stream",
+                        headers=safe_media_headers(ctype))
+
+class ProtectedStaticFiles(StaticFiles):
+    async def get_response(self, path, scope):
+        normalized = posixpath.normpath(path.replace("\\", "/"))
+        if normalized == "uploads" or normalized.startswith("uploads/"):
+            return await run_in_threadpool(legacy_upload_response, normalized, scope)
+        return await super().get_response(path, scope)
+
+@app.middleware("http")
+async def privacy_response_headers(request: Request, call_next):
+    response = await call_next(request)
+    # Never share authenticated feed data, private images, or HTML between users.
+    path = request.url.path
+    if not path.startswith("/static/") or "/uploads/" in path or path.endswith(".html"):
+        response.headers["Cache-Control"] = NO_STORE
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        values = {v.strip() for v in response.headers.get("Vary", "").split(",") if v.strip()}
+        response.headers["Vary"] = ", ".join(sorted(values | {"Cookie", "Authorization"}))
+    response.headers["X-Withlog-Privacy-Version"] = PRIVACY_VERSION
+    return response
+
+@app.post("/auth/media-session")
+def refresh_media_session(request: Request, response: Response,
+                          current_user: User = Depends(require_current_user)):
+    set_media_cookie(response, request, current_user,
+                     request.headers["Authorization"].split(" ", 1)[1].strip())
+    return {"status": "ok"}
+
+@app.post("/auth/logout")
+def logout_media_session(response: Response):
+    # Deletes only the host's read-only media cookie; does not accept it for API writes.
+    response.delete_cookie(MEDIA_COOKIE, path="/", httponly=True, samesite="lax")
+    return {"status": "ok"}
+
+
 upload_dir = "static/uploads"
 os.makedirs(upload_dir, exist_ok=True)
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", ProtectedStaticFiles(directory="static"), name="static")
 
 
 @app.get("/")
@@ -278,6 +462,7 @@ def build_extended_profile(target_user: User, current_user: Optional[User], db: 
         "is_following": follow_status == "following",
         "follow_status": follow_status,
         "is_private": bool(target_user.is_private),
+        "can_view_posts": can_view_user_posts(target_user, current_user, db),
     }
 
 
@@ -303,7 +488,8 @@ def add_notification(
 # --- Authentication & profile ---
 
 @app.post("/auth/register", response_model=TokenResponse)
-def register(user_in: UserRegister, db: Session = Depends(get_db)):
+def register(user_in: UserRegister, request: Request, response: Response, db: Session = Depends(get_db)):
+    authentication_key()
     username = validate_new_username(user_in.username)
 
     # User ID is unique regardless of upper/lower case.
@@ -336,22 +522,28 @@ def register(user_in: UserRegister, db: Session = Depends(get_db)):
     db.refresh(user)
 
     token = create_access_token(data={"sub": user.username})
+    set_media_cookie(response, request, user, token)
     return TokenResponse(access_token=token, user=build_user_profile(user, user, db))
 
 
 @app.post("/auth/login", response_model=TokenResponse)
-def login(user_in: UserLogin, db: Session = Depends(get_db)):
+def login(user_in: UserLogin, request: Request, response: Response, db: Session = Depends(get_db)):
+    authentication_key()
     username = user_in.username.strip()
     user = find_user_by_username_exact_ci(db, username)
     if not user or not verify_password(user_in.password, user.hashed_password):
         raise HTTPException(status_code=400, detail="IDまたはパスワードが正しくありません")
 
     token = create_access_token(data={"sub": user.username})
+    set_media_cookie(response, request, user, token)
     return TokenResponse(access_token=token, user=build_user_profile(user, user, db))
 
 
 @app.get("/auth/me", response_model=UserProfile)
-def get_me(current_user: User = Depends(require_current_user), db: Session = Depends(get_db)):
+def get_me(request: Request, response: Response,
+           current_user: User = Depends(require_current_user), db: Session = Depends(get_db)):
+    set_media_cookie(response, request, current_user,
+                     request.headers["Authorization"].split(" ", 1)[1].strip())
     return build_user_profile(current_user, current_user, db)
 
 
@@ -379,9 +571,23 @@ def update_privacy(
     current_user: User = Depends(require_current_user),
     db: Session = Depends(get_db),
 ):
-    current_user.is_private = payload.is_private
+    owner = _lock_user(db, current_user.id)
+    owner.is_private = payload.is_private
+    approved = 0
+    if not payload.is_private:
+        # Public mode accepts pending requests; tell the owner in the confirmation UI.
+        pending = db.query(Follow).filter(
+            Follow.following_id == owner.id, Follow.status == "pending",
+        ).with_for_update().all()
+        for relation in pending:
+            relation.status = "accepted"
+            _clear_request_notifications(db, owner.id, relation.follower_id)
+            add_notification(db, relation.follower_id, owner.id, "follow_accepted",
+                             f"@{owner.username} さんのフォローが承認されました。")
+        approved = len(pending)
     db.commit()
-    return {"status": "ok", "is_private": bool(current_user.is_private)}
+    return {"status": "ok", "is_private": bool(owner.is_private),
+            "accepted_pending_count": approved}
 
 
 @app.get("/users/{username}")
@@ -435,58 +641,32 @@ async def update_profile(
 # --- Following / private accounts / friend requests ---
 
 @app.post("/users/{username}/follow")
-def toggle_follow(
-    username: str,
-    current_user: User = Depends(require_current_user),
-    db: Session = Depends(get_db),
-):
-    clean = username.strip()
-    target_user = find_user_by_username_exact_ci(db, clean)
-    if not target_user:
+def toggle_follow(username: str, current_user: User = Depends(require_current_user),
+                  db: Session = Depends(get_db)):
+    target = find_user_by_username_exact_ci(db, username)
+    if not target:
         raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
-    if target_user.id == current_user.id:
+    if target.id == current_user.id:
         raise HTTPException(status_code=400, detail="自分自身はフォローできません")
-
+    target = _lock_user(db, target.id)
     existing = db.query(Follow).filter(
-        Follow.follower_id == current_user.id,
-        Follow.following_id == target_user.id,
-    ).first()
-
+        Follow.follower_id == current_user.id, Follow.following_id == target.id,
+    ).with_for_update().first()
     if existing:
         db.delete(existing)
+        _clear_request_notifications(db, target.id, current_user.id)
         db.commit()
         return {"following": False, "follow_status": "none"}
-
-    relation_status = "pending" if target_user.is_private else "accepted"
-    new_follow = Follow(
-        follower_id=current_user.id,
-        following_id=target_user.id,
-        status=relation_status,
-    )
-    db.add(new_follow)
-
-    if relation_status == "pending":
-        add_notification(
-            db,
-            target_user.id,
-            current_user.id,
-            "follow_request",
-            f"@{current_user.username} さんからフォロー申請が届きました！",
-        )
-    else:
-        add_notification(
-            db,
-            target_user.id,
-            current_user.id,
-            "follow",
-            f"@{current_user.username} さんにフォローされました！",
-        )
-
+    pending = bool(target.is_private)
+    db.add(Follow(follower_id=current_user.id, following_id=target.id,
+                  status="pending" if pending else "accepted"))
+    _clear_request_notifications(db, target.id, current_user.id)
+    add_notification(db, target.id, current_user.id,
+                     "follow_request" if pending else "follow",
+                     f"@{current_user.username} さんからフォロー申請が届きました。" if pending
+                     else f"@{current_user.username} さんにフォローされました。")
     db.commit()
-    return {
-        "following": relation_status == "accepted",
-        "follow_status": "pending" if relation_status == "pending" else "following",
-    }
+    return {"following": not pending, "follow_status": "pending" if pending else "following"}
 
 
 @app.get("/friends/outgoing-requests")
@@ -534,47 +714,53 @@ def get_incoming_requests(
 
 
 @app.post("/friends/decision")
-def handle_follow_decision(
-    payload: FollowDecision,
-    current_user: User = Depends(require_current_user),
-    db: Session = Depends(get_db),
-):
-    clean = payload.target_username.strip()
-    sender = find_user_by_username_exact_ci(db, clean)
+def handle_follow_decision(payload: FollowDecision,
+                           current_user: User = Depends(require_current_user),
+                           db: Session = Depends(get_db)):
+    action = payload.action.strip().lower()
+    if action not in {"accept", "decline", "reject"}:
+        raise HTTPException(status_code=400, detail="action は accept または decline を指定してください")
+    owner = _lock_user(db, current_user.id)
+    sender = find_user_by_username_exact_ci(db, payload.target_username)
     if not sender:
         raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
-
     relation = db.query(Follow).filter(
-        Follow.follower_id == sender.id,
-        Follow.following_id == current_user.id,
+        Follow.follower_id == sender.id, Follow.following_id == owner.id,
         Follow.status == "pending",
-    ).first()
+    ).with_for_update().first()
     if not relation:
-        raise HTTPException(status_code=404, detail="対象のフォロー申請がありません")
-
-    action = payload.action.strip().lower()
+        raise HTTPException(status_code=404, detail="対象のフォロー申請は取り消されたか、すでに処理されています")
+    _clear_request_notifications(db, owner.id, sender.id)
     if action == "accept":
         relation.status = "accepted"
-        add_notification(
-            db,
-            sender.id,
-            current_user.id,
-            "follow_accepted",
-            f"@{current_user.username} さんへのフォロー申請が承認されました！",
-        )
-        db.commit()
-        return {"status": "accepted"}
-
-    if action in {"decline", "reject"}:
+        add_notification(db, sender.id, owner.id, "follow_accepted",
+                         f"@{owner.username} さんへのフォロー申請が承認されました。")
+        result = "accepted"
+    else:
         db.delete(relation)
-        db.commit()
-        return {"status": "declined"}
+        result = "declined"
+    db.commit()
+    return {"status": result}
 
-    raise HTTPException(status_code=400, detail="action は accept または decline を指定してください")
+@app.delete("/users/me/followers/{username}")
+def remove_follower(username: str, current_user: User = Depends(require_current_user),
+                    db: Session = Depends(get_db)):
+    owner = _lock_user(db, current_user.id)
+    follower = find_user_by_username_exact_ci(db, username)
+    if not follower:
+        raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
+    relation = db.query(Follow).filter(
+        Follow.following_id == owner.id, Follow.follower_id == follower.id,
+    ).with_for_update().first()
+    if relation:
+        db.delete(relation)
+        _clear_request_notifications(db, owner.id, follower.id)
+    db.commit()
+    return {"status": "removed"}
 
 
 @app.get("/api/users/{user_id}/followers")
-def get_followers(user_id: str, db: Session = Depends(get_db)):
+def get_followers(user_id: str, current_user: Optional[User] = Depends(get_current_user), db: Session = Depends(get_db)):
     clean = user_id.strip()
     try:
         target = db.query(User).filter(User.id == uuid.UUID(clean)).first()
@@ -583,6 +769,8 @@ def get_followers(user_id: str, db: Session = Depends(get_db)):
     if not target:
         raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
 
+    if not can_view_user_posts(target, current_user, db):
+        raise HTTPException(status_code=403, detail="非公開アカウントのため、承認されたフォロワーのみ閲覧できます")
     follows = db.query(Follow).filter(
         Follow.following_id == target.id,
         Follow.status == "accepted",
@@ -602,7 +790,7 @@ def get_followers(user_id: str, db: Session = Depends(get_db)):
 
 
 @app.get("/api/users/{user_id}/following")
-def get_following(user_id: str, db: Session = Depends(get_db)):
+def get_following(user_id: str, current_user: Optional[User] = Depends(get_current_user), db: Session = Depends(get_db)):
     clean = user_id.strip()
     try:
         target = db.query(User).filter(User.id == uuid.UUID(clean)).first()
@@ -611,6 +799,8 @@ def get_following(user_id: str, db: Session = Depends(get_db)):
     if not target:
         raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
 
+    if not can_view_user_posts(target, current_user, db):
+        raise HTTPException(status_code=403, detail="非公開アカウントのため、承認されたフォロワーのみ閲覧できます")
     follows = db.query(Follow).filter(
         Follow.follower_id == target.id,
         Follow.status == "accepted",
@@ -665,23 +855,50 @@ def get_following_stories(
 
 # --- Persistent post media (PostgreSQL BYTEA) ---
 
-@app.get("/media/{spot_id}")
-def serve_spot_media(
-    spot_id: uuid.UUID,
-    db: Session = Depends(get_db),
-):
-    media = db.query(SpotMedia).filter(SpotMedia.spot_id == spot_id).first()
-    if not media:
+@app.api_route("/media/{spot_id}", methods=["GET", "HEAD"])
+def serve_spot_media(spot_id: uuid.UUID, request: Request, db: Session = Depends(get_db)):
+    viewer = media_current_user(request, db)
+    spot = db.query(Spot).filter(Spot.id == spot_id).first()
+    if not can_view_spot(spot, viewer, db):
         raise HTTPException(status_code=404, detail="Media not found")
-
-    return Response(
-        content=bytes(media.data),
-        media_type=media.content_type or "application/octet-stream",
-        headers={
-            "Cache-Control": "public, max-age=86400",
-            "X-Content-Type-Options": "nosniff",
-        },
-    )
+    media = db.query(SpotMedia).filter(SpotMedia.spot_id == spot_id).first()
+    if media is None:
+        candidate = local_upload_path(spot.media_url)
+        if candidate is None:
+            raise HTTPException(status_code=404, detail="Media not found")
+        ctype = mimetypes.guess_type(str(candidate))[0] or "application/octet-stream"
+        return FileResponse(candidate,
+                            media_type=ctype if ctype in SAFE_MEDIA_TYPES else "application/octet-stream",
+                            headers=safe_media_headers(ctype))
+    data = bytes(media.data)
+    ctype = (media.content_type or "application/octet-stream").split(";", 1)[0].lower()
+    headers = safe_media_headers(ctype)
+    headers["Accept-Ranges"] = "bytes"
+    start, end, response_status = 0, len(data) - 1, 200
+    # Single byte ranges support seeking without bypassing the access check above.
+    byte_range = request.headers.get("Range")
+    if byte_range and request.method == "GET" and not request.headers.get("If-Range"):
+        match = re.fullmatch(r"bytes=(\d*)-(\d*)", byte_range)
+        if not match or not any(match.groups()) or not data:
+            return Response(status_code=416, headers={**headers, "Content-Range": f"bytes */{len(data)}"})
+        left, right = match.groups()
+        if left:
+            start = int(left)
+            end = min(int(right), len(data)-1) if right else len(data)-1
+        else:
+            length = int(right)
+            if length == 0:
+                return Response(status_code=416, headers={**headers, "Content-Range": f"bytes */{len(data)}"})
+            start = max(0, len(data)-length)
+        if start > end or start >= len(data):
+            return Response(status_code=416, headers={**headers, "Content-Range": f"bytes */{len(data)}"})
+        response_status = 206
+        headers["Content-Range"] = f"bytes {start}-{end}/{len(data)}"
+    headers["Content-Length"] = str(max(0, end-start+1))
+    return Response(content=b"" if request.method == "HEAD" else data[start:end+1],
+                    status_code=response_status,
+                    media_type=ctype if ctype in SAFE_MEDIA_TYPES else "application/octet-stream",
+                    headers=headers)
 
 
 # --- Spots & likes ---
@@ -695,7 +912,7 @@ async def create_spot(
     visited_at: Optional[datetime] = Form(None),
     rating: Optional[int] = Form(None),
     file: Optional[UploadFile] = File(None),
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User = Depends(require_current_user),
     db: Session = Depends(get_db),
 ):
     media_url = None
@@ -767,7 +984,7 @@ async def create_spot(
         author_avatar_url=current_user.avatar_url if current_user else None,
         name=spot.name,
         memo=spot.memo,
-        media_url=spot.media_url,
+        media_url=protected_media_url(spot),
         media_type=spot.media_type,
         google_map_url=spot.google_map_url,
         latitude=pt.y,
@@ -787,8 +1004,10 @@ def get_spots(
     current_user: Optional[User] = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    query = db.query(Spot)
+    query = visible_spots_query(db, current_user)
 
+    if feed_type == "following" and not current_user:
+        raise HTTPException(status_code=401, detail="ログインが必要です")
     if feed_type == "following" and current_user:
         following_ids = db.query(Follow.following_id).filter(
             Follow.follower_id == current_user.id,
@@ -828,7 +1047,7 @@ def get_spots(
                 author_avatar_url=spot.author.avatar_url if spot.author else None,
                 name=spot.name,
                 memo=spot.memo,
-                media_url=spot.media_url,
+                media_url=protected_media_url(spot),
                 media_type=spot.media_type,
                 google_map_url=spot.google_map_url,
                 latitude=pt.y,
@@ -849,7 +1068,7 @@ def get_my_liked_spots(
 ):
     """Return posts liked by the signed-in user, newest like first."""
     liked_rows = (
-        db.query(Spot)
+        visible_spots_query(db, current_user)
         .join(SpotLike, SpotLike.spot_id == Spot.id)
         .filter(SpotLike.user_id == current_user.id)
         .order_by(SpotLike.created_at.desc())
@@ -879,7 +1098,7 @@ def get_my_liked_spots(
                 author_avatar_url=spot.author.avatar_url if spot.author else None,
                 name=spot.name,
                 memo=spot.memo,
-                media_url=spot.media_url,
+                media_url=protected_media_url(spot),
                 media_type=spot.media_type,
                 google_map_url=spot.google_map_url,
                 latitude=pt.y,
@@ -901,7 +1120,7 @@ def toggle_like(
     db: Session = Depends(get_db),
 ):
     spot = db.query(Spot).filter(Spot.id == spot_id).first()
-    if not spot:
+    if not can_view_spot(spot, current_user, db):
         raise HTTPException(status_code=404, detail="Spot not found")
 
     existing = db.query(SpotLike).filter(
@@ -925,20 +1144,20 @@ def toggle_like(
 @app.delete("/spots/{spot_id}")
 def delete_spot(
     spot_id: uuid.UUID,
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: User = Depends(require_current_user),
     db: Session = Depends(get_db),
 ):
     spot = db.query(Spot).filter(Spot.id == spot_id).first()
     if not spot:
         raise HTTPException(status_code=404, detail="Spot not found")
-    if spot.user_id and current_user and spot.user_id != current_user.id:
+    if spot.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="他人の投稿は削除できません")
 
     # Legacy compatibility: remove an old local upload if it still exists.
     # New uploads live in spot_media and are deleted automatically by ON DELETE CASCADE.
     if spot.media_url and spot.media_url.startswith("/static/uploads/"):
-        local_path = spot.media_url.lstrip("/")
-        if os.path.exists(local_path):
+        local_path = local_upload_path(spot.media_url)
+        if local_path is not None:
             try:
                 os.remove(local_path)
             except Exception:
@@ -971,6 +1190,7 @@ def get_notifications(
             "sender_avatar_url": item.sender.avatar_url if item.sender else None,
         }
         for item in notifications
+        if item.type != "new_post" or can_view_user_posts(item.sender, current_user, db)
     ]
 
 
@@ -1122,15 +1342,14 @@ async def websocket_dm_endpoint(
     db: Session = Depends(get_db),
 ):
     try:
-        secret_key = getattr(auth_module, "SECRET_KEY", None) or os.getenv("SECRET_KEY", "")
-        algorithm = getattr(auth_module, "ALGORITHM", None) or os.getenv("JWT_ALGORITHM", "HS256")
+        secret_key, algorithm = authentication_key()
         if not secret_key:
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
             return
 
-        payload = jwt.decode(token, secret_key, algorithms=[algorithm])
+        payload = jwt.decode(token, secret_key, algorithms=[algorithm], options={"require_exp": True, "require_sub": True})
         username = payload.get("sub")
-        if not username:
+        if not username or payload.get("purpose") or payload.get("aud"):
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
             return
 
