@@ -201,11 +201,11 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
 def serve_ui():
-    # Always revalidate the main HTML so users do not keep an old UI after deploys.
+    # Never store the main HTML in browser or intermediary caches.
     return FileResponse(
         "static/index.html",
         headers={
-            "Cache-Control": "no-cache, max-age=0, must-revalidate",
+            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
             "Pragma": "no-cache",
             "Expires": "0",
         },
