@@ -4205,5 +4205,35 @@ document.addEventListener("DOMContentLoaded", function () {
   }, true);
 })();
 </script>
+
+<script id="withlog-backdrop-close-patch">
+(() => {
+  // Close standard modal screens when the dimmed area outside the panel is tapped.
+  // Advanced settings and account deletion already have the same behavior in their own handlers.
+  const backdropCloseHandlers = {
+    userSearchModal: () => window.closeUserSearchModal?.(),
+    postModal: () => window.closePostModal ? window.closePostModal() : (typeof closePostModal === 'function' && closePostModal()),
+    profileModal: () => window.closeProfileModal?.(),
+    likedPostsModal: () => window.closeLikedPostsModal?.(),
+    editProfileModal: () => window.closeEditProfileModal?.(),
+    userListModal: () => window.closeUserListModal?.(),
+    notificationsModal: () => window.closeNotificationsModal?.(),
+    conversationsModal: () => window.closeConversationsModal?.(),
+    dmModal: () => window.closeDmModal?.(),
+  };
+
+  Object.entries(backdropCloseHandlers).forEach(([id, close]) => {
+    const modal = document.getElementById(id);
+    if (!modal || modal.dataset.backdropCloseBound === 'true') return;
+
+    modal.dataset.backdropCloseBound = 'true';
+    modal.addEventListener('click', (event) => {
+      // Only the actual backdrop closes the modal. Taps anywhere inside the white panel do nothing.
+      if (event.target !== modal) return;
+      close();
+    });
+  });
+})();
+</script>
 </body>
 </html>
