@@ -1436,6 +1436,71 @@ html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;borde
 @media(max-width:420px){.withlog-comment-toggle{padding:10px 11px}.withlog-comment-toggle .withlog-comment-label{display:none}}
 </style>
 
+
+<style id="withlog-unified-close-button-style">
+/* All modal close controls use the same perfectly round WITHLOG button. */
+.withlog-modal-close {
+  width: 46px !important;
+  height: 46px !important;
+  min-width: 46px !important;
+  min-height: 46px !important;
+  max-width: 46px !important;
+  max-height: 46px !important;
+  flex: 0 0 46px !important;
+  aspect-ratio: 1 / 1 !important;
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: #f3effa !important;
+  color: #81769a !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 27px !important;
+  font-weight: 400 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  text-indent: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: background .16s ease, color .16s ease, transform .16s ease;
+}
+.withlog-modal-close:hover {
+  background: #ebe5f5 !important;
+  color: #625873 !important;
+}
+.withlog-modal-close:active { transform: scale(.94); }
+.withlog-modal-close:focus-visible {
+  outline: 2px solid #9483b7 !important;
+  outline-offset: 3px !important;
+}
+/* The DM header is slightly shorter, while keeping a true circle. */
+.withlog-modal-close-sm {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  min-height: 38px !important;
+  max-width: 38px !important;
+  max-height: 38px !important;
+  flex-basis: 38px !important;
+  font-size: 23px !important;
+}
+html.withlog-dark .withlog-modal-close {
+  background: #45414f !important;
+  color: #d9d1e5 !important;
+}
+html.withlog-dark .withlog-modal-close:hover {
+  background: #504a5d !important;
+  color: #fff !important;
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -1584,7 +1649,7 @@ html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;borde
       <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-5 ">
         <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
           <h2 class="text-xs font-bold tracking-widest text-slate-900 uppercase">Search Users</h2>
-          <button onclick="closeUserSearchModal()" class="text-slate-400 hover:text-slate-900 text-xs font-medium">✕</button>
+          <button type="button" onclick="closeUserSearchModal()" class="withlog-modal-close" aria-label="検索画面を閉じる">×</button>
         </div>
 
         <div class="space-y-3">
@@ -1607,7 +1672,7 @@ html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;borde
             <h2 class="text-sm font-bold tracking-widest text-slate-900 uppercase">New Moment</h2>
             <p class="text-[10px] text-slate-400 font-medium tracking-wider">今日を記録する</p>
           </div>
-          <button id="cancelModalBtn" class="text-slate-400 hover:text-slate-900 text-xs px-2 py-1 font-medium transition">✕ キャンセル</button>
+          <button type="button" id="cancelModalBtn" class="withlog-modal-close" aria-label="投稿画面を閉じる">×</button>
         </div>
 
         <form id="postForm" class="space-y-4">
@@ -1668,7 +1733,7 @@ html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;borde
             <span class="w-2 h-2 bg-slate-900"></span>
             <span class="text-[10px] font-mono tracking-[0.2em] uppercase font-bold text-slate-900">WITHLOG Profile</span>
           </div>
-          <button onclick="closeProfileModal()" class="text-slate-400 hover:text-slate-900 text-xs font-bold">✕</button>
+          <button type="button" onclick="closeProfileModal()" class="withlog-modal-close" aria-label="プロフィールを閉じる">×</button>
         </div>
 
         <!-- 独自性のあるオフセット・カードレイアウト -->
@@ -1764,7 +1829,7 @@ html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;borde
       <div class="withlog-settings-panel">
         <div class="withlog-settings-header">
           <div><p class="withlog-settings-kicker">ACCOUNT SETTINGS</p><h2 id="advancedSettingsTitle">詳細設定</h2></div>
-          <button type="button" class="withlog-settings-close" onclick="closeAdvancedSettingsModal()" aria-label="詳細設定を閉じる">×</button>
+          <button type="button" class="withlog-modal-close" onclick="closeAdvancedSettingsModal()" aria-label="詳細設定を閉じる">×</button>
         </div>
         <div class="withlog-settings-body">
           <p class="withlog-settings-section">プライバシー</p>
@@ -1802,7 +1867,7 @@ html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;borde
       <div class="withlog-delete-modal-panel">
         <div class="withlog-settings-header">
           <div><p class="withlog-settings-kicker">DANGER ZONE</p><h2 id="deleteAccountTitle">アカウントを削除</h2></div>
-          <button type="button" class="withlog-settings-close" onclick="closeDeleteAccountModal()" aria-label="アカウント削除画面を閉じる">×</button>
+          <button type="button" class="withlog-modal-close" onclick="closeDeleteAccountModal()" aria-label="アカウント削除画面を閉じる">×</button>
         </div>
         <form id="deleteAccountForm" class="withlog-delete-body">
           <div class="withlog-delete-warning">
@@ -1843,7 +1908,7 @@ html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;borde
             <p class="text-[9px] font-black tracking-[0.2em] text-slate-400 uppercase">Saved Memories</p>
             <h2 class="text-sm font-black text-slate-900 mt-0.5">♥ いいねした投稿</h2>
           </div>
-          <button type="button" onclick="closeLikedPostsModal()" class="withlog-liked-close text-slate-400 hover:text-slate-900 text-sm font-bold" aria-label="閉じる">✕</button>
+          <button type="button" onclick="closeLikedPostsModal()" class="withlog-modal-close" aria-label="いいねした投稿を閉じる">×</button>
         </div>
 
         <!-- この中だけをスクロールさせる -->
@@ -1860,7 +1925,7 @@ html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;borde
       <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-6 ">
         <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
           <h2 class="text-sm font-bold tracking-widest text-slate-900 uppercase">Edit Profile</h2>
-          <button onclick="closeEditProfileModal()" class="text-slate-400 hover:text-slate-900 text-xs font-medium">✕</button>
+          <button type="button" onclick="closeEditProfileModal()" class="withlog-modal-close" aria-label="プロフィール編集を閉じる">×</button>
         </div>
 
         <form id="editProfileForm" class="space-y-3">
@@ -1894,7 +1959,7 @@ html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;borde
       <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-5 ">
         <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
           <h2 id="userListModalTitle" class="text-xs font-bold tracking-widest text-slate-900 uppercase">Users</h2>
-          <button onclick="closeUserListModal()" class="text-slate-400 hover:text-slate-900 text-xs font-medium">✕</button>
+          <button type="button" onclick="closeUserListModal()" class="withlog-modal-close" aria-label="一覧を閉じる">×</button>
         </div>
         <div id="userListContent" class="max-h-72 overflow-y-auto divide-y divide-slate-100 text-xs"></div>
       </div>
@@ -1905,7 +1970,7 @@ html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;borde
       <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-5  max-h-[82vh] overflow-y-auto">
         <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
           <h2 class="text-xs font-bold tracking-widest text-slate-900 uppercase">通知</h2>
-          <button onclick="closeNotificationsModal()" class="text-slate-400 hover:text-slate-900 text-xs font-medium">✕</button>
+          <button type="button" onclick="closeNotificationsModal()" class="withlog-modal-close" aria-label="通知を閉じる">×</button>
         </div>
 
         <section class="mb-4">
@@ -1931,7 +1996,7 @@ html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;borde
       <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-5 ">
         <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
           <h2 class="text-xs font-bold tracking-widest text-slate-900 uppercase">Messages</h2>
-          <button onclick="closeConversationsModal()" class="text-slate-400 hover:text-slate-900 text-xs font-medium">✕</button>
+          <button type="button" onclick="closeConversationsModal()" class="withlog-modal-close" aria-label="メッセージ一覧を閉じる">×</button>
         </div>
         <div id="conversationsList" class="max-h-72 overflow-y-auto divide-y divide-slate-100 text-xs">
           <p class="text-center text-slate-400 py-6">メッセージのやり取りはありません</p>
@@ -1946,7 +2011,7 @@ html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;borde
           <div class="flex items-center gap-2">
             <span class="text-xs font-bold text-slate-900" id="dmPartnerTitle">Chat</span>
           </div>
-          <button onclick="closeDmModal()" class="text-slate-400 hover:text-slate-900 text-xs">✕</button>
+          <button type="button" onclick="closeDmModal()" class="withlog-modal-close withlog-modal-close-sm" aria-label="チャットを閉じる">×</button>
         </div>
 
         <div id="dmMessageList" class="flex-1 p-4 overflow-y-auto space-y-3 bg-white text-xs"></div>
