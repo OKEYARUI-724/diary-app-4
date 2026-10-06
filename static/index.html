@@ -678,6 +678,99 @@ html.withlog-dark .withlog-setting-title { color: #f5f2f6 !important; }
 html.withlog-dark .withlog-setting-desc { color: #a7a1ad !important; }
 html.withlog-dark .withlog-theme-switch { background: #50515a; }
 html.withlog-dark #darkModeToggle:checked + .withlog-theme-switch { background: #8a7dab; }
+
+/* Profile: liked posts */
+.withlog-liked-posts-row {
+  width: 100%; margin-top: 10px; border: 0; text-align: left; appearance: none;
+}
+.withlog-liked-posts-row:hover { transform: translateY(-1px); filter: brightness(.99); }
+.withlog-liked-posts-main { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.withlog-liked-posts-icon {
+  width: 38px; height: 38px; flex: 0 0 auto; display: grid; place-items: center;
+  border-radius: 15px; background: #eadfff; color: #df7897; font-size: 19px; line-height: 1;
+}
+.withlog-liked-posts-arrow {
+  flex: 0 0 auto; color: #9b91a3; font-size: 22px; font-weight: 800; line-height: 1;
+}
+/* いいねした投稿モーダル：ヘッダー固定、投稿一覧だけスクロール */
+.withlog-liked-modal-panel {
+  padding: 0 !important;
+}
+.withlog-liked-header {
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 20;
+  width: 100%;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #fffaf7;
+}
+.withlog-liked-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 16px 20px 20px;
+  background: #ffffff;
+}
+.withlog-liked-close {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 9999px;
+}
+html.withlog-dark #likedPostsModal .withlog-liked-header {
+  background: #2f3036 !important;
+  border-color: #4c4d56 !important;
+}
+html.withlog-dark #likedPostsModal .withlog-liked-scroll {
+  background: #2f3036 !important;
+}
+
+.withlog-liked-post-card {
+  overflow: hidden; border: 1px solid rgba(92,78,105,.12); border-radius: 24px;
+  background: #fffaf7;
+}
+.withlog-liked-post-head { display: flex; align-items: center; gap: 10px; padding: 12px 13px; }
+.withlog-liked-post-avatar {
+  width: 34px; height: 34px; flex: 0 0 auto; border-radius: 13px; background: #e9e2f2 center/cover no-repeat;
+  display: grid; place-items: center; color: #51485a; font-size: 11px; font-weight: 900;
+}
+.withlog-liked-post-media { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; background: #eee9f1; }
+.withlog-liked-post-body { padding: 13px; }
+.withlog-liked-post-title { color: #38313f; font-size: 13px; font-weight: 900; line-height: 1.45; }
+.withlog-liked-post-meta { color: #9a91a0; font-size: 9px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.withlog-liked-post-memo { margin-top: 7px; color: #716878; font-size: 11px; line-height: 1.7; }
+.withlog-liked-post-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 11px; }
+.withlog-liked-post-like {
+  display: inline-flex; align-items: center; gap: 7px; min-height: 38px; padding: 7px 12px;
+  border: 0; border-radius: 9999px; background: #f2eaff; color: #675385; font-size: 11px; font-weight: 900;
+}
+.withlog-liked-post-like .heart-icon { width: 19px; height: 19px; color: #df7897; fill: currentColor; }
+.withlog-liked-post-jump {
+  border: 0; background: transparent; color: #6d6080; font-size: 10px; font-weight: 900; letter-spacing: .02em;
+}
+.withlog-liked-empty {
+  padding: 30px 18px; border: 1px dashed #d8cfdf; border-radius: 22px; background: #faf7fc;
+  text-align: center; color: #9a91a0;
+}
+html.withlog-dark #likedPostsModal > div { background: #2f3036 !important; border-color: #4c4d56 !important; }
+html.withlog-dark #likedPostsModal .withlog-liked-post-card { background: #36373d !important; border-color: #4d4e56 !important; }
+html.withlog-dark #likedPostsModal .withlog-liked-post-title { color: #f5f2f6 !important; }
+html.withlog-dark #likedPostsModal .withlog-liked-post-memo { color: #c1bac7 !important; }
+html.withlog-dark #likedPostsModal .withlog-liked-post-meta { color: #9e98a5 !important; }
+html.withlog-dark #likedPostsModal .withlog-liked-post-avatar { background-color: #47434f !important; color: #f5f2f6 !important; }
+html.withlog-dark #likedPostsModal .withlog-liked-post-like { background: #493f5c !important; color: #f3eaff !important; }
+html.withlog-dark #likedPostsModal .withlog-liked-post-jump { color: #cfbfff !important; }
+html.withlog-dark #likedPostsModal .withlog-liked-empty { background: #36373d !important; border-color: #55565f !important; color: #aaa4b2 !important; }
+html.withlog-dark #likedPostsModal .text-slate-900 { color: #f5f2f6 !important; }
+html.withlog-dark #likedPostsModal .text-slate-400 { color: #aaa4b2 !important; }
+html.withlog-dark #likedPostsModal [class*="border-slate"] { border-color: #4c4d56 !important; }
+html.withlog-dark .withlog-liked-posts-icon { background: #4a4058 !important; color: #f09bb5 !important; }
+html.withlog-dark .withlog-liked-posts-arrow { color: #aaa4b2 !important; }
+
 html.withlog-dark *, html.withlog-dark *::before, html.withlog-dark *::after {
   box-shadow: none !important; text-shadow: none !important;
 }
@@ -1245,6 +1338,230 @@ html.withlog-dark .post-media-frame > video {
 }
 </style>
 
+
+<style id="withlog-private-account-style">
+.withlog-advanced-row { width:100%; margin-top:10px; border:0; text-align:left; }
+.withlog-advanced-icon { width:38px; height:38px; flex-shrink:0; display:grid; place-items:center; border-radius:16px; background:#e6def6; color:#796292; }
+.withlog-advanced-icon svg { width:21px; height:21px; }
+.withlog-settings-overlay { position:fixed; inset:0; z-index:70; background:rgba(15,23,42,.60); backdrop-filter:blur(5px); display:flex; align-items:center; justify-content:center; padding:16px; }
+.withlog-settings-overlay.hidden { display:none; }
+.withlog-settings-panel { display:flex; flex-direction:column; width:100%; max-width:420px; max-height:calc(100vh - 32px); max-height:calc(100dvh - 32px); overflow:hidden; border-radius:32px; background:#fffdfb; color:#38313f; }
+.withlog-settings-header { display:flex; flex:none; align-items:center; justify-content:space-between; gap:12px; padding:22px 24px 17px; border-bottom:1px solid #ede7f1; background:#fffdfb; }
+.withlog-settings-kicker { margin:0 0 4px; font-size:10px; letter-spacing:.18em; font-weight:800; color:#8d809b; }
+.withlog-settings-header h2 { margin:0; font-size:20px; font-weight:800; }
+.withlog-settings-close { display:grid; place-items:center; flex:none; width:38px; height:38px; border:0; border-radius:50%; background:#f3eef8; color:#867693; font-size:24px; }
+.withlog-settings-body { min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:22px 24px 24px; }
+.withlog-settings-section { font-size:11px; font-weight:800; letter-spacing:.12em; color:#8d809b; margin:0 0 12px; }
+.withlog-private-control { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:18px 16px; background:#f2eef8; border-radius:24px; cursor:pointer; }
+.withlog-private-copy { min-width:0; }
+.withlog-private-copy strong { display:block; font-size:14px; font-weight:800; }
+.withlog-private-copy > span { display:block; margin-top:6px; font-size:11px; line-height:1.65; color:#83798e; }
+.withlog-private-switch { display:block; width:48px; height:28px; padding:4px; flex:none; border-radius:99px; background:#d9d3e1; transition:background .18s; }
+.withlog-private-switch > span { display:block; width:20px; height:20px; border-radius:50%; background:white; transition:transform .18s; }
+#privateAccountToggle:checked + .withlog-private-switch { background:#8e73bf; }
+#privateAccountToggle:checked + .withlog-private-switch > span { transform:translateX(20px); }
+#privateAccountToggle:focus-visible + .withlog-private-switch { outline:3px solid #b5a0d4; outline-offset:4px; }
+#privateAccountToggle:disabled + .withlog-private-switch { opacity:.45; }
+.withlog-privacy-status { min-height:20px; font-size:11px; line-height:1.65; margin:10px 3px 12px; color:#716285; overflow-wrap:anywhere; }
+.withlog-privacy-status[data-error="true"] { color:#b34462; }
+.withlog-privacy-explanation { background:#f8f5fb; border-radius:20px; padding:16px; margin-bottom:16px; font-size:11px; color:#80738b; line-height:1.8; }
+.withlog-privacy-explanation strong { color:#61516f; font-size:12px; }
+.withlog-privacy-explanation p { margin:8px 0 0; }
+.withlog-settings-link { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; margin-top:10px; padding:14px 16px; border:0; border-radius:18px; background:#f2eef8; color:#6a557f; font-weight:700; font-size:12px; text-align:left; }
+.withlog-danger-zone { margin-top:24px; padding-top:20px; border-top:1px solid #eee6ec; }
+.withlog-delete-account-button { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:15px 16px; border:1px solid #f0cbd5; border-radius:18px; background:#fff3f6; color:#a74864; font-size:12px; font-weight:800; text-align:left; }
+.withlog-delete-account-button span:last-child { font-size:18px; line-height:1; }
+.withlog-delete-modal-panel { width:100%; max-width:420px; border-radius:30px; overflow:hidden; background:#fffdfb; color:#38313f; }
+.withlog-delete-body { padding:22px 24px 24px; }
+.withlog-delete-warning { padding:15px 16px; border-radius:18px; background:#fff2f5; color:#8f4a5e; font-size:11px; line-height:1.75; }
+.withlog-delete-warning strong { display:block; margin-bottom:5px; color:#9c3f59; font-size:12px; }
+.withlog-delete-list { margin:10px 0 0; padding-left:18px; }
+.withlog-delete-list li { margin-top:4px; }
+.withlog-delete-field { display:block; margin-top:16px; }
+.withlog-delete-field > span { display:block; margin:0 0 7px 2px; color:#75677f; font-size:10px; font-weight:800; letter-spacing:.08em; }
+.withlog-delete-input { width:100%; border:1px solid #dfd6e4 !important; border-radius:15px !important; background:#fff !important; padding:12px 13px !important; color:#3f3447 !important; font-size:12px; outline:none; }
+.withlog-delete-input:focus { border-color:#b88698 !important; }
+.withlog-delete-status { min-height:18px; margin:10px 2px 0; color:#a74864; font-size:11px; line-height:1.5; }
+.withlog-delete-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:18px; }
+.withlog-delete-cancel, .withlog-delete-confirm { min-height:44px; border:0; border-radius:16px; font-size:11px; font-weight:800; }
+.withlog-delete-cancel { background:#f1edf5; color:#6c5d78; }
+.withlog-delete-confirm { background:#b64967; color:#fff; }
+.withlog-delete-confirm:disabled { opacity:.5; cursor:not-allowed; }
+.withlog-privacy-retry { padding:8px 12px; border-radius:14px; background:#f2eef8; font-size:12px; margin:0 0 12px; }
+.withlog-profile-privacy { padding:13px 15px; background:#f4eff9; border-radius:18px; color:#716181; font-size:11px; line-height:1.8; }
+.withlog-follower-row { display:flex; align-items:center; gap:10px; padding:10px 0; }
+.withlog-follower-view { flex:1; min-width:0; text-align:left; border:0; border-radius:16px; background:transparent; padding:9px; }
+.withlog-follower-remove { flex:none; border:0; border-radius:99px; padding:9px 12px; font-size:11px; color:#9f5971; background:#f8eaf0; }
+#profileFeedBanner { margin-bottom:16px; }
+#notificationActionStatus { color:#81718e; font-size:11px; min-height:16px; padding-bottom:8px; }
+#profileModal > div { max-height:calc(100vh - 32px) !important; max-height:calc(100dvh - 32px) !important; overflow-y:auto !important; overscroll-behavior:contain; }
+html.withlog-dark .withlog-settings-panel, html.withlog-dark .withlog-settings-header { background:#2f3036; color:#f5f1f7; border-color:#48434f; }
+html.withlog-dark .withlog-settings-kicker, html.withlog-dark .withlog-settings-section { color:#b9acc8; }
+html.withlog-dark .withlog-settings-close, html.withlog-dark .withlog-private-control, html.withlog-dark .withlog-settings-link,
+html.withlog-dark .withlog-privacy-retry, html.withlog-dark .withlog-profile-privacy { background:#3b3646; color:#e1d4f0; }
+html.withlog-dark .withlog-private-copy > span, html.withlog-dark .withlog-privacy-status { color:#bcb1c8; }
+html.withlog-dark .withlog-privacy-status[data-error="true"] { color:#efa5bb; }
+html.withlog-dark .withlog-privacy-explanation { background:#36333e; color:#c2b6cf; }
+html.withlog-dark .withlog-privacy-explanation strong { color:#e2d3f0; }
+html.withlog-dark .withlog-advanced-icon { background:#4a3f5c; color:#d5bff2; }
+html.withlog-dark .withlog-follower-remove { background:#503c46; color:#efb7ca; }
+html.withlog-dark .withlog-danger-zone { border-color:#4d454e; }
+html.withlog-dark .withlog-delete-account-button { border-color:#694454; background:#4b343d; color:#f1b4c6; }
+html.withlog-dark .withlog-delete-modal-panel { background:#2f3036; color:#f5f1f7; }
+html.withlog-dark .withlog-delete-warning { background:#49343d; color:#e6b2c0; }
+html.withlog-dark .withlog-delete-warning strong { color:#f2bed0; }
+html.withlog-dark .withlog-delete-field > span { color:#c7b8ce; }
+html.withlog-dark .withlog-delete-input { background:#383940 !important; border-color:#55515d !important; color:#f5f1f7 !important; }
+html.withlog-dark .withlog-delete-cancel { background:#413b48; color:#ddd0e7; }
+html.withlog-dark .withlog-delete-confirm { background:#a94663; color:#fff; }
+@media (max-width:380px) { .withlog-settings-header { padding:19px; } .withlog-settings-body { padding:18px; } }
+</style>
+
+
+<style id="withlog-comments-style">
+.withlog-post-actions-left{display:inline-flex;align-items:center;gap:8px}
+.withlog-comment-toggle{min-height:46px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 14px;border:0;border-radius:9999px;background:#f4f0f8;color:#6c6078;font-size:11px;font-weight:900;line-height:1}
+.withlog-comment-toggle svg{width:20px;height:20px}.withlog-comment-count:empty{display:none}
+.withlog-comments-panel{margin-top:14px;padding-top:13px;border-top:1px solid #ece6ee}
+.withlog-comments-list{display:flex;flex-direction:column;gap:10px;max-height:280px;overflow-y:auto;padding-right:2px}
+.withlog-comment-empty{padding:17px 12px;border:1px dashed #ddd3e3;border-radius:16px;background:#fbf8fc;color:#9b919f;text-align:center;font-size:10px;line-height:1.6}
+.withlog-comment-item{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:9px;align-items:start}
+.withlog-comment-avatar{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:#eee7f3 center/cover no-repeat;color:#62556e;font-size:11px;font-weight:900}
+.withlog-comment-name{display:flex;align-items:baseline;gap:5px;min-width:0;color:#3d3542;font-size:10px;line-height:1.35}.withlog-comment-name strong{font-size:11px}.withlog-comment-name span{min-width:0;overflow:hidden;color:#a097a5;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;white-space:nowrap;text-overflow:ellipsis}
+.withlog-comment-text{margin-top:3px;color:#665d6a;font-size:11px;line-height:1.65;overflow-wrap:anywhere}.withlog-comment-time{margin-top:4px;color:#aaa1ae;font-size:8px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.withlog-comment-delete{padding:4px 6px;border:0;background:transparent;color:#b49aa4;font-size:9px;font-weight:800}
+.withlog-comment-form{display:flex;align-items:center;gap:8px;margin-top:12px}.withlog-comment-input{min-width:0;flex:1;height:40px;padding:0 13px;border:1px solid #e1d9e6!important;border-radius:9999px!important;background:#fbf8fc!important;color:#4f4654!important;font-size:11px!important;outline:none}.withlog-comment-input:focus{border-color:#b7a5c7!important}
+.withlog-comment-submit{height:40px;padding:0 14px;border:0;border-radius:9999px;background:linear-gradient(135deg,#b9a5ca,#c9a7b5);color:#fff;font-size:10px;font-weight:900}.withlog-comment-submit:disabled{opacity:.55;cursor:wait}.withlog-comment-status{min-height:14px;margin-top:6px;color:#9a8e9e;font-size:9px}
+html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;border:1px solid #55565f}html.withlog-dark .withlog-comments-panel{border-top-color:#4c4d56}html.withlog-dark .withlog-comment-empty{background:#34353b;border-color:#55565f;color:#aaa4b2}html.withlog-dark .withlog-comment-avatar{background-color:#4a4551;color:#f1edf3}html.withlog-dark .withlog-comment-name{color:#f4f0f5}html.withlog-dark .withlog-comment-name span{color:#9d96a3}html.withlog-dark .withlog-comment-text{color:#c9c2cd}html.withlog-dark .withlog-comment-time{color:#8f8994}html.withlog-dark .withlog-comment-delete{color:#d3a9b8}html.withlog-dark .withlog-comment-input{background:#34353b!important;border-color:#55565f!important;color:#f3eef5!important}html.withlog-dark .withlog-comment-status{color:#aaa4b2}
+@media(max-width:420px){.withlog-comment-toggle{padding:10px 11px}.withlog-comment-toggle .withlog-comment-label{display:none}}
+</style>
+
+
+<style id="withlog-unified-close-button-style">
+/* All modal close controls use the same perfectly round WITHLOG button. */
+.withlog-modal-close {
+  width: 46px !important;
+  height: 46px !important;
+  min-width: 46px !important;
+  min-height: 46px !important;
+  max-width: 46px !important;
+  max-height: 46px !important;
+  flex: 0 0 46px !important;
+  aspect-ratio: 1 / 1 !important;
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: #f3effa !important;
+  color: #81769a !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 27px !important;
+  font-weight: 400 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  text-indent: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: background .16s ease, color .16s ease, transform .16s ease;
+}
+.withlog-modal-close:hover {
+  background: #ebe5f5 !important;
+  color: #625873 !important;
+}
+.withlog-modal-close:active { transform: scale(.94); }
+.withlog-modal-close:focus-visible {
+  outline: 2px solid #9483b7 !important;
+  outline-offset: 3px !important;
+}
+/* The DM header is slightly shorter, while keeping a true circle. */
+.withlog-modal-close-sm {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  min-height: 38px !important;
+  max-width: 38px !important;
+  max-height: 38px !important;
+  flex-basis: 38px !important;
+  font-size: 23px !important;
+}
+html.withlog-dark .withlog-modal-close {
+  background: #45414f !important;
+  color: #d9d1e5 !important;
+}
+html.withlog-dark .withlog-modal-close:hover {
+  background: #504a5d !important;
+  color: #fff !important;
+}
+</style>
+
+
+<style id="withlog-notification-profile-links-style">
+.withlog-notification-user {
+  display: inline;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #65558b !important;
+  font: inherit;
+  font-weight: 900 !important;
+  line-height: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.withlog-notification-user:hover { color: #46366e !important; }
+.withlog-notification-user:focus-visible {
+  outline: 2px solid #9b8bc3 !important;
+  outline-offset: 2px !important;
+  border-radius: 4px !important;
+}
+.withlog-notification-message { line-height: 1.55; }
+html.withlog-dark .withlog-notification-user { color: #d7c8ff !important; }
+html.withlog-dark .withlog-notification-user:hover { color: #f0eaff !important; }
+</style>
+
+
+<style id="withlog-post-media-border-style">
+/* Give post photos/videos a small inset frame so they do not touch adjacent sections. */
+.tl-post-card .post-media-frame {
+  width: calc(100% - 12px) !important;
+  margin: 6px !important;
+  border: 1px solid rgba(105, 88, 118, .13) !important;
+  border-radius: 20px !important;
+  background: #f7f2f6 !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+.tl-post-card .post-media-frame > img,
+.tl-post-card .post-media-frame > video {
+  width: 100% !important;
+  border-radius: 18px !important;
+}
+html.withlog-dark .tl-post-card .post-media-frame {
+  border-color: rgba(216, 207, 226, .14) !important;
+  background: #292a30 !important;
+}
+@media (max-width: 560px) {
+  .tl-post-card .post-media-frame {
+    width: calc(100% - 10px) !important;
+    margin: 5px !important;
+    border-radius: 18px !important;
+  }
+  .tl-post-card .post-media-frame > img,
+  .tl-post-card .post-media-frame > video {
+    border-radius: 16px !important;
+  }
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -1382,6 +1699,7 @@ html.withlog-dark .post-media-frame > video {
         </button>
       </div>
 
+      <div id="profileFeedBanner" class="withlog-profile-privacy hidden"></div>
       <div id="feed" class="space-y-7">
         <p class="text-center text-xs text-slate-400 py-12 tracking-widest uppercase font-medium">Loading...</p>
       </div>
@@ -1392,7 +1710,7 @@ html.withlog-dark .post-media-frame > video {
       <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-5 ">
         <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
           <h2 class="text-xs font-bold tracking-widest text-slate-900 uppercase">Search Users</h2>
-          <button onclick="closeUserSearchModal()" class="text-slate-400 hover:text-slate-900 text-xs font-medium">✕</button>
+          <button type="button" onclick="closeUserSearchModal()" class="withlog-modal-close" aria-label="検索画面を閉じる">×</button>
         </div>
 
         <div class="space-y-3">
@@ -1415,7 +1733,7 @@ html.withlog-dark .post-media-frame > video {
             <h2 class="text-sm font-bold tracking-widest text-slate-900 uppercase">New Moment</h2>
             <p class="text-[10px] text-slate-400 font-medium tracking-wider">今日を記録する</p>
           </div>
-          <button id="cancelModalBtn" class="text-slate-400 hover:text-slate-900 text-xs px-2 py-1 font-medium transition">✕ キャンセル</button>
+          <button type="button" id="cancelModalBtn" class="withlog-modal-close" aria-label="投稿画面を閉じる">×</button>
         </div>
 
         <form id="postForm" class="space-y-4">
@@ -1476,7 +1794,7 @@ html.withlog-dark .post-media-frame > video {
             <span class="w-2 h-2 bg-slate-900"></span>
             <span class="text-[10px] font-mono tracking-[0.2em] uppercase font-bold text-slate-900">WITHLOG Profile</span>
           </div>
-          <button onclick="closeProfileModal()" class="text-slate-400 hover:text-slate-900 text-xs font-bold">✕</button>
+          <button type="button" onclick="closeProfileModal()" class="withlog-modal-close" aria-label="プロフィールを閉じる">×</button>
         </div>
 
         <!-- 独自性のあるオフセット・カードレイアウト -->
@@ -1519,6 +1837,10 @@ html.withlog-dark .post-media-frame > video {
             </button>
           </div>
 
+
+          <div id="profilePrivacyNotice" class="withlog-profile-privacy hidden" role="status"></div>
+          <button id="viewProfilePostsButton" type="button" class="withlog-settings-link" onclick="viewCurrentProfilePosts()">投稿を見る <span aria-hidden="true">›</span></button>
+
           <!-- 自分のプロフィールだけに表示する設定 -->
           <section id="profileSettingsSection" class="hidden pt-2">
             <div class="flex items-center gap-2 mb-2 px-1">
@@ -1533,7 +1855,128 @@ html.withlog-dark .post-media-frame > video {
               <input id="darkModeToggle" type="checkbox" class="sr-only" aria-label="ダークモード">
               <span class="withlog-theme-switch" aria-hidden="true"><span></span></span>
             </label>
+
+            <button type="button" onclick="openLikedPostsModal()" class="withlog-setting-row withlog-liked-posts-row">
+              <span class="withlog-liked-posts-main">
+                <span class="withlog-liked-posts-icon" aria-hidden="true">♥</span>
+                <span class="min-w-0">
+                  <span class="withlog-setting-title">いいねした投稿</span>
+                  <span class="withlog-setting-desc">ハートをつけた投稿をあとから見返せます</span>
+                </span>
+              </span>
+              <span class="withlog-liked-posts-arrow" aria-hidden="true">›</span>
+            </button>
+          
+            <button id="advancedSettingsButton" type="button" onclick="openAdvancedSettingsModal()" class="withlog-setting-row withlog-advanced-row">
+              <span class="withlog-liked-posts-main">
+                <span class="withlog-advanced-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m9 3-.7 2.4-2 .9L4 5.7 2 9l1.8 1.8v2.4L2 15l2 3.3 2.3-.6 2 .9L9 21h6l.7-2.4 2-.9 2.3.6 2-3.3-1.8-1.8v-2.4L22 9l-2-3.3-2.3.6-2-.9L15 3Z"/><circle cx="12" cy="12" r="3"/></svg>
+                </span>
+                <span class="min-w-0">
+                  <span class="withlog-setting-title">詳細設定</span>
+                  <span class="withlog-setting-desc">公開範囲・フォロー申請を管理します</span>
+                </span>
+              </span>
+              <span class="withlog-liked-posts-arrow" aria-hidden="true">›</span>
+            </button>
           </section>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Privacy settings; header stays outside the scrolling body. -->
+    <div id="advancedSettingsModal" class="withlog-settings-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="advancedSettingsTitle" tabindex="-1">
+      <div class="withlog-settings-panel">
+        <div class="withlog-settings-header">
+          <div><p class="withlog-settings-kicker">ACCOUNT SETTINGS</p><h2 id="advancedSettingsTitle">詳細設定</h2></div>
+          <button type="button" class="withlog-modal-close" onclick="closeAdvancedSettingsModal()" aria-label="詳細設定を閉じる">×</button>
+        </div>
+        <div class="withlog-settings-body">
+          <p class="withlog-settings-section">プライバシー</p>
+          <label class="withlog-private-control">
+            <span class="withlog-private-copy">
+              <strong>非公開アカウント</strong>
+              <span>承認したフォロワーだけに<br>投稿を公開します</span>
+            </span>
+            <input id="privateAccountToggle" type="checkbox" role="switch" class="sr-only" aria-label="非公開アカウント" aria-describedby="privateAccountHelp" disabled>
+            <span class="withlog-private-switch" aria-hidden="true"><span></span></span>
+          </label>
+          <p id="privacySaveStatus" class="withlog-privacy-status" role="status" aria-live="polite">設定を読み込んでいます...</p>
+          <button id="privacyRetryButton" type="button" class="withlog-privacy-retry hidden" onclick="loadPrivacySettings()">もう一度読み込む</button>
+          <div id="privateAccountHelp" class="withlog-privacy-explanation">
+            <strong>非公開にすると</strong>
+            <p>フォロー申請が通知に届きます。「承認」を押すまで、その人はあなたの投稿・写真・動画を見ることができません。</p>
+            <p>すでにフォローしている人は引き続き閲覧できます。見せたくない人は「フォロワーを管理」から外せます。</p>
+            <p>表示名・ユーザーID・アイコン・自己紹介・カバー画像は、非公開でも表示されます。</p>
+          </div>
+          <button type="button" class="withlog-settings-link" onclick="openRequestsFromSettings()"><span>フォロー申請を確認</span><span aria-hidden="true">›</span></button>
+          <button type="button" class="withlog-settings-link" onclick="manageMyFollowers()"><span>フォロワーを管理</span><span aria-hidden="true">›</span></button>
+
+          <div class="withlog-danger-zone">
+            <p class="withlog-settings-section">アカウント</p>
+            <button type="button" class="withlog-delete-account-button" onclick="openDeleteAccountModal()">
+              <span>アカウントを削除</span><span aria-hidden="true">›</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- アカウント削除確認モーダル -->
+    <div id="deleteAccountModal" class="withlog-settings-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="deleteAccountTitle" tabindex="-1">
+      <div class="withlog-delete-modal-panel">
+        <div class="withlog-settings-header">
+          <div><p class="withlog-settings-kicker">DANGER ZONE</p><h2 id="deleteAccountTitle">アカウントを削除</h2></div>
+          <button type="button" class="withlog-modal-close" onclick="closeDeleteAccountModal()" aria-label="アカウント削除画面を閉じる">×</button>
+        </div>
+        <form id="deleteAccountForm" class="withlog-delete-body">
+          <div class="withlog-delete-warning">
+            <strong>この操作は取り消せません</strong>
+            <span>アカウントを削除すると、登録した情報は完全に削除されます。</span>
+            <ul class="withlog-delete-list">
+              <li>プロフィール・メールアドレス・ログイン情報</li>
+              <li>投稿・写真・動画</li>
+              <li>コメント・いいね</li>
+              <li>フォロー・フォロー申請</li>
+              <li>通知・DM</li>
+            </ul>
+          </div>
+
+          <label class="withlog-delete-field">
+            <span>確認のためユーザーIDを入力</span>
+            <input id="deleteAccountUsername" class="withlog-delete-input" type="text" autocomplete="off" spellcheck="false" required>
+          </label>
+          <label class="withlog-delete-field">
+            <span>現在のパスワード</span>
+            <input id="deleteAccountPassword" class="withlog-delete-input" type="password" autocomplete="current-password" required>
+          </label>
+          <p id="deleteAccountStatus" class="withlog-delete-status" role="status" aria-live="polite"></p>
+          <div class="withlog-delete-actions">
+            <button type="button" class="withlog-delete-cancel" onclick="closeDeleteAccountModal()">キャンセル</button>
+            <button id="deleteAccountConfirmButton" type="submit" class="withlog-delete-confirm">完全に削除する</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- いいねした投稿モーダル -->
+    <div id="likedPostsModal" class="fixed inset-0 z-[60] bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+      <div class="withlog-liked-modal-panel bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl max-h-[88vh] overflow-hidden flex flex-col">
+        <!-- ヘッダーはスクロール領域の外に置き、投稿が上側へはみ出さないようにする -->
+        <div class="withlog-liked-header flex items-center justify-between">
+          <div>
+            <p class="text-[9px] font-black tracking-[0.2em] text-slate-400 uppercase">Saved Memories</p>
+            <h2 class="text-sm font-black text-slate-900 mt-0.5">♥ いいねした投稿</h2>
+          </div>
+          <button type="button" onclick="closeLikedPostsModal()" class="withlog-modal-close" aria-label="いいねした投稿を閉じる">×</button>
+        </div>
+
+        <!-- この中だけをスクロールさせる -->
+        <div id="likedPostsScroll" class="withlog-liked-scroll">
+          <div id="likedPostsContent" class="space-y-3">
+            <div class="withlog-liked-empty">読み込み中...</div>
+          </div>
         </div>
       </div>
     </div>
@@ -1543,7 +1986,7 @@ html.withlog-dark .post-media-frame > video {
       <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-6 ">
         <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
           <h2 class="text-sm font-bold tracking-widest text-slate-900 uppercase">Edit Profile</h2>
-          <button onclick="closeEditProfileModal()" class="text-slate-400 hover:text-slate-900 text-xs font-medium">✕</button>
+          <button type="button" onclick="closeEditProfileModal()" class="withlog-modal-close" aria-label="プロフィール編集を閉じる">×</button>
         </div>
 
         <form id="editProfileForm" class="space-y-3">
@@ -1555,13 +1998,9 @@ html.withlog-dark .post-media-frame > video {
             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Bio (自己紹介)</label>
             <textarea id="editBio" name="bio" rows="2" class="w-full rounded-xl p-2 text-xs navy-input"></textarea>
           </div>
-          <label class="flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50">
-            <span>
-              <span class="block text-[10px] font-bold text-slate-700">非公開アカウント</span>
-              <span class="block text-[9px] text-slate-400 mt-0.5">ONの場合はフォロー申請の承認が必要です</span>
-            </span>
-            <input id="editIsPrivate" type="checkbox" class="w-4 h-4 accent-slate-900">
-          </label>
+
+          <button type="button" class="withlog-settings-link" onclick="closeEditProfileModal(); openAdvancedSettingsModal();">公開範囲は「詳細設定」で変更 <span aria-hidden="true">›</span></button>
+
           <div>
             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Avatar Image (アイコン)</label>
             <input type="file" name="avatar" accept="image/*" class="w-full text-xs text-slate-600">
@@ -1581,7 +2020,7 @@ html.withlog-dark .post-media-frame > video {
       <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-5 ">
         <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
           <h2 id="userListModalTitle" class="text-xs font-bold tracking-widest text-slate-900 uppercase">Users</h2>
-          <button onclick="closeUserListModal()" class="text-slate-400 hover:text-slate-900 text-xs font-medium">✕</button>
+          <button type="button" onclick="closeUserListModal()" class="withlog-modal-close" aria-label="一覧を閉じる">×</button>
         </div>
         <div id="userListContent" class="max-h-72 overflow-y-auto divide-y divide-slate-100 text-xs"></div>
       </div>
@@ -1591,22 +2030,23 @@ html.withlog-dark .post-media-frame > video {
     <div id="notificationsModal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
       <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-5  max-h-[82vh] overflow-y-auto">
         <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
-          <h2 class="text-xs font-bold tracking-widest text-slate-900 uppercase">Notifications</h2>
-          <button onclick="closeNotificationsModal()" class="text-slate-400 hover:text-slate-900 text-xs font-medium">✕</button>
+          <h2 class="text-xs font-bold tracking-widest text-slate-900 uppercase">通知</h2>
+          <button type="button" onclick="closeNotificationsModal()" class="withlog-modal-close" aria-label="通知を閉じる">×</button>
         </div>
 
         <section class="mb-4">
-          <div class="text-[10px] font-black tracking-widest text-slate-500 uppercase mb-2">Follow Requests</div>
+          <div class="text-[10px] font-black tracking-widest text-slate-500 uppercase mb-2">フォロー申請</div>
+          <p id="notificationActionStatus" role="status" aria-live="polite"></p>
           <div id="incomingRequestsList" class="space-y-2 text-xs"></div>
         </section>
 
         <section class="mb-4">
-          <div class="text-[10px] font-black tracking-widest text-slate-500 uppercase mb-2">Pending</div>
+          <div class="text-[10px] font-black tracking-widest text-slate-500 uppercase mb-2">送信した申請</div>
           <div id="outgoingRequestsList" class="space-y-2 text-xs"></div>
         </section>
 
         <section>
-          <div class="text-[10px] font-black tracking-widest text-slate-500 uppercase mb-2">Recent</div>
+          <div class="text-[10px] font-black tracking-widest text-slate-500 uppercase mb-2">お知らせ</div>
           <div id="notificationsList" class="divide-y divide-slate-100 text-xs"></div>
         </section>
       </div>
@@ -1617,7 +2057,7 @@ html.withlog-dark .post-media-frame > video {
       <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-5 ">
         <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
           <h2 class="text-xs font-bold tracking-widest text-slate-900 uppercase">Messages</h2>
-          <button onclick="closeConversationsModal()" class="text-slate-400 hover:text-slate-900 text-xs font-medium">✕</button>
+          <button type="button" onclick="closeConversationsModal()" class="withlog-modal-close" aria-label="メッセージ一覧を閉じる">×</button>
         </div>
         <div id="conversationsList" class="max-h-72 overflow-y-auto divide-y divide-slate-100 text-xs">
           <p class="text-center text-slate-400 py-6">メッセージのやり取りはありません</p>
@@ -1632,7 +2072,7 @@ html.withlog-dark .post-media-frame > video {
           <div class="flex items-center gap-2">
             <span class="text-xs font-bold text-slate-900" id="dmPartnerTitle">Chat</span>
           </div>
-          <button onclick="closeDmModal()" class="text-slate-400 hover:text-slate-900 text-xs">✕</button>
+          <button type="button" onclick="closeDmModal()" class="withlog-modal-close withlog-modal-close-sm" aria-label="チャットを閉じる">×</button>
         </div>
 
         <div id="dmMessageList" class="flex-1 p-4 overflow-y-auto space-y-3 bg-white text-xs"></div>
@@ -1668,6 +2108,13 @@ html.withlog-dark .post-media-frame > video {
     };
 
     let currentFeedTab = 'all';
+    let currentFeedUsername = '';
+    let feedRequestSerial = 0;
+    let savedPrivacy = null;
+    let privacySaving = false;
+    let privacyRequestSerial = 0;
+    const pendingFollowActions = new Set();
+
     let currentUser = null;
     let activeDmPartner = null;
     let currentProfileUsername = null;
@@ -1751,7 +2198,18 @@ html.withlog-dark .post-media-frame > video {
       }
     }
 
-    window.logout = function() {
+    function clearSignedInState() {
+      ++feedRequestSerial;
+      ++privacyRequestSerial;
+      savedPrivacy = null;
+      document.querySelectorAll('[id$="Modal"]').forEach(el => el.classList.add('hidden'));
+      document.getElementById('feed').replaceChildren();
+      document.getElementById('likedPostsContent').replaceChildren();
+      document.getElementById('storiesBar').replaceChildren();
+      document.getElementById('notificationsList').replaceChildren();
+      currentFeedUsername = '';
+      currentFeedTab = 'all';
+      document.getElementById('profileFeedBanner').classList.add('hidden');
       removeToken();
       currentUser = null;
       if (dmSocket) {
@@ -1764,6 +2222,17 @@ html.withlog-dark .post-media-frame > video {
       }
       renderAuthUI(null);
       updateViewState(false);
+    }
+
+    window.logout = async function() {
+      try {
+        const res = await fetch('/auth/logout', {method:'POST', credentials:'same-origin', cache:'no-store'});
+        if (!res.ok) throw new Error('logout');
+      } catch (_) {
+        window.alert('ログアウトできませんでした。通信を確認してもう一度お試しください。');
+        return;
+      }
+      clearSignedInState();
     };
 
     // --- ゲート画面の認証制御（ログイン / 新規登録） ---
@@ -1889,13 +2358,11 @@ html.withlog-dark .post-media-frame > video {
     }
 
     async function resolveLoggedInUser(accessToken, fallbackUser = null) {
-      if (fallbackUser && fallbackUser.username) return fallbackUser;
-
       const meResponse = await fetch('/auth/me', {
         headers: { 'Authorization': `Bearer ${accessToken}` }
       });
 
-      if (!meResponse.ok) return fallbackUser;
+      if (!meResponse.ok) throw new Error('ログイン状態を確認できませんでした。');
 
       return await readResponseBody(meResponse);
     }
@@ -2105,7 +2572,7 @@ html.withlog-dark .post-media-frame > video {
               ${!u.avatar_url ? (u.display_name || u.username).charAt(0).toUpperCase() : ''}
             </div>
             <div>
-              <p class="font-bold text-slate-900 leading-none">${u.display_name || u.username}</p>
+              <p class="font-bold text-slate-900 leading-none">${escapeHtml(u.display_name || u.username)}</p>
               <p class="text-[10px] text-slate-400 font-mono mt-0.5">@${u.username}</p>
             </div>
           </div>
@@ -2133,6 +2600,7 @@ html.withlog-dark .post-media-frame > video {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const users = res.ok ? await res.json() : [];
+        if (token !== getToken()) return;
         if (!Array.isArray(users) || users.length === 0) {
           section.classList.add('hidden');
           bar.innerHTML = '';
@@ -2157,7 +2625,12 @@ html.withlog-dark .post-media-frame > video {
     function startNotificationPolling() {
       if (notificationTimer) clearInterval(notificationTimer);
       refreshNotificationBadge();
-      notificationTimer = setInterval(refreshNotificationBadge, 30000);
+      notificationTimer = setInterval(async () => {
+        if (document.hidden || !getToken()) return;
+        await refreshNotificationBadge();
+        const modal = document.getElementById('notificationsModal');
+        if (modal && !modal.classList.contains('hidden')) await openNotificationsModal({quiet:true});
+      }, 20000);
     }
 
     async function refreshNotificationBadge() {
@@ -2178,7 +2651,7 @@ html.withlog-dark .post-media-frame > video {
       } catch (_) {}
     }
 
-    window.openNotificationsModal = async function() {
+    window.openNotificationsModal = async function({quiet = false} = {}) {
       const token = getToken();
       if (!token) return;
 
@@ -2186,9 +2659,11 @@ html.withlog-dark .post-media-frame > video {
       const incomingEl = document.getElementById('incomingRequestsList');
       const outgoingEl = document.getElementById('outgoingRequestsList');
       const notifEl = document.getElementById('notificationsList');
+      if (!quiet) {
       incomingEl.innerHTML = '<p class="text-slate-400 py-2">読み込み中...</p>';
       outgoingEl.innerHTML = '<p class="text-slate-400 py-2">読み込み中...</p>';
       notifEl.innerHTML = '<p class="text-slate-400 py-2">読み込み中...</p>';
+      }
 
       try {
         const headers = { 'Authorization': `Bearer ${token}` };
@@ -2198,33 +2673,56 @@ html.withlog-dark .post-media-frame > video {
           fetch('/notifications', { headers })
         ]);
 
-        const incoming = incomingRes.ok ? await incomingRes.json() : [];
-        const outgoing = outgoingRes.ok ? await outgoingRes.json() : [];
-        const notifications = notifRes.ok ? await notifRes.json() : [];
+        if (token !== getToken()) return;
+        if (!incomingRes.ok || !outgoingRes.ok || !notifRes.ok) throw new Error('通知の取得に失敗しました');
+        const incoming = await incomingRes.json();
+        const outgoing = await outgoingRes.json();
+        const notifications = await notifRes.json();
 
         incomingEl.innerHTML = incoming.length ? incoming.map(u => `
-          <div class="p-2.5 rounded-xl border border-slate-200 bg-slate-50">
-            <div class="font-bold text-slate-800">${escapeHtml(u.display_name || u.username)} <span class="font-normal text-slate-400">@${escapeHtml(u.username)}</span></div>
+          <div data-follow-request="${escapeHtml(u.username)}" class="p-2.5 rounded-xl border border-slate-200 bg-slate-50">
+            <div class="font-bold text-slate-800">
+              <button type="button" class="withlog-notification-user" data-notification-user="${escapeHtml(u.username)}">${escapeHtml(u.display_name || u.username)} <span class="font-normal">@${escapeHtml(u.username)}</span></button>
+            </div>
             <div class="flex gap-2 mt-2">
-              <button onclick="decideFollow('${escapeHtml(u.username)}','accept')" class="navy-btn text-[10px] px-3 py-1.5 rounded-full font-bold">承認</button>
-              <button onclick="decideFollow('${escapeHtml(u.username)}','decline')" class="navy-btn-outline text-[10px] px-3 py-1.5 rounded-full font-bold">拒否</button>
+              <button onclick="decideFollow('${escapeHtml(u.username)}','accept',this)" class="navy-btn text-[10px] px-3 py-1.5 rounded-full font-bold">承認</button>
+              <button onclick="decideFollow('${escapeHtml(u.username)}','decline',this)" class="navy-btn-outline text-[10px] px-3 py-1.5 rounded-full font-bold">拒否</button>
             </div>
           </div>
         `).join('') : '<p class="text-slate-400 py-2">承認待ちの申請はありません</p>';
 
         outgoingEl.innerHTML = outgoing.length ? outgoing.map(u => `
           <div class="p-2.5 rounded-xl border border-slate-200 bg-white">
-            <span class="font-bold text-slate-700">${escapeHtml(u.display_name || u.username)}</span>
-            <span class="text-slate-400"> @${escapeHtml(u.username)} · 承認待ち</span>
+            <button type="button" class="withlog-notification-user" data-notification-user="${escapeHtml(u.username)}">${escapeHtml(u.display_name || u.username)} @${escapeHtml(u.username)}</button>
+            <span class="text-slate-400"> · 承認待ち</span>
           </div>
         `).join('') : '<p class="text-slate-400 py-2">送信中の申請はありません</p>';
 
-        notifEl.innerHTML = notifications.length ? notifications.map(n => `
-          <div class="py-3 ${n.is_read ? 'opacity-70' : ''}">
-            <div class="font-semibold text-slate-700">${escapeHtml(n.message)}</div>
-            <div class="text-[9px] text-slate-400 mt-1">${n.created_at ? new Date(n.created_at).toLocaleString() : ''}</div>
-          </div>
-        `).join('') : '<p class="text-slate-400 py-2">通知はありません</p>';
+        notifEl.innerHTML = notifications.length ? notifications.map(n => {
+          const username = String(n.sender_username || '').trim();
+          const message = String(n.message || '');
+          const marker = username ? `@${username}` : '';
+          const markerIndex = marker ? message.indexOf(marker) : -1;
+          const before = markerIndex >= 0 ? message.slice(0, markerIndex) : '';
+          const after = markerIndex >= 0 ? message.slice(markerIndex + marker.length) : message;
+          const userButton = username && username !== 'someone'
+            ? `<button type="button" class="withlog-notification-user" data-notification-user="${escapeHtml(username)}">@${escapeHtml(username)}</button>`
+            : '';
+          return `
+            <div class="py-3 ${n.is_read ? 'opacity-70' : ''}">
+              <div class="withlog-notification-message font-semibold text-slate-700">${escapeHtml(before)}${userButton}${escapeHtml(after)}</div>
+              <div class="text-[9px] text-slate-400 mt-1">${n.created_at ? new Date(n.created_at).toLocaleString() : ''}</div>
+            </div>`;
+        }).join('') : '<p class="text-slate-400 py-2">通知はありません</p>';
+
+        document.querySelectorAll('#notificationsModal [data-notification-user]').forEach(button => {
+          button.addEventListener('click', () => {
+            const username = button.dataset.notificationUser;
+            if (!username) return;
+            closeNotificationsModal();
+            openProfile(username);
+          });
+        });
 
         await fetch('/notifications/read', { method: 'POST', headers });
         refreshNotificationBadge();
@@ -2238,50 +2736,81 @@ html.withlog-dark .post-media-frame > video {
       document.getElementById('notificationsModal').classList.add('hidden');
     };
 
-    window.decideFollow = async function(username, action) {
-      const token = getToken();
-      const res = await fetch('/friends/decision', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ target_username: username, action })
-      });
-      if (res.ok) {
-        await openNotificationsModal();
+    window.decideFollow = async function(username, action, button) {
+      if (pendingFollowActions.has(username)) return;
+      pendingFollowActions.add(username);
+      const buttons = button?.closest('[data-follow-request]')?.querySelectorAll('button') || [];
+      buttons.forEach(el => el.disabled = true);
+      const statusEl = document.getElementById('notificationActionStatus');
+      statusEl.textContent = '処理しています...';
+      try {
+        await privacyApi('/friends/decision', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({target_username:username, action}),
+        });
+        statusEl.textContent = action === 'accept' ? '承認しました。このユーザーはあなたの投稿を閲覧できます。' : '申請を拒否しました。';
+        await openNotificationsModal({quiet:true});
         await loadStories();
+        await refreshNotificationBadge();
+      } catch (error) {
+        statusEl.textContent = error.message;
+        buttons.forEach(el => el.disabled = false);
+      } finally {
+        pendingFollowActions.delete(username);
       }
     };
 
     window.openUserListModal = async function(type) {
-      if (!currentProfileUsername) return;
+      if (!currentProfileUsername || !['followers','following'].includes(type)) return;
+      const name = currentProfileUsername;
       const modal = document.getElementById('userListModal');
-      const titleEl = document.getElementById('userListModalTitle');
-      const contentEl = document.getElementById('userListContent');
-
-      titleEl.innerText = type === 'following' ? 'FOLLOWING' : 'FOLLOWERS';
-      contentEl.innerHTML = '<p class="text-center text-slate-400 py-6">読み込み中...</p>';
+      const title = document.getElementById('userListModalTitle');
+      const content = document.getElementById('userListContent');
+      title.textContent = type === 'followers' ? 'フォロワー' : 'フォロー中';
+      content.innerHTML = '<p class="text-center text-slate-400 py-6">読み込み中...</p>';
       modal.classList.remove('hidden');
-
       try {
-        const res = await fetch(`/api/users/${encodeURIComponent(currentProfileUsername)}/${type}`);
-        const users = res.ok ? await res.json() : [];
-        if (!Array.isArray(users) || users.length === 0) {
-          contentEl.innerHTML = '<p class="text-center text-slate-400 py-6">ユーザーはいません</p>';
+        const users = await privacyApi(`/api/users/${encodeURIComponent(name)}/${type}`);
+        content.replaceChildren();
+        if (!users.length) {
+          content.innerHTML = '<p class="text-center text-slate-400 py-6">ユーザーはいません</p>';
           return;
         }
-        contentEl.innerHTML = users.map(u => `
-          <button type="button" class="w-full p-3 flex items-center justify-between text-left hover:bg-slate-50 transition" onclick="closeUserListModal(); closeProfileModal(); openProfile('${escapeHtml(u.username)}');">
-            <span>
-              <span class="font-bold text-slate-900">${escapeHtml(u.display_name || u.username)}</span>
-              <span class="text-slate-400 font-normal"> @${escapeHtml(u.username)}</span>
-            </span>
-            <span class="text-[10px] text-slate-800 font-bold">VIEW ↗</span>
-          </button>
-        `).join('');
-      } catch (_) {
-        contentEl.innerHTML = '<p class="text-center text-slate-400 py-6">取得に失敗しました</p>';
+        const canRemove = type === 'followers' && currentUser?.username === name;
+        users.forEach(user => {
+          const row = document.createElement('div');
+          row.className = 'withlog-follower-row';
+          const view = document.createElement('button');
+          view.type = 'button';
+          view.className = 'withlog-follower-view';
+          view.textContent = `${user.display_name || user.username}  @${user.username}`;
+          view.addEventListener('click', () => {
+            closeUserListModal(); closeProfileModal(); openProfile(user.username);
+          });
+          row.appendChild(view);
+          if (canRemove) {
+            const remove = document.createElement('button');
+            remove.type = 'button';
+            remove.className = 'withlog-follower-remove';
+            remove.textContent = '削除';
+            remove.setAttribute('aria-label', `${user.username} をフォロワーから削除`);
+            remove.addEventListener('click', async () => {
+              if (!window.confirm(`@${user.username} をフォロワーから外しますか？\n非公開の投稿は見られなくなり、再度のフォローには承認が必要になります。`)) return;
+              remove.disabled = true;
+              try {
+                await privacyApi(`/users/me/followers/${encodeURIComponent(user.username)}`, {method:'DELETE'});
+                await openUserListModal('followers');
+                if (!document.getElementById('profileModal').classList.contains('hidden')) await openProfile(name);
+              } catch (error) {
+                window.alert(error.message); remove.disabled = false;
+              }
+            });
+            row.appendChild(remove);
+          }
+          content.appendChild(row);
+        });
+      } catch (error) {
+        content.textContent = error.message;
       }
     };
 
@@ -2308,7 +2837,7 @@ html.withlog-dark .post-media-frame > video {
                   ${!u.avatar_url ? (u.display_name || u.username).charAt(0).toUpperCase() : ''}
                 </div>
                 <div>
-                  <p class="font-bold text-slate-900 leading-none">${u.display_name || u.username}</p>
+                  <p class="font-bold text-slate-900 leading-none">${escapeHtml(u.display_name || u.username)}</p>
                   <p class="text-[10px] text-slate-400 font-mono mt-0.5">@${u.username}</p>
                 </div>
               </div>
@@ -2327,6 +2856,8 @@ html.withlog-dark .post-media-frame > video {
     // --- フィード切り替え ---
     window.switchFeedTab = function(tab) {
       currentFeedTab = tab;
+      currentFeedUsername = '';
+      document.getElementById('profileFeedBanner').classList.add('hidden');
       const tabAll = document.getElementById('tabAll');
       const tabFollowing = document.getElementById('tabFollowing');
 
@@ -2522,17 +3053,27 @@ html.withlog-dark .post-media-frame > video {
 
     // --- フィード取得 ---
     async function loadSpots(date = '') {
+      const requestSerial = ++feedRequestSerial;
       feedEl.innerHTML = '<p class="text-center text-xs text-slate-400 py-12 tracking-widest uppercase font-medium">Loading...</p>';
       const token = getToken();
-      let url = `/spots?feed_type=${currentFeedTab}`;
-      if (date) url += `&target_date=${date}`;
-
-      const res = await fetch(url, { headers: token ? { 'Authorization': `Bearer ${token}` } : {} });
-      const spots = await res.json();
+      let url = `/spots?feed_type=${encodeURIComponent(currentFeedTab)}`;
+      if (currentFeedTab === 'user' && currentFeedUsername) url += `&target_username=${encodeURIComponent(currentFeedUsername)}`;
+      if (date) url += `&target_date=${encodeURIComponent(date)}`;
+      let spots;
+      try {
+        const res = await fetch(url, { cache:'no-store', headers:token ? {'Authorization':`Bearer ${token}`} : {} });
+        if (!res.ok) throw new Error('投稿を取得できませんでした。ログイン状態や通信を確認してください。');
+        spots = await res.json();
+        if (!Array.isArray(spots)) throw new Error('投稿の形式を確認できませんでした。');
+      } catch (error) {
+        if (requestSerial === feedRequestSerial && token === getToken()) feedEl.textContent = error.message;
+        return;
+      }
+      if (requestSerial !== feedRequestSerial || token !== getToken()) return;
 
       const dailyDay = getLocalDayKey();
       const dailyPrompt = getDailyWithPrompt(dailyDay);
-      const dailyCard = date ? '' : renderDailyWithCard(dailyPrompt, dailyDay);
+      const dailyCard = date || currentFeedTab === 'user' ? '' : renderDailyWithCard(dailyPrompt, dailyDay);
 
       if (spots.length === 0) {
         feedEl.innerHTML = `${dailyCard}
@@ -2576,10 +3117,10 @@ html.withlog-dark .post-media-frame > video {
                 </div>
                 <div>
                   <div class="flex items-center gap-1.5">
-                    <span class="text-xs font-bold text-slate-900 leading-none">${s.display_name || s.username}</span>
+                    <span class="text-xs font-bold text-slate-900 leading-none">${escapeHtml(s.display_name || s.username)}</span>
                     <span class="text-[10px] text-slate-400 font-mono">@${s.username}</span>
                   </div>
-                  <h2 class="font-bold text-xs text-slate-800 tracking-wide mt-1">${s.name}</h2>
+                  <h2 class="font-bold text-xs text-slate-800 tracking-wide mt-1">${escapeHtml(s.name)}</h2>
                 </div>
               </div>
 
@@ -2617,17 +3158,36 @@ html.withlog-dark .post-media-frame > video {
             ) : ''}
 
             <div class="p-4 bg-white">
-              <div class="flex items-center justify-between mb-2">
-                <button onclick="toggleSpotLike('${s.id}', this)" class="flex items-center gap-1.5 text-xs text-slate-700 hover:text-slate-950">
-                  <svg class="w-4 h-4 heart-icon transition-colors ${s.is_liked ? 'text-rose-500 fill-current' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                  <span class="like-count font-mono font-bold text-xs">${s.likes_count}</span>
-                </button>
-                <span class="text-[10px] text-slate-400 font-mono">${dateText} ${timeText}</span>
+              <div class="flex items-center justify-between mb-2 gap-2">
+                <div class="withlog-post-actions-left">
+                  <button onclick="toggleSpotLike('${s.id}', this)" class="flex items-center gap-1.5 text-xs text-slate-700 hover:text-slate-950">
+                    <svg class="w-4 h-4 heart-icon transition-colors ${s.is_liked ? 'text-rose-500 fill-current' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                    <span class="like-count font-mono font-bold text-xs">${s.likes_count}</span>
+                  </button>
+                  <button type="button" onclick="toggleSpotComments('${s.id}', this)" class="withlog-comment-toggle" aria-expanded="false" aria-controls="comments-${s.id}">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 8h10M7 12h6m8 0a8 8 0 11-3.2-6.4A8 8 0 0121 12z"/></svg>
+                    <span class="withlog-comment-label">コメント</span>
+                    <span class="withlog-comment-count" data-comment-count="${s.id}"></span>
+                  </button>
+                </div>
+                <span class="text-[10px] text-slate-400 font-mono shrink-0">${dateText} ${timeText}</span>
               </div>
               ${musicCard}
               ${parsedMemo.memo ? `<p class="text-xs text-slate-600 leading-relaxed">${escapeHtml(parsedMemo.memo).replace(/\n/g, '<br>')}</p>` : ''}
+              <div id="comments-${s.id}" class="withlog-comments-panel hidden" data-comments-loaded="false">
+                <div class="withlog-comments-list" data-comments-list="${s.id}">
+                  <div class="withlog-comment-empty">コメントを読み込んでいます...</div>
+                </div>
+                ${getToken() ? `
+                  <form class="withlog-comment-form" onsubmit="submitSpotComment(event, '${s.id}')">
+                    <input class="withlog-comment-input" data-comment-input="${s.id}" maxlength="500" autocomplete="off" placeholder="コメントを追加..." aria-label="コメントを追加">
+                    <button type="submit" class="withlog-comment-submit">送信</button>
+                  </form>
+                  <div class="withlog-comment-status" data-comment-status="${s.id}"></div>
+                ` : '<div class="withlog-comment-status">コメントするにはログインしてください。</div>'}
+              </div>
             </div>
           </article>
         `;
@@ -2635,6 +3195,8 @@ html.withlog-dark .post-media-frame > video {
       }).join('');
 
       wireHomeSongPlayers();
+      // Populate comment counters without requiring users to open each comment panel.
+      void loadVisibleCommentCounts(spots);
 
       if (window.location.hash && window.location.hash.startsWith('#spot-')) {
         const target = document.getElementById(window.location.hash.slice(1));
@@ -2672,7 +3234,238 @@ html.withlog-dark .post-media-frame > video {
         } else {
           heart.classList.remove('text-rose-500', 'fill-current', 'withlog-heart-pop');
           countEl.classList.remove('withlog-like-count-pop');
+
+          // 「いいねした投稿」画面で解除した場合は、その場で一覧から外す。
+          const likedCard = btn.closest('[data-liked-post-card]');
+          if (likedCard) {
+            likedCard.style.transition = 'opacity .18s ease, transform .18s ease';
+            likedCard.style.opacity = '0';
+            likedCard.style.transform = 'scale(.98)';
+            window.setTimeout(() => {
+              likedCard.remove();
+              const content = document.getElementById('likedPostsContent');
+              if (content && !content.querySelector('[data-liked-post-card]')) {
+                content.innerHTML = likedPostsEmptyHtml();
+              }
+            }, 180);
+          }
         }
+      }
+    };
+
+
+    // --- コメント ---
+    // Each spot has its own request generation. If an older GET finishes after a
+    // newer POST/GET, its stale response is ignored instead of erasing the new comment.
+    const commentRequestGeneration = new Map();
+
+    function nextCommentGeneration(spotId) {
+      const next = (commentRequestGeneration.get(String(spotId)) || 0) + 1;
+      commentRequestGeneration.set(String(spotId), next);
+      return next;
+    }
+
+    function currentCommentGeneration(spotId) {
+      return commentRequestGeneration.get(String(spotId)) || 0;
+    }
+
+    function setCommentCount(spotId, count) {
+      document.querySelectorAll(`[data-comment-count="${spotId}"]`).forEach(el => {
+        const value = Math.max(0, Number(count) || 0);
+        el.textContent = value > 0 ? String(value) : '';
+      });
+    }
+
+    function commentTimeText(value) {
+      if (!value) return '';
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? '' : date.toLocaleString();
+    }
+
+    function commentItemHtml(spotId, comment) {
+      const avatarStyle = comment.avatar_url ? `style="background-image:url('${comment.avatar_url}')"` : '';
+      const avatarText = comment.avatar_url ? '' : escapeHtml((comment.display_name || comment.username || '?').charAt(0).toUpperCase());
+      return `
+        <div class="withlog-comment-item" data-comment-id="${escapeHtml(comment.id)}">
+          <div class="withlog-comment-avatar" ${avatarStyle}>${avatarText}</div>
+          <div class="min-w-0">
+            <div class="withlog-comment-name">
+              <strong class="truncate">${escapeHtml(comment.display_name || comment.username || '')}</strong>
+              <span>@${escapeHtml(comment.username || '')}</span>
+            </div>
+            <div class="withlog-comment-text">${escapeHtml(comment.content || '').replace(/\n/g, '<br>')}</div>
+            <div class="withlog-comment-time">${escapeHtml(commentTimeText(comment.created_at))}</div>
+          </div>
+          ${comment.can_delete ? `<button type="button" class="withlog-comment-delete" onclick="deleteSpotComment('${escapeHtml(comment.id)}','${spotId}',this)">削除</button>` : '<span></span>'}
+        </div>`;
+    }
+
+    function renderSpotComments(spotId, comments, count) {
+      const list = document.querySelector(`[data-comments-list="${spotId}"]`);
+      if (!list) return;
+      setCommentCount(spotId, count);
+      if (!Array.isArray(comments) || comments.length === 0) {
+        list.innerHTML = '<div class="withlog-comment-empty">まだコメントはありません。最初のコメントを残してみましょう。</div>';
+        return;
+      }
+      list.innerHTML = comments.map(comment => commentItemHtml(spotId, comment)).join('');
+      list.scrollTop = list.scrollHeight;
+    }
+
+    function showPostedCommentImmediately(spotId, comment, count) {
+      setCommentCount(spotId, count);
+      const panel = document.getElementById(`comments-${spotId}`);
+      const list = panel?.querySelector(`[data-comments-list="${spotId}"]`);
+      if (!panel || !list || !comment) return;
+
+      const existing = Array.from(list.querySelectorAll('[data-comment-id]'))
+        .find(el => el.dataset.commentId === String(comment.id));
+      if (!existing) {
+        const placeholder = list.querySelector('.withlog-comment-empty');
+        if (placeholder) placeholder.remove();
+        list.insertAdjacentHTML('beforeend', commentItemHtml(spotId, comment));
+      }
+      panel.dataset.commentsLoaded = 'true';
+      list.scrollTop = list.scrollHeight;
+    }
+
+    async function loadVisibleCommentCounts(spots) {
+      const ids = Array.isArray(spots) ? spots.map(s => String(s.id)).filter(Boolean) : [];
+      if (!ids.length) return;
+      const snapshots = new Map(ids.map(id => [id, currentCommentGeneration(id)]));
+      const token = getToken();
+      try {
+        const res = await fetch('/comments/counts', {
+          method:'POST',
+          headers:{...(token ? {'Authorization':`Bearer ${token}`} : {}),'Content-Type':'application/json'},
+          body:JSON.stringify({spot_ids:ids}),
+          cache:'no-store',
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        Object.entries(data.counts || {}).forEach(([spotId, count]) => {
+          // Do not let an older feed-count request overwrite a comment that was
+          // posted or freshly loaded while this request was in flight.
+          if (currentCommentGeneration(spotId) === snapshots.get(spotId)) {
+            setCommentCount(spotId, count);
+          }
+        });
+      } catch (_) {}
+    }
+
+    window.loadSpotComments = async function(spotId, {force = false, silent = false} = {}) {
+      const panel = document.getElementById(`comments-${spotId}`);
+      if (!panel) return false;
+      if (!force && panel.dataset.commentsLoaded === 'true') return true;
+
+      const requestGeneration = nextCommentGeneration(spotId);
+      const list = panel.querySelector(`[data-comments-list="${spotId}"]`);
+      if (!silent && list) list.innerHTML = '<div class="withlog-comment-empty">コメントを読み込んでいます...</div>';
+      const token = getToken();
+      const headers = token ? {'Authorization': `Bearer ${token}`} : {};
+      try {
+        const res = await fetch(`/spots/${encodeURIComponent(spotId)}/comments?ts=${Date.now()}`, {headers, cache:'no-store'});
+        let data = {};
+        try { data = await res.json(); } catch (_) {}
+        if (!res.ok) throw new Error(data.detail || 'コメントを読み込めませんでした');
+
+        // A newer request/mutation already happened. Ignore this old response.
+        if (currentCommentGeneration(spotId) !== requestGeneration) return false;
+        const currentPanel = document.getElementById(`comments-${spotId}`);
+        if (currentPanel !== panel) return false;
+
+        panel.dataset.commentsLoaded = 'true';
+        renderSpotComments(spotId, data.comments || [], data.count || 0);
+        return true;
+      } catch (error) {
+        if (currentCommentGeneration(spotId) !== requestGeneration) return false;
+        const currentPanel = document.getElementById(`comments-${spotId}`);
+        if (currentPanel !== panel) return false;
+        panel.dataset.commentsLoaded = 'false';
+        if (!silent && list) list.innerHTML = `<div class="withlog-comment-empty">${escapeHtml(error.message || 'コメントを読み込めませんでした')}</div>`;
+        return false;
+      }
+    };
+
+    window.toggleSpotComments = async function(spotId, button) {
+      const panel = document.getElementById(`comments-${spotId}`);
+      if (!panel) return;
+      const opening = panel.classList.contains('hidden');
+      panel.classList.toggle('hidden', !opening);
+      if (button) button.setAttribute('aria-expanded', opening ? 'true' : 'false');
+      // Refresh every time it opens so comments made from another account appear too.
+      if (opening) await loadSpotComments(spotId, {force:true});
+    };
+
+    window.submitSpotComment = async function(event, spotId) {
+      event.preventDefault();
+      const token = getToken();
+      if (!token) return;
+      const form = event.currentTarget;
+      const input = form.querySelector(`[data-comment-input="${spotId}"]`);
+      const submit = form.querySelector('button[type="submit"]');
+      const statusEl = document.querySelector(`[data-comment-status="${spotId}"]`);
+      const content = (input?.value || '').trim();
+      if (!content) { if (statusEl) statusEl.textContent = 'コメントを入力してください。'; return; }
+      if (content.length > 500) { if (statusEl) statusEl.textContent = 'コメントは500文字以内で入力してください。'; return; }
+
+      // Invalidate a GET that may have started before this submission.
+      nextCommentGeneration(spotId);
+      submit.disabled = true;
+      if (statusEl) statusEl.textContent = '送信しています...';
+      try {
+        const res = await fetch(`/spots/${encodeURIComponent(spotId)}/comments`, {
+          method:'POST', headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
+          body:JSON.stringify({content}), cache:'no-store',
+        });
+        let data = {};
+        try { data = await res.json(); } catch (_) {}
+        if (!res.ok) throw new Error(data.detail || 'コメントを送信できませんでした');
+        if (token !== getToken()) return;
+
+        input.value = '';
+        if (statusEl) statusEl.textContent = 'コメントしました。';
+
+        // Use the POST response immediately. The user no longer has to wait for a
+        // second GET before the number and the new comment become visible.
+        showPostedCommentImmediately(spotId, data.comment, data.count || 0);
+
+        // Reconcile the complete list in the background. Request generations make
+        // it impossible for an older response to overwrite this newly posted item.
+        await loadSpotComments(spotId, {force:true, silent:true});
+        window.setTimeout(() => { if (statusEl?.textContent === 'コメントしました。') statusEl.textContent = ''; }, 1800);
+      } catch (error) {
+        if (statusEl) statusEl.textContent = error.message || 'コメントを送信できませんでした。';
+      } finally { submit.disabled = false; }
+    };
+
+    window.deleteSpotComment = async function(commentId, spotId, button) {
+      const token = getToken();
+      if (!token) return;
+      if (!window.confirm('このコメントを削除しますか？')) return;
+      nextCommentGeneration(spotId);
+      button.disabled = true;
+      try {
+        const res = await fetch(`/comments/${encodeURIComponent(commentId)}`, {
+          method:'DELETE', headers:{'Authorization':`Bearer ${token}`}, cache:'no-store',
+        });
+        let data = {};
+        try { data = await res.json(); } catch (_) {}
+        if (!res.ok) throw new Error(data.detail || 'コメントを削除できませんでした');
+        if (token !== getToken()) return;
+
+        const item = button.closest('[data-comment-id]');
+        if (item) item.remove();
+        setCommentCount(spotId, data.count || 0);
+        const panel = document.getElementById(`comments-${spotId}`);
+        const list = panel?.querySelector(`[data-comments-list="${spotId}"]`);
+        if (list && !list.querySelector('[data-comment-id]')) {
+          list.innerHTML = '<div class="withlog-comment-empty">まだコメントはありません。最初のコメントを残してみましょう。</div>';
+        }
+        await loadSpotComments(spotId, {force:true, silent:true});
+      } catch (error) {
+        alert(error.message || 'コメントを削除できませんでした。');
+        button.disabled = false;
       }
     };
 
@@ -2685,6 +3478,7 @@ html.withlog-dark .post-media-frame > video {
       });
       if (!res.ok) return;
       const user = await res.json();
+      if (token !== getToken() || currentProfileUsername !== username) return;
 
       document.getElementById('profileDisplayName').innerText = user.display_name || user.username;
       document.getElementById('profileUsername').innerText = `@${user.username}${user.is_private ? ' 🔒' : ''}`;
@@ -2715,9 +3509,9 @@ html.withlog-dark .post-media-frame > video {
         act.innerHTML = `<button onclick="openEditProfile()" class="navy-btn-outline text-[10px] font-bold px-3 py-1 rounded-full">EDIT PROFILE</button>`;
       } else {
         const status = user.follow_status || (user.is_following ? 'following' : 'none');
-        const label = status === 'following' ? 'フォロー中' : status === 'pending' ? '承認待ち' : 'フォロー';
+        const label = status === 'following' ? 'フォロー中' : status === 'pending' ? '申請済み・取り消す' : user.is_private ? 'フォロー申請' : 'フォロー';
         act.innerHTML = `
-          <button onclick="toggleFollowUser('${escapeHtml(user.username)}')" class="navy-btn text-[10px] font-bold px-3 py-1 rounded-full">
+          <button onclick="toggleFollowUser('${escapeHtml(user.username)}', this)" class="navy-btn text-[10px] font-bold px-3 py-1 rounded-full">
             ${label}
           </button>
           <button onclick="openDmChat('${escapeHtml(user.username)}')" class="navy-btn-outline text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
@@ -2726,6 +3520,16 @@ html.withlog-dark .post-media-frame > video {
         `;
       }
 
+
+      const mayView = user.can_view_posts === true || isOwnProfile || (!user.is_private) || user.follow_status === 'following';
+      const notice = document.getElementById('profilePrivacyNotice');
+      notice.classList.toggle('hidden', !user.is_private);
+      notice.textContent = isOwnProfile
+        ? '🔒 非公開アカウントです。承認済みのフォロワーだけが投稿を閲覧できます。'
+        : mayView ? '🔒 このアカウントの投稿を閲覧できます。'
+        : user.follow_status === 'pending' ? '🔒 承認待ちです。フォロー申請が承認されると投稿を見られます。'
+        : '🔒 非公開アカウントです。投稿を見るにはフォロー申請を送ってください。';
+      document.getElementById('viewProfilePostsButton').classList.toggle('hidden', !mayView);
       document.getElementById('profileModal').classList.remove('hidden');
     };
 
@@ -2733,16 +3537,360 @@ html.withlog-dark .post-media-frame > video {
       document.getElementById('profileModal').classList.add('hidden');
     };
 
-    window.toggleFollowUser = async function(username) {
+
+    async function privacyApi(path, options = {}) {
       const token = getToken();
-      const res = await fetch(`/users/${encodeURIComponent(username)}/follow`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
+      if (!token) throw new Error('ログインし直してください。');
+      const headers = {'Authorization': `Bearer ${token}`, ...(options.headers || {})};
+      const res = await fetch(path, {...options, headers, cache:'no-store', credentials:'same-origin'});
+      let data = {};
+      try { data = await res.json(); } catch (_) {}
+      if (token !== getToken()) throw new Error('ログイン状態が変わりました。もう一度お試しください。');
+      if (!res.ok) {
+        const detail = typeof data.detail === 'string' ? data.detail : '処理に失敗しました。もう一度お試しください。';
+        throw new Error(detail);
+      }
+      return data;
+    }
+
+    function setPrivacyStatus(text, error = false) {
+      const el = document.getElementById('privacySaveStatus');
+      el.textContent = text;
+      el.dataset.error = String(error);
+    }
+
+    window.loadPrivacySettings = async function() {
+      if (privacySaving) return;
+      const serial = ++privacyRequestSerial;
+      const toggle = document.getElementById('privateAccountToggle');
+      toggle.disabled = true;
+      savedPrivacy = null;
+      document.getElementById('privacyRetryButton').classList.add('hidden');
+      setPrivacyStatus('設定を読み込んでいます...');
+      try {
+        const data = await privacyApi('/users/privacy');
+        if (serial !== privacyRequestSerial) return;
+        if (typeof data.is_private !== 'boolean') throw new Error('公開設定を確認できませんでした。');
+        savedPrivacy = data.is_private;
+        toggle.checked = savedPrivacy;
+        toggle.disabled = false;
+        setPrivacyStatus(savedPrivacy ? '現在は非公開です。新しいフォローには承認が必要です。' : '現在は公開アカウントです。');
+      } catch (error) {
+        if (serial !== privacyRequestSerial) return;
+        setPrivacyStatus(error.message, true);
+        document.getElementById('privacyRetryButton').classList.remove('hidden');
+      }
+    };
+
+    window.openAdvancedSettingsModal = async function() {
+      if (privacySaving) return;
+      if (!currentUser || !getToken()) return;
+      closeProfileModal();
+      const modal = document.getElementById('advancedSettingsModal');
+      modal.classList.remove('hidden');
+      modal.focus();
+      await loadPrivacySettings();
+    };
+
+    window.closeAdvancedSettingsModal = function() {
+      if (privacySaving) return;
+      document.getElementById('advancedSettingsModal').classList.add('hidden');
+      if (currentUser) openProfile(currentUser.username);
+    };
+
+    document.getElementById('privateAccountToggle').addEventListener('change', async (event) => {
+      const toggle = event.target;
+      if (savedPrivacy === null) return;
+      const previous = savedPrivacy;
+      const desired = toggle.checked;
+      if (!desired && !window.confirm('公開アカウントに変更しますか？\nすべての人が投稿を閲覧できるようになり、承認待ちのフォロー申請も承認されます。')) {
+        toggle.checked = previous;
+        return;
+      }
+      privacySaving = true;
+      toggle.disabled = true;
+      setPrivacyStatus('保存しています...');
+      try {
+        const data = await privacyApi('/users/privacy', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({is_private:desired}),
+        });
+        if (typeof data.is_private !== 'boolean') throw new Error('設定の保存結果を確認できませんでした。');
+        savedPrivacy = data.is_private;
+        toggle.checked = savedPrivacy;
+        if (currentUser) currentUser.is_private = savedPrivacy;
+        setPrivacyStatus(savedPrivacy ? '保存しました。これからのフォロー申請は通知で承認できます。' : '保存しました。公開アカウントに変更しました。');
+        await Promise.allSettled([loadStories(), refreshNotificationBadge()]);
+      } catch (error) {
+        toggle.checked = previous;
+        savedPrivacy = previous;
+        setPrivacyStatus('保存できませんでした。' + error.message, true);
+      } finally {
+        privacySaving = false;
+        toggle.disabled = false;
+      }
+    });
+
+    window.openRequestsFromSettings = function() {
+      if (privacySaving) return;
+      document.getElementById('advancedSettingsModal').classList.add('hidden');
+      openNotificationsModal();
+    };
+    window.manageMyFollowers = function() {
+      if (privacySaving) return;
+      document.getElementById('advancedSettingsModal').classList.add('hidden');
+      if (!currentUser) return;
+      currentProfileUsername = currentUser.username;
+      openUserListModal('followers');
+    };
+
+    let accountDeleting = false;
+    window.openDeleteAccountModal = function() {
+      if (privacySaving || accountDeleting || !currentUser || !getToken()) return;
+      document.getElementById('advancedSettingsModal').classList.add('hidden');
+      document.getElementById('deleteAccountUsername').value = '';
+      document.getElementById('deleteAccountPassword').value = '';
+      document.getElementById('deleteAccountStatus').textContent = `削除するには @${currentUser.username} と現在のパスワードを入力してください。`;
+      const modal = document.getElementById('deleteAccountModal');
+      modal.classList.remove('hidden');
+      modal.focus();
+      setTimeout(() => document.getElementById('deleteAccountUsername').focus(), 0);
+    };
+
+    window.closeDeleteAccountModal = function() {
+      if (accountDeleting) return;
+      document.getElementById('deleteAccountModal').classList.add('hidden');
+      document.getElementById('deleteAccountPassword').value = '';
+      if (currentUser) {
+        document.getElementById('advancedSettingsModal').classList.remove('hidden');
+        document.getElementById('advancedSettingsModal').focus();
+      }
+    };
+
+    document.getElementById('deleteAccountForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      if (accountDeleting || !currentUser) return;
+      const username = document.getElementById('deleteAccountUsername').value.trim();
+      const password = document.getElementById('deleteAccountPassword').value;
+      const statusEl = document.getElementById('deleteAccountStatus');
+      if (username !== currentUser.username) {
+        statusEl.textContent = 'ユーザーIDが一致していません。';
+        return;
+      }
+      if (!password) {
+        statusEl.textContent = '現在のパスワードを入力してください。';
+        return;
+      }
+      if (!window.confirm('アカウントと登録データを完全に削除します。\nこの操作は取り消せません。削除しますか？')) return;
+
+      accountDeleting = true;
+      const button = document.getElementById('deleteAccountConfirmButton');
+      button.disabled = true;
+      button.textContent = '削除しています...';
+      statusEl.textContent = '登録データを削除しています。画面を閉じないでください。';
+      const token = getToken();
+      try {
+        const res = await fetch('/users/me/account', {
+          method:'DELETE',
+          credentials:'same-origin',
+          cache:'no-store',
+          headers:{
+            'Authorization':`Bearer ${token}`,
+            'Content-Type':'application/json',
+          },
+          body:JSON.stringify({password, confirm_username:username}),
+        });
+        let data = {};
+        try { data = await res.json(); } catch (_) {}
+        if (!res.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'アカウントを削除できませんでした。');
+        clearSignedInState();
+        gateStatusMessage.className = 'mt-3 rounded-xl border px-3 py-2 text-[11px] leading-relaxed border-emerald-200 bg-emerald-50 text-emerald-700';
+        gateStatusMessage.textContent = 'アカウントと登録データを削除しました。';
+        gateStatusMessage.classList.remove('hidden');
+      } catch (error) {
+        statusEl.textContent = error.message;
+      } finally {
+        accountDeleting = false;
+        button.disabled = false;
+        button.textContent = '完全に削除する';
+      }
+    });
+
+    document.getElementById('deleteAccountModal').addEventListener('click', event => {
+      if (event.target === event.currentTarget) closeDeleteAccountModal();
+    });
+    document.getElementById('deleteAccountModal').addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeDeleteAccountModal();
+      }
+    });
+
+    window.viewCurrentProfilePosts = function() {
+      if (!currentProfileUsername) return;
+      const name = currentProfileUsername;
+      closeProfileModal();
+      currentFeedTab = 'user';
+      currentFeedUsername = name;
+      dateFilterEl.value = '';
+      const banner = document.getElementById('profileFeedBanner');
+      banner.replaceChildren();
+      const label = document.createElement('span');
+      label.textContent = `@${name} の投稿`;
+      const reset = document.createElement('button');
+      reset.type = 'button';
+      reset.textContent = ' すべての投稿に戻る';
+      reset.style.textDecoration = 'underline';
+      reset.addEventListener('click', () => switchFeedTab('all'));
+      banner.append(label, reset);
+      banner.classList.remove('hidden');
+      loadSpots();
+    };
+
+    document.getElementById('advancedSettingsModal').addEventListener('click', event => {
+      if (event.target === event.currentTarget) closeAdvancedSettingsModal();
+    });
+    document.getElementById('advancedSettingsModal').addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeAdvancedSettingsModal();
+      }
+      if (event.key === 'Tab') {
+        const focusable = [...event.currentTarget.querySelectorAll('button, input, [tabindex="0"]')]
+          .filter(el => !el.disabled && el.getClientRects().length);
+        if (!focusable.length) return;
+        const first = focusable[0], last = focusable[focusable.length-1];
+        if (event.shiftKey && (document.activeElement === first || document.activeElement === event.currentTarget)) {
+          event.preventDefault(); last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault(); first.focus();
+        }
+      }
+    });
+
+
+    window.setInterval(() => {
+      if (getToken() && !document.hidden) {
+        privacyApi('/auth/media-session', {method:'POST'}).catch(() => {});
+      }
+    }, 60 * 60 * 1000);
+    window.addEventListener('focus', () => {
+      if (!getToken() || !currentUser) return;
+      privacyApi('/auth/media-session', {method:'POST'})
+        .then(() => Promise.allSettled([loadSpots(dateFilterEl.value), loadStories(), refreshNotificationBadge()]))
+        .catch(() => {});
+    });
+
+    function likedPostsEmptyHtml() {
+      return `
+        <div class="withlog-liked-empty">
+          <div class="text-2xl mb-2">♡</div>
+          <p class="text-[11px] font-black tracking-wide">まだいいねした投稿はありません</p>
+          <p class="text-[9px] mt-1">気になる投稿のハートを押すと、ここに保存されます</p>
+        </div>`;
+    }
+
+    window.openLikedPostsModal = async function() {
+      const token = getToken();
+      if (!token) return;
+
+      closeProfileModal();
+      const modal = document.getElementById('likedPostsModal');
+      const content = document.getElementById('likedPostsContent');
+      content.innerHTML = '<div class="withlog-liked-empty">読み込み中...</div>';
+      modal.classList.remove('hidden');
+
+      // 開くたびに一覧を先頭から表示する。
+      const scrollArea = document.getElementById('likedPostsScroll');
+      if (scrollArea) scrollArea.scrollTop = 0;
+
+      try {
+        const res = await fetch('/users/me/liked-spots', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('liked posts request failed');
+
+        const spots = await res.json();
+        if (token !== getToken()) return;
+        if (!Array.isArray(spots) || spots.length === 0) {
+          content.innerHTML = likedPostsEmptyHtml();
+          return;
+        }
+
+        content.innerHTML = spots.map(s => {
+          const visitDate = new Date(s.visited_at);
+          const dateText = Number.isNaN(visitDate.getTime())
+            ? ''
+            : `${visitDate.getFullYear()}.${String(visitDate.getMonth() + 1).padStart(2, '0')}.${String(visitDate.getDate()).padStart(2, '0')}`;
+          const dailyMeta = parseDailyWithMemo(s.memo);
+          const parsedMemo = parseSpotMusic(dailyMeta.memo);
+          const cleanMemo = parsedMemo.memo || '';
+          const avatarStyle = s.author_avatar_url ? `style="background-image:url('${s.author_avatar_url}')"` : '';
+          const avatarText = s.author_avatar_url ? '' : escapeHtml((s.display_name || s.username || '?').charAt(0).toUpperCase());
+          const mediaHtml = s.media_url
+            ? (s.media_type === 'video'
+              ? `<video class="withlog-liked-post-media" src="${s.media_url}" controls></video>`
+              : `<img class="withlog-liked-post-media" src="${s.media_url}" alt="${escapeHtml(s.name || 'いいねした投稿')}" loading="lazy">`)
+            : '';
+
+          return `
+            <article class="withlog-liked-post-card" data-liked-post-card="${s.id}">
+              <div class="withlog-liked-post-head">
+                <div class="withlog-liked-post-avatar" ${avatarStyle}>${avatarText}</div>
+                <div class="min-w-0 flex-1">
+                  <div class="text-[11px] font-black text-slate-900 truncate">${escapeHtml(s.display_name || s.username)}</div>
+                  <div class="withlog-liked-post-meta truncate">@${escapeHtml(s.username || '')} · ${dateText}</div>
+                </div>
+              </div>
+              ${mediaHtml}
+              <div class="withlog-liked-post-body">
+                <div class="withlog-liked-post-title">${escapeHtml(s.name || 'WITHLOGの投稿')}</div>
+                ${cleanMemo ? `<div class="withlog-liked-post-memo">${escapeHtml(cleanMemo).replace(/\n/g, '<br>')}</div>` : ''}
+                <div class="withlog-liked-post-actions">
+                  <button type="button" onclick="toggleSpotLike('${s.id}', this)" class="withlog-liked-post-like">
+                    <svg class="heart-icon" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                    <span class="like-count">${s.likes_count}</span>
+                  </button>
+                  <button type="button" onclick="jumpToLikedSpot('${s.id}')" class="withlog-liked-post-jump">投稿を見る →</button>
+                </div>
+              </div>
+            </article>`;
+        }).join('');
+      } catch (error) {
+        content.innerHTML = `
+          <div class="withlog-liked-empty">
+            <p class="text-[11px] font-black">いいねした投稿を読み込めませんでした</p>
+            <button type="button" onclick="openLikedPostsModal()" class="mt-3 text-[10px] font-black underline">もう一度試す</button>
+          </div>`;
+      }
+    };
+
+    window.closeLikedPostsModal = function() {
+      document.getElementById('likedPostsModal').classList.add('hidden');
+    };
+
+    window.jumpToLikedSpot = function(spotId) {
+      closeLikedPostsModal();
+      if (dateFilterEl) dateFilterEl.value = '';
+      window.location.hash = `spot-${spotId}`;
+      switchFeedTab('all');
+    };
+
+    window.toggleFollowUser = async function(username, button) {
+      if (pendingFollowActions.has(username)) return;
+      pendingFollowActions.add(username);
+      if (button) button.disabled = true;
+      try {
+        await privacyApi(`/users/${encodeURIComponent(username)}/follow`, {method:'POST'});
         await openProfile(username);
-        await loadStories();
-        refreshNotificationBadge();
+        await Promise.allSettled([loadStories(), loadSpots(dateFilterEl.value), refreshNotificationBadge()]);
+      } catch (error) {
+        window.alert(error.message);
+      } finally {
+        pendingFollowActions.delete(username);
+        if (button) button.disabled = false;
       }
     };
 
@@ -2751,14 +3899,6 @@ html.withlog-dark .post-media-frame > video {
       closeProfileModal();
       document.getElementById('editDisplayName').value = currentUser.display_name || '';
       document.getElementById('editBio').value = currentUser.bio || '';
-      const token = getToken();
-      try {
-        const res = await fetch('/users/privacy', { headers: { 'Authorization': `Bearer ${token}` } });
-        const data = res.ok ? await res.json() : {};
-        document.getElementById('editIsPrivate').checked = !!data.is_private;
-      } catch (_) {
-        document.getElementById('editIsPrivate').checked = false;
-      }
       document.getElementById('editProfileModal').classList.remove('hidden');
     };
 
@@ -2778,15 +3918,6 @@ html.withlog-dark .post-media-frame > video {
       if (res.ok) {
         currentUser = await res.json();
 
-        const privacyValue = !!document.getElementById('editIsPrivate').checked;
-        await fetch('/users/privacy', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ is_private: privacyValue })
-        });
 
         renderAuthUI(currentUser);
         closeEditProfileModal();
@@ -3154,6 +4285,36 @@ document.addEventListener("DOMContentLoaded", function () {
     event.stopImmediatePropagation();
     window.location.assign(MUSIC_POST_URL);
   }, true);
+})();
+</script>
+
+<script id="withlog-backdrop-close-patch">
+(() => {
+  // Close standard modal screens when the dimmed area outside the panel is tapped.
+  // Advanced settings and account deletion already have the same behavior in their own handlers.
+  const backdropCloseHandlers = {
+    userSearchModal: () => window.closeUserSearchModal?.(),
+    postModal: () => window.closePostModal ? window.closePostModal() : (typeof closePostModal === 'function' && closePostModal()),
+    profileModal: () => window.closeProfileModal?.(),
+    likedPostsModal: () => window.closeLikedPostsModal?.(),
+    editProfileModal: () => window.closeEditProfileModal?.(),
+    userListModal: () => window.closeUserListModal?.(),
+    notificationsModal: () => window.closeNotificationsModal?.(),
+    conversationsModal: () => window.closeConversationsModal?.(),
+    dmModal: () => window.closeDmModal?.(),
+  };
+
+  Object.entries(backdropCloseHandlers).forEach(([id, close]) => {
+    const modal = document.getElementById(id);
+    if (!modal || modal.dataset.backdropCloseBound === 'true') return;
+
+    modal.dataset.backdropCloseBound = 'true';
+    modal.addEventListener('click', (event) => {
+      // Only the actual backdrop closes the modal. Taps anywhere inside the white panel do nothing.
+      if (event.target !== modal) return;
+      close();
+    });
+  });
 })();
 </script>
 </body>
