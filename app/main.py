@@ -1148,7 +1148,7 @@ def serve_spot_media(spot_id: uuid.UUID, request: Request, db: Session = Depends
 
 @app.post("/spots/upload", response_model=SpotResponse)
 async def create_spot(
-    name: str = Form(...),
+    name: str = Form(""),
     latitude: Optional[float] = Form(37.5665),
     longitude: Optional[float] = Form(126.9780),
     memo: Optional[str] = Form(None),
@@ -1189,7 +1189,7 @@ async def create_spot(
 
     spot = Spot(
         user_id=current_user.id if current_user else None,
-        name=name,
+        name=(name or "").strip(),
         memo=memo,
         rating=rating,
         geom=wkb_geom,

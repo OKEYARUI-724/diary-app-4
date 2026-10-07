@@ -1175,8 +1175,8 @@ html.withlog-dark body {
         </div>
 
         <label class="field">
-          <span class="field-label">スポット名 / タイトル</span>
-          <input id="travelSpotName" name="name" type="text" maxlength="120" placeholder="例：お気に入りのカフェ / 放課後 / 今日の出来事" required />
+          <span class="field-label">スポット名 / タイトル <span style="font-size:.72em;font-weight:700;opacity:.55;">（任意）</span></span>
+          <input id="travelSpotName" name="name" type="text" maxlength="120" placeholder="未入力でも投稿できます" />
         </label>
 
 
@@ -1907,8 +1907,7 @@ postForm.addEventListener("submit", async (event) => {
     const imageFile = imageInput.files?.[0];
     if (!imageFile) throw new Error("写真を選択してください。");
 
-    const name = document.getElementById("travelSpotName")?.value?.trim();
-    if (!name) throw new Error("スポット名 / タイトルを入力してください。");
+    const name = document.getElementById("travelSpotName")?.value?.trim() || "";
 
     const caption = postForm.querySelector('textarea[name="caption"]')?.value?.trim() || "";
 
