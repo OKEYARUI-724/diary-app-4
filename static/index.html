@@ -1874,6 +1874,34 @@ html.withlog-dark .withlog-profile-crop-apply { background: #8066c7 !important; 
 }
 </style>
 
+
+<style id="withlog-daily-lock-style">
+.with-daily-locked-post{position:relative}
+.daily-with-lock-badge{display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:0 11px;border-radius:999px;background:#eee7ff;color:#6f5aac;font-size:8px;font-weight:900;letter-spacing:.14em}
+.daily-with-locked-stage{position:relative;margin:7px 10px 4px;min-height:360px;overflow:hidden;border:1px solid rgba(126,110,145,.13);border-radius:28px;background:#f3eef8}
+.daily-with-locked-blur{position:absolute;inset:-28px;overflow:hidden;filter:blur(18px) saturate(.85);transform:scale(1.08);background:linear-gradient(145deg,#eadfff 0%,#d9eef1 36%,#f7dfe8 70%,#fff0cf 100%)}
+.daily-with-locked-blur::before,.daily-with-locked-blur::after,.daily-with-locked-blur span{content:"";position:absolute;border-radius:32px;background:rgba(255,255,255,.52)}
+.daily-with-locked-blur::before{width:58%;height:48%;left:4%;top:8%;background:rgba(122,105,173,.22)}
+.daily-with-locked-blur::after{width:52%;height:44%;right:3%;bottom:5%;background:rgba(120,197,183,.26)}
+.daily-with-locked-blur span:nth-child(1){width:34%;height:27%;right:9%;top:10%;background:rgba(255,218,125,.42)}
+.daily-with-locked-blur span:nth-child(2){width:38%;height:32%;left:20%;bottom:10%;background:rgba(238,151,181,.28)}
+.daily-with-locked-blur span:nth-child(3){width:22%;height:18%;left:7%;top:55%;background:rgba(117,174,226,.25)}
+.daily-with-locked-blur span:nth-child(4){width:26%;height:20%;right:18%;top:48%;background:rgba(255,255,255,.66)}
+.daily-with-locked-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px;text-align:center;background:rgba(255,253,251,.34);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);color:#44375f}
+.daily-with-lock-icon{width:54px;height:54px;display:grid;place-items:center;margin-bottom:14px;border-radius:999px;background:rgba(255,255,255,.83);font-size:28px;font-weight:800;color:#8066c7}
+.daily-with-locked-overlay strong{max-width:360px;font-size:18px;line-height:1.5}
+.daily-with-locked-overlay p{max-width:360px;margin:8px 0 18px;color:#756d83;font-size:11px;line-height:1.7}
+.daily-with-locked-overlay button{border:0!important;border-radius:999px!important;padding:13px 20px;background:#7661bd!important;color:#fff!important;font-size:12px;font-weight:900}
+.daily-with-locked-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px 15px;color:#968da1;font-size:9px}
+.daily-with-locked-footer time{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;white-space:nowrap}
+html.withlog-dark .daily-with-lock-badge{background:#44404f;color:#dfd2ff}
+html.withlog-dark .daily-with-locked-stage{background:#2f3036;border-color:#4b4c54}
+html.withlog-dark .daily-with-locked-overlay{background:rgba(35,36,42,.43);color:#faf5ff}
+html.withlog-dark .daily-with-lock-icon{background:rgba(48,49,56,.88);color:#d8c8ff}
+html.withlog-dark .daily-with-locked-overlay p,html.withlog-dark .daily-with-locked-footer{color:#bbb4c2}
+@media(max-width:560px){.daily-with-locked-stage{min-height:330px;margin:8px 10px 4px;border-radius:24px}.daily-with-locked-overlay{padding:22px}.daily-with-locked-overlay strong{font-size:16px}.daily-with-locked-footer{align-items:flex-start;flex-direction:column;gap:4px}}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -3311,7 +3339,18 @@ html.withlog-dark .withlog-profile-crop-apply { background: #8066c7 !important; 
     ];
     function getLocalDayKey(date=new Date()){const y=date.getFullYear();const m=String(date.getMonth()+1).padStart(2,'0');const d=String(date.getDate()).padStart(2,'0');return `${y}-${m}-${d}`;}
     function getDailyWithPrompt(dayKey=getLocalDayKey()){const seed=`${dayKey}:${currentUser?.username||'withlog'}`;let hash=2166136261;for(let i=0;i<seed.length;i+=1){hash^=seed.charCodeAt(i);hash=Math.imul(hash,16777619);}return DAILY_WITH_PROMPTS[Math.abs(hash)%DAILY_WITH_PROMPTS.length];}
-    function parseDailyWithMemo(memoValue){const raw=String(memoValue||'');const marker=/\[\[WITH_DAILY:(\d{4}-\d{2}-\d{2}):([^\]]+)\]\]/;const match=raw.match(marker);if(!match)return{memo:raw,prompt:null,day:null};let prompt='';try{prompt=decodeURIComponent(match[2]);}catch(_){prompt=match[2];}return{memo:raw.replace(marker,'').replace(/\n{3,}/g,'\n\n').trim(),prompt,day:match[1]};}
+    function parseDailyWithMemo(memoValue){
+      const raw=String(memoValue||'');
+      const lockedMarker=/\[\[WITH_DAILY_LOCKED:(\d{4}-\d{2}-\d{2})\]\]/;
+      const lockedMatch=raw.match(lockedMarker);
+      if(lockedMatch)return{memo:'',prompt:null,day:lockedMatch[1],locked:true};
+      const marker=/\[\[WITH_DAILY:(\d{4}-\d{2}-\d{2}):([^\]]+)\]\]/;
+      const match=raw.match(marker);
+      if(!match)return{memo:raw,prompt:null,day:null,locked:false};
+      let prompt='';
+      try{prompt=decodeURIComponent(match[2]);}catch(_){prompt=match[2];}
+      return{memo:raw.replace(marker,'').replace(/\n{3,}/g,'\n\n').trim(),prompt,day:match[1],locked:false};
+    }
     function renderDailyWithCard(prompt,dayKey){const prettyDay=dayKey.replaceAll('-','.');return `
       <section class="daily-with-card" aria-label="今日のWITH">
         <div>
@@ -3322,6 +3361,7 @@ html.withlog-dark .withlog-profile-crop-apply { background: #8066c7 !important; 
         <button type="button" class="daily-with-join" data-prompt="${escapeHtml(prompt)}" data-day="${escapeHtml(dayKey)}" onclick="joinDailyWithFromButton(this)">WITHに参加！</button>
       </section>`;}
     window.joinDailyWithFromButton=function(button){const prompt=button?.dataset?.prompt||'';const day=button?.dataset?.day||getLocalDayKey();const params=new URLSearchParams({with_prompt:prompt,with_day:day});window.location.href=`/static/add.html?${params.toString()}`;};
+    window.joinLockedDailyWith=function(dayKey){const day=dayKey||getLocalDayKey();const prompt=getDailyWithPrompt(day);const params=new URLSearchParams({with_prompt:prompt,with_day:day});window.location.href=`/static/add.html?${params.toString()}`;};
 
     function parseSpotMusic(memoValue) {
       const raw = String(memoValue || '');
@@ -3518,6 +3558,49 @@ html.withlog-dark .withlog-profile-crop-apply { background: #8066c7 !important; 
         const timeText = visitDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
         const avatarBg = s.author_avatar_url ? `style="background-image: url('${s.author_avatar_url}')"` : '';
         const dailyMeta = parseDailyWithMemo(s.memo);
+
+        if (dailyMeta.locked) {
+          const lockedDay = dailyMeta.day || dailyDay;
+          const lockedPrompt = getDailyWithPrompt(lockedDay);
+          const avatarLetter = !s.author_avatar_url ? escapeHtml((s.display_name || s.username || '?').charAt(0).toUpperCase()) : '';
+          const lockedPost = `
+            <article id="spot-${s.id}" class="navy-card tl-post-card rounded-2xl overflow-hidden with-daily-post with-daily-locked-post">
+              <div class="px-4 py-3 flex items-center justify-between border-b border-slate-900 bg-white">
+                <div class="flex items-center gap-2.5 cursor-pointer" onclick="openProfile('${s.username}')">
+                  <div class="w-8 h-8 rounded-lg bg-slate-200 bg-cover bg-center border border-slate-400 flex items-center justify-center font-bold text-xs" ${avatarBg}>${avatarLetter}</div>
+                  <div>
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-xs font-bold text-slate-900 leading-none">${escapeHtml(s.display_name || s.username)}</span>
+                      <span class="text-[10px] text-slate-400 font-mono">@${escapeHtml(s.username || '')}</span>
+                    </div>
+                    <h2 class="font-bold text-xs text-slate-800 tracking-wide mt-1">今日のWITH</h2>
+                  </div>
+                </div>
+                <span class="daily-with-lock-badge" aria-label="まだ見られません">LOCKED</span>
+              </div>
+              <div class="daily-with-post-banner">
+                <span class="label">● TODAY'S WITH · ${escapeHtml(lockedDay.replaceAll('-', '.'))}</span>
+                <strong>${escapeHtml(lockedPrompt)}</strong>
+              </div>
+              <div class="daily-with-locked-stage">
+                <div class="daily-with-locked-blur" aria-hidden="true">
+                  <span></span><span></span><span></span><span></span>
+                </div>
+                <div class="daily-with-locked-overlay">
+                  <div class="daily-with-lock-icon" aria-hidden="true">♡</div>
+                  <strong>今日のWITHを投稿すると見られるよ</strong>
+                  <p>先にあなたの今日を残すと、この投稿の写真・音楽・ひとことが見られます。</p>
+                  <button type="button" onclick="joinLockedDailyWith('${escapeHtml(lockedDay)}')">今日のWITHを投稿する</button>
+                </div>
+              </div>
+              <div class="daily-with-locked-footer">
+                <span>投稿すると自動でぼかしが外れます</span>
+                <time>${dateText} ${timeText}</time>
+              </div>
+            </article>`;
+          return index === 0 && dailyCard ? `${lockedPost}${dailyCard}` : lockedPost;
+        }
+
         const parsedMemo = parseSpotMusic(dailyMeta.memo);
         const musicCard = renderHomeSongCard(parsedMemo.music);
         const dailyClass = dailyMeta.prompt ? ' with-daily-post' : '';
@@ -3621,7 +3704,7 @@ html.withlog-dark .withlog-profile-crop-apply { background: #8066c7 !important; 
 
       wireHomeSongPlayers();
       // Populate comment counters without requiring users to open each comment panel.
-      void loadVisibleCommentCounts(spots);
+      void loadVisibleCommentCounts(spots.filter(s => !parseDailyWithMemo(s.memo).locked));
 
       if (window.location.hash && window.location.hash.startsWith('#spot-')) {
         const target = document.getElementById(window.location.hash.slice(1));

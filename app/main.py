@@ -262,6 +262,31 @@ def can_view_user_posts(author: Optional[User], viewer: Optional[User], db: Sess
         Follow.status == "accepted",
     ).first() is not None
 
+DAILY_WITH_RE = re.compile(r"\[\[WITH_DAILY:(\d{4}-\d{2}-\d{2}):[^\]]+\]\]")
+
+def _daily_with_day_from_memo(memo: Optional[str]) -> Optional[str]:
+    match = DAILY_WITH_RE.search(memo or "")
+    return match.group(1) if match else None
+
+def _viewer_has_daily_with_day(day_key: str, viewer: Optional[User], db: Session) -> bool:
+    if not viewer or not day_key:
+        return False
+    marker_prefix = f"[[WITH_DAILY:{day_key}:"
+    return db.query(Spot.id).filter(
+        Spot.user_id == viewer.id,
+        Spot.memo.isnot(None),
+        Spot.memo.like(f"%{marker_prefix}%"),
+        Spot.visited_at <= func.now(),
+    ).first() is not None
+
+def _daily_with_locked_for_viewer(spot: Spot, viewer: Optional[User], db: Session) -> bool:
+    day_key = _daily_with_day_from_memo(spot.memo)
+    if not day_key:
+        return False
+    if viewer and spot.user_id == viewer.id:
+        return False
+    return not _viewer_has_daily_with_day(day_key, viewer, db)
+
 def _spot_is_published(spot: Spot) -> bool:
     """Return True once the post's publication time has arrived."""
     if not spot.visited_at:
@@ -278,8 +303,14 @@ def can_view_spot(spot: Optional[Spot], viewer: Optional[User], db: Session) -> 
     # still access its media by direct authenticated URL while preparing it.
     if not _spot_is_published(spot):
         return bool(viewer and spot.user_id == viewer.id)
-    # Keep historical guest posts public; new posts always require authentication.
-    return spot.user_id is None or can_view_user_posts(spot.author, viewer, db)
+    # Keep historical guest posts public; new posts require normal profile access.
+    if spot.user_id is not None and not can_view_user_posts(spot.author, viewer, db):
+        return False
+    # TODAY'S WITH is reveal-after-post: another user's media/comments/likes stay
+    # inaccessible until the viewer has published their own TODAY'S WITH that day.
+    if _daily_with_locked_for_viewer(spot, viewer, db):
+        return False
+    return True
 
 def visible_spots_query(db: Session, viewer: Optional[User]):
     allowed = [Spot.user_id.is_(None), Spot.author.has(User.is_private.is_(False))]
@@ -1192,7 +1223,9 @@ async def create_spot(
                 relation.follower_id,
                 current_user.id,
                 "new_post",
-                f"@{current_user.username} さんが新しい思い出「{spot.name}」を投稿しました！",
+                (f"@{current_user.username} さんが今日のWITHを投稿しました！"
+                 if _daily_with_day_from_memo(spot.memo)
+                 else f"@{current_user.username} さんが新しい思い出「{spot.name}」を投稿しました！"),
             )
 
     db.commit()
@@ -1252,6 +1285,32 @@ def get_spots(
     results = []
 
     for spot in records:
+        daily_day = _daily_with_day_from_memo(spot.memo)
+        if daily_day and _daily_with_locked_for_viewer(spot, current_user, db):
+            # Return only enough metadata to render a blurred/locked placeholder.
+            # Never send the photo, caption, song, title, map coordinates or counts.
+            results.append(
+                SpotResponse(
+                    id=spot.id,
+                    user_id=spot.user_id,
+                    username=spot.author.username if spot.author else "guest",
+                    display_name=spot.author.display_name or spot.author.username if spot.author else "Guest",
+                    author_avatar_url=spot.author.avatar_url if spot.author else None,
+                    name="今日のWITH",
+                    memo=f"[[WITH_DAILY_LOCKED:{daily_day}]]",
+                    media_url=None,
+                    media_type=None,
+                    google_map_url=None,
+                    latitude=0.0,
+                    longitude=0.0,
+                    rating=None,
+                    visited_at=spot.visited_at,
+                    likes_count=0,
+                    is_liked=False,
+                )
+            )
+            continue
+
         pt = to_shape(spot.geom)
         likes_count = db.query(SpotLike).filter(SpotLike.spot_id == spot.id).count()
         is_liked = False
@@ -1300,6 +1359,11 @@ def get_my_liked_spots(
 
     results = []
     for spot in liked_rows:
+        # A previously-liked TODAY'S WITH must not become a back door around the
+        # reveal-after-post rule. Hide it until this viewer posts that day's WITH.
+        if _daily_with_locked_for_viewer(spot, current_user, db):
+            continue
+
         # Do not expose a private account's post after access has been lost.
         if spot.author and spot.author.id != current_user.id and getattr(spot.author, "is_private", False):
             can_view = db.query(Follow).filter(
