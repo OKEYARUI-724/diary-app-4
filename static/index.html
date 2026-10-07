@@ -3337,8 +3337,18 @@ html.withlog-dark .daily-with-locked-overlay p,html.withlog-dark .daily-with-loc
       '今日の「またやりたい！」は？','今日の気分を色で表すなら？','今日の一曲を選ぶなら？',
       '明日の自分に残したい一言は？','今日いちばん心に残った会話は？','今日の自分をほめるなら、どこ？'
     ];
-    function getLocalDayKey(date=new Date()){const y=date.getFullYear();const m=String(date.getMonth()+1).padStart(2,'0');const d=String(date.getDate()).padStart(2,'0');return `${y}-${m}-${d}`;}
-    function getDailyWithPrompt(dayKey=getLocalDayKey()){const seed=`${dayKey}:${currentUser?.username||'withlog'}`;let hash=2166136261;for(let i=0;i<seed.length;i+=1){hash^=seed.charCodeAt(i);hash=Math.imul(hash,16777619);}return DAILY_WITH_PROMPTS[Math.abs(hash)%DAILY_WITH_PROMPTS.length];}
+    function getLocalDayKey(date=new Date()){
+      const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date);
+      const values=Object.fromEntries(parts.filter(part=>part.type!=='literal').map(part=>[part.type,part.value]));
+      return `${values.year}-${values.month}-${values.day}`;
+    }
+    function getDailyWithPrompt(dayKey=getLocalDayKey()){
+      // The seed is the date only. Every user therefore receives exactly the same prompt for the whole JST day.
+      const seed=String(dayKey||getLocalDayKey());
+      let hash=2166136261;
+      for(let i=0;i<seed.length;i+=1){hash^=seed.charCodeAt(i);hash=Math.imul(hash,16777619);}
+      return DAILY_WITH_PROMPTS[Math.abs(hash)%DAILY_WITH_PROMPTS.length];
+    }
     function parseDailyWithMemo(memoValue){
       const raw=String(memoValue||'');
       const lockedMarker=/\[\[WITH_DAILY_LOCKED:(\d{4}-\d{2}-\d{2})\]\]/;
@@ -3603,11 +3613,14 @@ html.withlog-dark .daily-with-locked-overlay p,html.withlog-dark .daily-with-loc
 
         const parsedMemo = parseSpotMusic(dailyMeta.memo);
         const musicCard = renderHomeSongCard(parsedMemo.music);
-        const dailyClass = dailyMeta.prompt ? ' with-daily-post' : '';
-        const dailyBanner = dailyMeta.prompt ? `
+        // Always render the canonical prompt for that day. This also fixes older posts
+        // that were saved while prompts still depended on the username.
+        const canonicalDailyPrompt = dailyMeta.day ? getDailyWithPrompt(dailyMeta.day) : dailyMeta.prompt;
+        const dailyClass = dailyMeta.day ? ' with-daily-post' : '';
+        const dailyBanner = dailyMeta.day ? `
           <div class="daily-with-post-banner">
             <span class="label">● TODAY'S WITH · ${escapeHtml((dailyMeta.day || '').replaceAll('-', '.'))}</span>
-            <strong>${escapeHtml(dailyMeta.prompt)}</strong>
+            <strong>${escapeHtml(canonicalDailyPrompt || '')}</strong>
           </div>` : '';
 
         const postHtml = `

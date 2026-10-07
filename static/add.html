@@ -1386,8 +1386,33 @@ updateScheduleUi();
 const dailyWithComposer=document.getElementById("dailyWithComposer");
 const dailyWithComposerQuestion=document.getElementById("dailyWithComposerQuestion");
 const dailyWithParams=new URLSearchParams(window.location.search);
-const activeDailyPrompt=(dailyWithParams.get("with_prompt")||"").trim();
-const activeDailyDay=(dailyWithParams.get("with_day")||"").trim();
+const DAILY_WITH_PROMPTS=[
+  '今日いちばん笑ったことは？','今日食べたもので一番おいしかったものは？','今日見つけた小さな幸せは？',
+  '今の気分を写真1枚で表すなら？','今日いちばん頑張ったことは？','今日の空はどんな色？',
+  '今日、誰かに「ありがとう」と思ったことは？','今日のベストショットは？','今日いちばん落ち着いた瞬間は？',
+  '今日の自分にひとこと！','今日買ってよかったものは？','今日の服でお気に入りのポイントは？',
+  '今日いちばん印象に残った場所は？','今日のごほうびは？','今日いちばん驚いたことは？',
+  '今、目の前にある好きなものは？','今日の夜に残したい景色は？','今日初めて知ったことは？',
+  '今日の「またやりたい！」は？','今日の気分を色で表すなら？','今日の一曲を選ぶなら？',
+  '明日の自分に残したい一言は？','今日いちばん心に残った会話は？','今日の自分をほめるなら、どこ？'
+];
+function getTokyoDayKey(date=new Date()){
+  const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date);
+  const values=Object.fromEntries(parts.filter(part=>part.type!=='literal').map(part=>[part.type,part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+function getDailyWithPrompt(dayKey=getTokyoDayKey()){
+  const seed=String(dayKey||getTokyoDayKey());
+  let hash=2166136261;
+  for(let i=0;i<seed.length;i+=1){hash^=seed.charCodeAt(i);hash=Math.imul(hash,16777619);}
+  return DAILY_WITH_PROMPTS[Math.abs(hash)%DAILY_WITH_PROMPTS.length];
+}
+const requestedDailyDay=(dailyWithParams.get("with_day")||"").trim();
+const activeDailyDay=/^\d{4}-\d{2}-\d{2}$/.test(requestedDailyDay)?requestedDailyDay:getTokyoDayKey();
+const isDailyWithMode=dailyWithParams.has("with_prompt")||dailyWithParams.has("with_day");
+// Ignore the prompt text in the URL and calculate it from the date only.
+// This prevents the prompt changing between users or after returning from a post.
+const activeDailyPrompt=isDailyWithMode?getDailyWithPrompt(activeDailyDay):"";
 function initDailyWithComposer(){
   if(!activeDailyPrompt)return;
   dailyWithComposerQuestion.textContent=activeDailyPrompt;
@@ -1926,8 +1951,9 @@ postForm.addEventListener("submit", async (event) => {
       finalMemo = `${finalMemo}${musicLine}`.trim();
     }
     if (activeDailyPrompt) {
-      const day = /^\d{4}-\d{2}-\d{2}$/.test(activeDailyDay) ? activeDailyDay : new Date().toISOString().slice(0,10);
-      const dailyMarker = `[[WITH_DAILY:${day}:${encodeURIComponent(activeDailyPrompt)}]]`;
+      const day = /^\d{4}-\d{2}-\d{2}$/.test(activeDailyDay) ? activeDailyDay : getTokyoDayKey();
+      const canonicalPrompt = getDailyWithPrompt(day);
+      const dailyMarker = `[[WITH_DAILY:${day}:${encodeURIComponent(canonicalPrompt)}]]`;
       finalMemo = `${finalMemo}${finalMemo ? "\n\n" : ""}${dailyMarker}`.trim();
     }
     formData.append("memo", finalMemo);
