@@ -3870,13 +3870,29 @@ html.withlog-dark .daily-with-locked-overlay p,html.withlog-dark .daily-with-loc
       window.setTimeout(() => frame.classList.remove('is-double-liked'), 760);
     }
 
+    // Some mobile browsers fire both pointer events and a synthetic dblclick for the
+    // same double tap. Without a guard, /like is called twice (LIKE -> UNLIKE).
+    const doubleLikePendingSpots = new Set();
+    const doubleLikeLastActionAt = new Map();
+
     async function likeSpotFromMedia(frame) {
       const spotId = frame?.dataset?.doubleLikeSpot;
       if (!spotId) return;
+
+      const now = Date.now();
+      const lastActionAt = Number(doubleLikeLastActionAt.get(spotId) || 0);
+      if (now - lastActionAt < 900) return;
+      doubleLikeLastActionAt.set(spotId, now);
+
       playDoubleLikeMotion(frame);
 
       const token = getToken();
-      if (!token || isSpotVisuallyLiked(spotId)) return;
+      if (!token || isSpotVisuallyLiked(spotId) || doubleLikePendingSpots.has(spotId)) return;
+
+      // Mark it liked immediately so a browser-generated duplicate event cannot
+      // toggle the same post back off while the first request is still in flight.
+      doubleLikePendingSpots.add(spotId);
+      setSpotLikeVisualState(spotId, true);
 
       try {
         const res = await fetch(`/spots/${spotId}/like`, {
@@ -3884,11 +3900,20 @@ html.withlog-dark .daily-with-locked-overlay p,html.withlog-dark .daily-with-loc
           headers: { 'Authorization': `Bearer ${token}` },
           cache: 'no-store'
         });
-        if (!res.ok) return;
+
+        if (!res.ok) {
+          setSpotLikeVisualState(spotId, false);
+          return;
+        }
+
         const data = await res.json();
         setLikeCount(spotId, data.likes_count, {animate:true});
         setSpotLikeVisualState(spotId, Boolean(data.liked));
-      } catch (_) {}
+      } catch (_) {
+        setSpotLikeVisualState(spotId, false);
+      } finally {
+        window.setTimeout(() => doubleLikePendingSpots.delete(spotId), 950);
+      }
     }
 
     let doubleLikeTouchFrame = null;
