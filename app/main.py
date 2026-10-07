@@ -1412,7 +1412,6 @@ def get_spot_comments(
     """), {"spot_id": spot_id}).scalar() or 0
 
     viewer_id = current_user.id if current_user else None
-    owner_id = spot.user_id
     comments = []
     for row in rows:
         comments.append({
@@ -1423,7 +1422,7 @@ def get_spot_comments(
             "avatar_url": row["avatar_url"],
             "content": row["content"],
             "created_at": row["created_at"].isoformat() if row["created_at"] else None,
-            "can_delete": bool(viewer_id and (viewer_id == row["user_id"] or viewer_id == owner_id)),
+            "can_delete": bool(viewer_id and viewer_id == row["user_id"]),
         })
 
     return {"comments": comments, "count": int(count)}
@@ -1523,8 +1522,8 @@ async def delete_spot_comment(
     if not spot:
         raise HTTPException(status_code=404, detail="投稿が見つかりません")
 
-    if current_user.id != row["user_id"] and current_user.id != spot.user_id:
-        raise HTTPException(status_code=403, detail="このコメントは削除できません")
+    if current_user.id != row["user_id"]:
+        raise HTTPException(status_code=403, detail="コメントした本人だけが削除できます")
 
     db.execute(text("DELETE FROM spot_comments WHERE id = :comment_id"), {"comment_id": comment_id})
     db.commit()
