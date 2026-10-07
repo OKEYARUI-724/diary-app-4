@@ -1321,7 +1321,7 @@ def get_spot_comments(
 
 
 @app.post("/spots/{spot_id}/comments")
-def create_spot_comment(
+async def create_spot_comment(
     spot_id: uuid.UUID,
     payload: CommentCreate,
     current_user: User = Depends(require_current_user),
@@ -1365,6 +1365,21 @@ def create_spot_comment(
         text("SELECT COUNT(*) FROM spot_comments WHERE spot_id = :spot_id"),
         {"spot_id": spot.id},
     ).scalar() or 0
+
+    # Push the new count immediately to every currently connected user who is
+    # allowed to see this post. The browser uses this for the feed badge even
+    # when the comment panel itself is closed.
+    await manager.send_spot_event(
+        {
+            "event": "comment_created",
+            "spot_id": str(spot.id),
+            "comment_id": str(comment_id),
+            "count": int(count),
+        },
+        spot,
+        db,
+    )
+
     return {
         "comment": {
             "id": str(comment_id),
@@ -1381,7 +1396,7 @@ def create_spot_comment(
 
 
 @app.delete("/comments/{comment_id}")
-def delete_spot_comment(
+async def delete_spot_comment(
     comment_id: uuid.UUID,
     current_user: User = Depends(require_current_user),
     db: Session = Depends(get_db),
@@ -1408,6 +1423,18 @@ def delete_spot_comment(
         text("SELECT COUNT(*) FROM spot_comments WHERE spot_id = :spot_id"),
         {"spot_id": spot.id},
     ).scalar() or 0
+
+    await manager.send_spot_event(
+        {
+            "event": "comment_deleted",
+            "spot_id": str(spot.id),
+            "comment_id": str(comment_id),
+            "count": int(count),
+        },
+        spot,
+        db,
+    )
+
     return {"status": "deleted", "count": int(count)}
 
 
@@ -1516,6 +1543,18 @@ class ConnectionManager:
                 stale.append(websocket)
         for websocket in stale:
             self.disconnect(recipient_username, websocket)
+
+    async def send_spot_event(self, message: dict, spot: Spot, db: Session):
+        """Send a realtime post event only to connected users who may view it."""
+        connected_usernames = list(self.active_connections.keys())
+        for username in connected_usernames:
+            try:
+                viewer = find_user_by_username_exact_ci(db, username)
+                if viewer and can_view_spot(spot, viewer, db):
+                    await self.send_personal_message(message, viewer.username)
+            except Exception:
+                # A stale websocket/user must never make comment creation fail.
+                continue
 
 
 manager = ConnectionManager()

@@ -1423,6 +1423,13 @@ html.withlog-dark .withlog-delete-confirm { background:#a94663; color:#fff; }
 .withlog-post-actions-left{display:inline-flex;align-items:center;gap:8px}
 .withlog-comment-toggle{min-height:46px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 14px;border:0;border-radius:9999px;background:#f4f0f8;color:#6c6078;font-size:11px;font-weight:900;line-height:1}
 .withlog-comment-toggle svg{width:20px;height:20px}.withlog-comment-count:empty{display:none}
+.withlog-comment-toggle{transform-origin:center;transition:background-color .22s ease,color .22s ease,transform .22s ease}
+.withlog-comment-count{display:inline-block;min-width:.65em;transform-origin:center;will-change:transform,opacity}
+.withlog-comment-toggle.is-live-updated{animation:withlogCommentButtonPulse .52s cubic-bezier(.2,.8,.2,1)}
+.withlog-comment-count.is-live-updated{animation:withlogCommentCountPop .52s cubic-bezier(.2,.8,.2,1)}
+@keyframes withlogCommentButtonPulse{0%{transform:scale(1)}38%{transform:scale(1.055);background:#eee4f8;color:#735b89}100%{transform:scale(1)}}
+@keyframes withlogCommentCountPop{0%{transform:scale(.72);opacity:.45}45%{transform:scale(1.32);opacity:1}100%{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){.withlog-comment-toggle.is-live-updated,.withlog-comment-count.is-live-updated{animation:none!important}}
 .withlog-comments-panel{margin-top:14px;padding-top:13px;border-top:1px solid #ece6ee}
 .withlog-comments-list{display:flex;flex-direction:column;gap:10px;max-height:280px;overflow-y:auto;padding-right:2px}
 .withlog-comment-empty{padding:17px 12px;border:1px dashed #ddd3e3;border-radius:16px;background:#fbf8fc;color:#9b919f;text-align:center;font-size:10px;line-height:1.6}
@@ -1433,7 +1440,7 @@ html.withlog-dark .withlog-delete-confirm { background:#a94663; color:#fff; }
 .withlog-comment-delete{padding:4px 6px;border:0;background:transparent;color:#b49aa4;font-size:9px;font-weight:800}
 .withlog-comment-form{display:flex;align-items:center;gap:8px;margin-top:12px}.withlog-comment-input{min-width:0;flex:1;height:40px;padding:0 13px;border:1px solid #e1d9e6!important;border-radius:9999px!important;background:#fbf8fc!important;color:#4f4654!important;font-size:11px!important;outline:none}.withlog-comment-input:focus{border-color:#b7a5c7!important}
 .withlog-comment-submit{height:40px;padding:0 14px;border:0;border-radius:9999px;background:linear-gradient(135deg,#b9a5ca,#c9a7b5);color:#fff;font-size:10px;font-weight:900}.withlog-comment-submit:disabled{opacity:.55;cursor:wait}.withlog-comment-status{min-height:14px;margin-top:6px;color:#9a8e9e;font-size:9px}
-html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;border:1px solid #55565f}html.withlog-dark .withlog-comments-panel{border-top-color:#4c4d56}html.withlog-dark .withlog-comment-empty{background:#34353b;border-color:#55565f;color:#aaa4b2}html.withlog-dark .withlog-comment-avatar{background-color:#4a4551;color:#f1edf3}html.withlog-dark .withlog-comment-name{color:#f4f0f5}html.withlog-dark .withlog-comment-name span{color:#9d96a3}html.withlog-dark .withlog-comment-text{color:#c9c2cd}html.withlog-dark .withlog-comment-time{color:#8f8994}html.withlog-dark .withlog-comment-delete{color:#d3a9b8}html.withlog-dark .withlog-comment-input{background:#34353b!important;border-color:#55565f!important;color:#f3eef5!important}html.withlog-dark .withlog-comment-status{color:#aaa4b2}
+html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;border:1px solid #55565f}html.withlog-dark .withlog-comment-toggle.is-live-updated{animation-name:withlogCommentButtonPulseDark}@keyframes withlogCommentButtonPulseDark{0%{transform:scale(1)}38%{transform:scale(1.055);background:#514661;color:#f7efff}100%{transform:scale(1)}}html.withlog-dark .withlog-comments-panel{border-top-color:#4c4d56}html.withlog-dark .withlog-comment-empty{background:#34353b;border-color:#55565f;color:#aaa4b2}html.withlog-dark .withlog-comment-avatar{background-color:#4a4551;color:#f1edf3}html.withlog-dark .withlog-comment-name{color:#f4f0f5}html.withlog-dark .withlog-comment-name span{color:#9d96a3}html.withlog-dark .withlog-comment-text{color:#c9c2cd}html.withlog-dark .withlog-comment-time{color:#8f8994}html.withlog-dark .withlog-comment-delete{color:#d3a9b8}html.withlog-dark .withlog-comment-input{background:#34353b!important;border-color:#55565f!important;color:#f3eef5!important}html.withlog-dark .withlog-comment-status{color:#aaa4b2}
 @media(max-width:420px){.withlog-comment-toggle{padding:10px 11px}.withlog-comment-toggle .withlog-comment-label{display:none}}
 </style>
 
@@ -3703,10 +3710,28 @@ html.withlog-dark .withlog-profile-crop-apply { background: #8066c7 !important; 
       }, 900);
     }
 
-    function setCommentCount(spotId, count) {
+    function animateCommentCount(el) {
+      if (!el) return;
+      const button = el.closest('.withlog-comment-toggle');
+      el.classList.remove('is-live-updated');
+      if (button) button.classList.remove('is-live-updated');
+      // Force a reflow so rapid consecutive comments replay the motion cleanly.
+      void el.offsetWidth;
+      el.classList.add('is-live-updated');
+      if (button) button.classList.add('is-live-updated');
+      window.setTimeout(() => {
+        el.classList.remove('is-live-updated');
+        if (button) button.classList.remove('is-live-updated');
+      }, 560);
+    }
+
+    function setCommentCount(spotId, count, {animate = false} = {}) {
       document.querySelectorAll(`[data-comment-count="${spotId}"]`).forEach(el => {
         const value = Math.max(0, Number(count) || 0);
+        const before = Math.max(0, Number(el.dataset.commentCountValue || el.textContent || 0) || 0);
+        el.dataset.commentCountValue = String(value);
         el.textContent = value > 0 ? String(value) : '';
+        if (animate && before !== value) animateCommentCount(el);
       });
     }
 
@@ -3747,7 +3772,7 @@ html.withlog-dark .withlog-profile-crop-apply { background: #8066c7 !important; 
     }
 
     function showPostedCommentImmediately(spotId, comment, count) {
-      setCommentCount(spotId, count);
+      setCommentCount(spotId, count, {animate:true});
       const panel = document.getElementById(`comments-${spotId}`);
       const list = panel?.querySelector(`[data-comments-list="${spotId}"]`);
       if (!panel || !list || !comment) return;
@@ -3894,7 +3919,7 @@ html.withlog-dark .withlog-profile-crop-apply { background: #8066c7 !important; 
 
         const item = button.closest('[data-comment-id]');
         if (item) item.remove();
-        setCommentCount(spotId, data.count || 0);
+        setCommentCount(spotId, data.count || 0, {animate:true});
         const panel = document.getElementById(`comments-${spotId}`);
         const list = panel?.querySelector(`[data-comments-list="${spotId}"]`);
         if (list && !list.querySelector('[data-comment-id]')) {
@@ -4742,7 +4767,7 @@ html.withlog-dark .withlog-profile-crop-apply { background: #8066c7 !important; 
         if ((payload.event === 'comment_created' || payload.event === 'comment_deleted') && payload.spot_id) {
           const spotId = String(payload.spot_id);
           nextCommentGeneration(spotId);
-          setCommentCount(spotId, payload.count || 0);
+          setCommentCount(spotId, payload.count || 0, {animate:true});
 
           if (payload.event === 'comment_deleted' && payload.comment_id) {
             const panel = document.getElementById(`comments-${spotId}`);
