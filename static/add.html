@@ -969,12 +969,44 @@ html.withlog-dark .daily-with-composer p{color:#c5becb}
 @media(max-width:560px){.daily-with-composer{padding:16px;border-radius:24px}.daily-with-composer strong{font-size:15px}}
 </style>
 
-<style id="withlog-crop-neutral-padding-fix">
-/* The empty area inside a 4:5 crop uses a neutral photo-mat color. */
-.crop-stage { background: #d5d5d2 !important; }
-.crop-stage .cropper-bg { background-image: none !important; background-color: #d5d5d2 !important; }
-html.withlog-dark .crop-stage,
-html.withlog-dark .crop-stage .cropper-bg { background-color: #1f2024 !important; }
+<style id="withlog-full-page-background-fix">
+/* Keep the posting-page background visible from the very top to the very bottom. */
+html {
+  min-height: 100%;
+  background:
+    radial-gradient(circle at 8% 8%, rgba(234,223,255,.9) 0, rgba(234,223,255,0) 28%),
+    radial-gradient(circle at 92% 20%, rgba(191,232,210,.8) 0, rgba(191,232,210,0) 30%),
+    radial-gradient(circle at 76% 90%, rgba(255,184,208,.5) 0, rgba(255,184,208,0) 28%),
+    #fff8f4 !important;
+  background-attachment: fixed !important;
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+}
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0 !important;
+  background: transparent !important;
+}
+/* Use padding instead of vertical margins so no collapsed margin can reveal the root fallback color. */
+.shell {
+  margin: 0 auto !important;
+  padding-top: 44px;
+  padding-bottom: 86px;
+}
+html.withlog-dark {
+  background: #202126 !important;
+}
+html.withlog-dark body {
+  background: transparent !important;
+}
+@media (max-width: 560px) {
+  .shell {
+    margin: 0 auto !important;
+    padding-top: 14px;
+    padding-bottom: 55px;
+  }
+}
 </style>
 
 </head>
@@ -1412,7 +1444,7 @@ useCurrentLocationButton.addEventListener("click", () => {
 initTravelMap();
 
 function getCropBackgroundColor() {
-  return document.documentElement.classList.contains("withlog-dark") ? "#1f2024" : "#d5d5d2";
+  return document.documentElement.classList.contains("withlog-dark") ? "#38393f" : "#f2eee9";
 }
 
 function setCropMode(mode) {
