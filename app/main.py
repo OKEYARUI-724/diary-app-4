@@ -198,6 +198,16 @@ def migrate_social_features():
                 CREATE INDEX IF NOT EXISTS idx_spot_comments_user
                 ON spot_comments(user_id);
             """))
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS user_profile_media (
+                    user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+                    avatar_content BYTEA,
+                    avatar_content_type VARCHAR(100),
+                    cover_content BYTEA,
+                    cover_content_type VARCHAR(100),
+                    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+                );
+            """))
     except Exception as exc:
         print(f"[DB Migration Note] {exc}")
 
@@ -633,6 +643,81 @@ def get_user_profile(
     return build_extended_profile(user, current_user, db)
 
 
+PROFILE_IMAGE_TYPES = {
+    "image/jpeg", "image/png", "image/webp", "image/gif", "image/avif",
+}
+PROFILE_IMAGE_MAX_BYTES = 10 * 1024 * 1024
+
+
+def ensure_profile_media_table(db: Session):
+    # Keep profile media in PostgreSQL so Render deploys/restarts cannot erase it.
+    db.execute(text("""
+        CREATE TABLE IF NOT EXISTS user_profile_media (
+            user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+            avatar_content BYTEA,
+            avatar_content_type VARCHAR(100),
+            cover_content BYTEA,
+            cover_content_type VARCHAR(100),
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+    """))
+
+
+async def read_profile_image(upload: UploadFile, label: str):
+    content_type = (upload.content_type or "").lower().strip()
+    if content_type not in PROFILE_IMAGE_TYPES:
+        raise HTTPException(status_code=400, detail=f"{label}はJPEG・PNG・WebP・GIF・AVIF画像を選択してください")
+    data = await upload.read(PROFILE_IMAGE_MAX_BYTES + 1)
+    if not data:
+        raise HTTPException(status_code=400, detail=f"{label}の画像データが空です")
+    if len(data) > PROFILE_IMAGE_MAX_BYTES:
+        raise HTTPException(status_code=400, detail=f"{label}は10MB以下の画像を選択してください")
+    return data, content_type
+
+
+@app.get("/profile-media/{username}/{kind}")
+def get_profile_media(
+    username: str,
+    kind: str,
+    db: Session = Depends(get_db),
+):
+    if kind not in {"avatar", "cover"}:
+        raise HTTPException(status_code=404, detail="Profile image not found")
+
+    user = find_user_by_username_exact_ci(db, username.strip())
+    if not user:
+        raise HTTPException(status_code=404, detail="Profile image not found")
+
+    ensure_profile_media_table(db)
+    if kind == "avatar":
+        row = db.execute(text("""
+            SELECT avatar_content AS content, avatar_content_type AS content_type
+            FROM user_profile_media
+            WHERE user_id = :user_id
+        """), {"user_id": user.id}).mappings().first()
+    else:
+        row = db.execute(text("""
+            SELECT cover_content AS content, cover_content_type AS content_type
+            FROM user_profile_media
+            WHERE user_id = :user_id
+        """), {"user_id": user.id}).mappings().first()
+
+    if not row or row["content"] is None:
+        raise HTTPException(status_code=404, detail="Profile image not found")
+
+    content_type = (row["content_type"] or "application/octet-stream").lower()
+    if content_type not in PROFILE_IMAGE_TYPES:
+        content_type = "application/octet-stream"
+    return Response(
+        content=bytes(row["content"]),
+        media_type=content_type,
+        headers={
+            "Cache-Control": "public, max-age=31536000, immutable",
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
+
+
 @app.post("/users/profile", response_model=UserProfile)
 async def update_profile(
     display_name: Optional[str] = Form(None),
@@ -647,21 +732,40 @@ async def update_profile(
     if bio is not None:
         current_user.bio = bio.strip()
 
+    ensure_profile_media_table(db)
+    version = str(int(time.time() * 1000))
+
     if avatar and avatar.filename:
-        ext = os.path.splitext(avatar.filename)[1].lower()
-        avatar_name = f"avatar_{current_user.id}_{uuid.uuid4()}{ext}"
-        path = os.path.join(upload_dir, avatar_name)
-        with open(path, "wb") as buf:
-            shutil.copyfileobj(avatar.file, buf)
-        current_user.avatar_url = f"/static/uploads/{avatar_name}"
+        avatar_data, avatar_type = await read_profile_image(avatar, "アイコン")
+        db.execute(text("""
+            INSERT INTO user_profile_media (user_id, avatar_content, avatar_content_type, updated_at)
+            VALUES (:user_id, :content, :content_type, CURRENT_TIMESTAMP)
+            ON CONFLICT (user_id) DO UPDATE SET
+                avatar_content = EXCLUDED.avatar_content,
+                avatar_content_type = EXCLUDED.avatar_content_type,
+                updated_at = CURRENT_TIMESTAMP
+        """), {
+            "user_id": current_user.id,
+            "content": avatar_data,
+            "content_type": avatar_type,
+        })
+        current_user.avatar_url = f"/profile-media/{current_user.username}/avatar?v={version}"
 
     if cover and cover.filename:
-        ext = os.path.splitext(cover.filename)[1].lower()
-        cover_name = f"cover_{current_user.id}_{uuid.uuid4()}{ext}"
-        path = os.path.join(upload_dir, cover_name)
-        with open(path, "wb") as buf:
-            shutil.copyfileobj(cover.file, buf)
-        current_user.cover_url = f"/static/uploads/{cover_name}"
+        cover_data, cover_type = await read_profile_image(cover, "背景画像")
+        db.execute(text("""
+            INSERT INTO user_profile_media (user_id, cover_content, cover_content_type, updated_at)
+            VALUES (:user_id, :content, :content_type, CURRENT_TIMESTAMP)
+            ON CONFLICT (user_id) DO UPDATE SET
+                cover_content = EXCLUDED.cover_content,
+                cover_content_type = EXCLUDED.cover_content_type,
+                updated_at = CURRENT_TIMESTAMP
+        """), {
+            "user_id": current_user.id,
+            "content": cover_data,
+            "content_type": cover_type,
+        })
+        current_user.cover_url = f"/profile-media/{current_user.username}/cover?v={version}"
 
     db.commit()
     db.refresh(current_user)
