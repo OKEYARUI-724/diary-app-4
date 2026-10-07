@@ -1571,6 +1571,104 @@ html.withlog-dark .tl-post-card .post-media-frame > video {
 }
 </style>
 
+
+
+<style id="withlog-profile-file-picker-style">
+/* Profile image pickers: match WITHLOG's soft, rounded UI instead of the browser default control. */
+.withlog-profile-file-field { margin-top: 2px; }
+.withlog-profile-file-control {
+  width: 100%;
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 1px solid rgba(120, 102, 151, .10);
+  border-radius: 20px;
+  background: linear-gradient(135deg, #f7f1fb, #f5f0f8 55%, #f7f3f0);
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: background .16s ease, border-color .16s ease, transform .16s ease;
+}
+.withlog-profile-file-control:hover {
+  background: linear-gradient(135deg, #f2e9fb, #f0ebf7 55%, #f6efed);
+  border-color: rgba(120, 102, 151, .18);
+}
+.withlog-profile-file-control:active { transform: scale(.995); }
+.withlog-profile-file-control:focus-within {
+  outline: 3px solid rgba(128, 102, 199, .14);
+  outline-offset: 1px;
+}
+.withlog-profile-file-icon {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  background: #e9dfff;
+  color: #7663a2;
+}
+.withlog-profile-file-icon svg { width: 19px; height: 19px; }
+.withlog-profile-file-copy {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.withlog-profile-file-title {
+  color: #4b4254;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+.withlog-profile-file-name {
+  color: #948b9d;
+  font-size: 9px;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.withlog-profile-file-action {
+  flex: none;
+  padding: 7px 11px;
+  border-radius: 9999px;
+  background: #ded2f4;
+  color: #645183;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .06em;
+}
+.withlog-profile-file-input {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+html.withlog-dark .withlog-profile-file-control {
+  background: #35343b;
+  border-color: rgba(222, 211, 238, .10);
+}
+html.withlog-dark .withlog-profile-file-control:hover { background: #3b3942; }
+html.withlog-dark .withlog-profile-file-icon {
+  background: #4a4359;
+  color: #d7c7f6;
+}
+html.withlog-dark .withlog-profile-file-title { color: #f0ebf3; }
+html.withlog-dark .withlog-profile-file-name { color: #aaa1b2; }
+html.withlog-dark .withlog-profile-file-action {
+  background: #574c6d;
+  color: #eadfff;
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -2010,13 +2108,33 @@ html.withlog-dark .tl-post-card .post-media-frame > video {
 
           <button type="button" class="withlog-settings-link" onclick="closeEditProfileModal(); openAdvancedSettingsModal();">公開範囲は「詳細設定」で変更 <span aria-hidden="true">›</span></button>
 
-          <div>
-            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Avatar Image (アイコン)</label>
-            <input type="file" name="avatar" accept="image/*" class="w-full text-xs text-slate-600">
+          <div class="withlog-profile-file-field">
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Avatar Image (アイコン)</label>
+            <label class="withlog-profile-file-control" for="editAvatarFile">
+              <span class="withlog-profile-file-icon" aria-hidden="true">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2 1.586-1.586a2 2 0 012.828 0L20 14m-9-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              </span>
+              <span class="withlog-profile-file-copy">
+                <span class="withlog-profile-file-title">アイコン画像を選択</span>
+                <span id="editAvatarFileName" class="withlog-profile-file-name">ファイルが選択されていません</span>
+              </span>
+              <span class="withlog-profile-file-action">選択</span>
+            </label>
+            <input id="editAvatarFile" type="file" name="avatar" accept="image/*" class="withlog-profile-file-input">
           </div>
-          <div>
-            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Cover Image (背景画像)</label>
-            <input type="file" name="cover" accept="image/*" class="w-full text-xs text-slate-600">
+          <div class="withlog-profile-file-field">
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Cover Image (背景画像)</label>
+            <label class="withlog-profile-file-control" for="editCoverFile">
+              <span class="withlog-profile-file-icon" aria-hidden="true">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2 1.586-1.586a2 2 0 012.828 0L20 14m-9-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              </span>
+              <span class="withlog-profile-file-copy">
+                <span class="withlog-profile-file-title">背景画像を選択</span>
+                <span id="editCoverFileName" class="withlog-profile-file-name">ファイルが選択されていません</span>
+              </span>
+              <span class="withlog-profile-file-action">選択</span>
+            </label>
+            <input id="editCoverFile" type="file" name="cover" accept="image/*" class="withlog-profile-file-input">
           </div>
 
           <button type="submit" class="w-full navy-btn font-bold py-2.5 rounded-xl text-xs tracking-wider uppercase mt-3">Save Changes</button>
@@ -3981,10 +4099,31 @@ html.withlog-dark .tl-post-card .post-media-frame > video {
     };
 
     // --- プロフィール編集 ---
+    function updateProfileFileName(inputId, labelId) {
+      const input = document.getElementById(inputId);
+      const label = document.getElementById(labelId);
+      if (!input || !label) return;
+      const file = input.files && input.files[0];
+      label.textContent = file ? file.name : 'ファイルが選択されていません';
+    }
+
+    document.getElementById('editAvatarFile')?.addEventListener('change', () => {
+      updateProfileFileName('editAvatarFile', 'editAvatarFileName');
+    });
+    document.getElementById('editCoverFile')?.addEventListener('change', () => {
+      updateProfileFileName('editCoverFile', 'editCoverFileName');
+    });
+
     window.openEditProfile = async function() {
       closeProfileModal();
       document.getElementById('editDisplayName').value = currentUser.display_name || '';
       document.getElementById('editBio').value = currentUser.bio || '';
+      const avatarFile = document.getElementById('editAvatarFile');
+      const coverFile = document.getElementById('editCoverFile');
+      if (avatarFile) avatarFile.value = '';
+      if (coverFile) coverFile.value = '';
+      updateProfileFileName('editAvatarFile', 'editAvatarFileName');
+      updateProfileFileName('editCoverFile', 'editCoverFileName');
       document.getElementById('editProfileModal').classList.remove('hidden');
     };
 
