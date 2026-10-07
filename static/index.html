@@ -919,6 +919,7 @@ html.withlog-dark #dmModal button[onclick="closeDmModal()"] {
 .post-action-item svg { width: 16px; height: 16px; flex: 0 0 auto; }
 .post-action-item.is-map { color: #46755d !important; }
 .post-action-item.is-share { color: #665590 !important; }
+.post-action-item.is-save { color: #4e6f91 !important; }
 .post-action-item.is-delete { color: #b85f74 !important; }
 html.withlog-dark .post-action-btn { background: #44404f !important; color: #e0d5ff !important; }
 html.withlog-dark .post-action-menu {
@@ -928,6 +929,7 @@ html.withlog-dark .post-action-item { color: #eee9f1 !important; }
 html.withlog-dark .post-action-item:hover { background: #404149 !important; }
 html.withlog-dark .post-action-item.is-map { color: #addbc0 !important; }
 html.withlog-dark .post-action-item.is-share { color: #d6c8ff !important; }
+html.withlog-dark .post-action-item.is-save { color: #b9d7f5 !important; }
 html.withlog-dark .post-action-item.is-delete { color: #f1a8ba !important; }
 @media (max-width: 560px) {
   .post-action-btn { width: 38px; height: 38px; }
@@ -3504,7 +3506,9 @@ html.withlog-dark .withlog-profile-crop-apply { background: #8066c7 !important; 
           id: String(s.id),
           name: s.name || 'WITHLOGの投稿',
           username: s.username || '',
-          mapUrl: s.google_map_url || ''
+          mapUrl: s.google_map_url || '',
+          mediaUrl: s.media_url || '',
+          mediaType: s.media_type || ''
         });
       });
 
@@ -3554,6 +3558,12 @@ html.withlog-dark .withlog-profile-crop-apply { background: #8066c7 !important; 
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8.5 12.5l7-4m-7 3l7 4M6 14.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5zm12-6a2.5 2.5 0 110-5 2.5 2.5 0 010 5zm0 12a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
                     <span>共有リンク</span>
                   </button>
+                  ${s.media_url && s.media_type !== 'video' ? `
+                    <button type="button" class="post-action-item is-save" onclick="saveSpotPhoto('${s.id}')">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v2a2 2 0 002 2h10a2 2 0 002-2v-2"/></svg>
+                      <span>写真を保存</span>
+                    </button>
+                  ` : ''}
                   ${currentUser && currentUser.username === s.username ? `
                     <button type="button" class="post-action-item is-delete" onclick="deleteSpotFromMenu('${s.id}')">
                       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 7h16m-10 4v6m4-6v6m1-10V4H9v3m-2 0 1 14h8l1-14"/></svg>
@@ -5004,6 +5014,65 @@ html.withlog-dark .withlog-profile-crop-apply { background: #8066c7 !important; 
         } catch (_) {
           prompt('このリンクをコピーしてください。', shareUrl.toString());
         }
+      }
+    };
+
+    function safeDownloadBaseName(value) {
+      const cleaned = String(value || 'WITHLOG_photo')
+        .replace(/[\\/:*?"<>|]/g, '_')
+        .replace(/\s+/g, ' ')
+        .trim();
+      return (cleaned || 'WITHLOG_photo').slice(0, 80);
+    }
+
+    function imageExtensionFromType(type) {
+      const normalized = String(type || '').toLowerCase().split(';')[0].trim();
+      return ({
+        'image/jpeg': 'jpg',
+        'image/png': 'png',
+        'image/webp': 'webp',
+        'image/gif': 'gif',
+        'image/avif': 'avif'
+      })[normalized] || 'jpg';
+    }
+
+    window.saveSpotPhoto = async function(spotId) {
+      closeAllPostMenus();
+      const data = spotMenuData.get(String(spotId));
+      if (!data || !data.mediaUrl || data.mediaType === 'video') {
+        alert('この投稿には保存できる写真がありません。');
+        return;
+      }
+
+      try {
+        // Refresh the protected-media cookie first so private/self posts can also
+        // be downloaded by viewers who already have permission to see them.
+        await ensureMediaSession();
+
+        const response = await fetch(data.mediaUrl, {
+          credentials: 'same-origin',
+          cache: 'no-store'
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const blob = await response.blob();
+        if (!String(blob.type || '').toLowerCase().startsWith('image/')) {
+          throw new Error('Not an image');
+        }
+
+        const extension = imageExtensionFromType(blob.type);
+        const objectUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = objectUrl;
+        link.download = `${safeDownloadBaseName(data.name)}.${extension}`;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1500);
+      } catch (error) {
+        console.error('Photo download failed:', error);
+        alert('写真を保存できませんでした。もう一度お試しください。');
       }
     };
 
