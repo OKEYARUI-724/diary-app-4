@@ -1530,30 +1530,39 @@ html.withlog-dark .withlog-notification-user:hover { color: #f0eaff !important; 
 
 
 <style id="withlog-post-media-border-style">
-/* Give post photos/videos a small inset frame so they do not touch adjacent sections. */
+/* A light matte frame keeps post photos/videos visually separate from the cards above and below. */
 .tl-post-card .post-media-frame {
-  width: calc(100% - 12px) !important;
-  margin: 6px !important;
-  border: 1px solid rgba(105, 88, 118, .13) !important;
-  border-radius: 20px !important;
-  background: #f7f2f6 !important;
+  width: calc(100% - 16px) !important;
+  margin: 8px !important;
+  padding: 4px !important;
+  border: 1px solid rgba(102, 88, 116, .22) !important;
+  border-radius: 22px !important;
+  background: linear-gradient(135deg, #f4eef5, #f7f4ef) !important;
   overflow: hidden !important;
   box-sizing: border-box !important;
 }
 .tl-post-card .post-media-frame > img,
 .tl-post-card .post-media-frame > video {
+  display: block !important;
   width: 100% !important;
-  border-radius: 18px !important;
+  border: 1px solid rgba(102, 88, 116, .10) !important;
+  border-radius: 17px !important;
+  box-sizing: border-box !important;
 }
 html.withlog-dark .tl-post-card .post-media-frame {
-  border-color: rgba(216, 207, 226, .14) !important;
-  background: #292a30 !important;
+  border-color: rgba(222, 214, 231, .22) !important;
+  background: #303137 !important;
+}
+html.withlog-dark .tl-post-card .post-media-frame > img,
+html.withlog-dark .tl-post-card .post-media-frame > video {
+  border-color: rgba(236, 229, 243, .12) !important;
 }
 @media (max-width: 560px) {
   .tl-post-card .post-media-frame {
-    width: calc(100% - 10px) !important;
-    margin: 5px !important;
-    border-radius: 18px !important;
+    width: calc(100% - 14px) !important;
+    margin: 7px !important;
+    padding: 3px !important;
+    border-radius: 20px !important;
   }
   .tl-post-card .post-media-frame > img,
   .tl-post-card .post-media-frame > video {
