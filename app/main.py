@@ -1181,7 +1181,7 @@ async def create_spot(
         google_url = f"https://www.google.com/maps/search/?api=1&query={latitude},{longitude}"
         point = Point(longitude, latitude)
     else:
-        google_url = None
+        google_url = ""
         point = Point(0.0, 0.0)
     wkb_geom = from_shape(point, srid=4326)
 
@@ -1251,7 +1251,7 @@ async def create_spot(
         memo=spot.memo,
         media_url=protected_media_url(spot),
         media_type=spot.media_type,
-        google_map_url=spot.google_map_url,
+        google_map_url=spot.google_map_url or "",
         latitude=pt.y,
         longitude=pt.x,
         rating=spot.rating,
@@ -1338,7 +1338,7 @@ def get_spots(
                 memo=spot.memo,
                 media_url=protected_media_url(spot),
                 media_type=spot.media_type,
-                google_map_url=spot.google_map_url,
+                google_map_url=spot.google_map_url or "",
                 latitude=pt.y,
                 longitude=pt.x,
                 rating=spot.rating,
@@ -1394,7 +1394,7 @@ def get_my_liked_spots(
                 memo=spot.memo,
                 media_url=protected_media_url(spot),
                 media_type=spot.media_type,
-                google_map_url=spot.google_map_url,
+                google_map_url=spot.google_map_url or "",
                 latitude=pt.y,
                 longitude=pt.x,
                 rating=spot.rating,
