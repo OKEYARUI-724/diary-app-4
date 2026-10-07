@@ -1149,8 +1149,8 @@ def serve_spot_media(spot_id: uuid.UUID, request: Request, db: Session = Depends
 @app.post("/spots/upload", response_model=SpotResponse)
 async def create_spot(
     name: str = Form(""),
-    latitude: Optional[float] = Form(37.5665),
-    longitude: Optional[float] = Form(126.9780),
+    latitude: Optional[float] = Form(None),
+    longitude: Optional[float] = Form(None),
     memo: Optional[str] = Form(None),
     visited_at: Optional[datetime] = Form(None),
     rating: Optional[int] = Form(None),
@@ -1172,8 +1172,17 @@ async def create_spot(
         media_content_type = file.content_type or "application/octet-stream"
         media_type = "video" if media_content_type.startswith("video") else "image"
 
-    google_url = f"https://www.google.com/maps/search/?api=1&query={latitude},{longitude}"
-    point = Point(longitude, latitude)
+    # Location is optional. Keep a neutral geometry value for the existing DB schema,
+    # but do not expose a map link unless the user selected a real location.
+    has_location = latitude is not None and longitude is not None
+    if has_location:
+        if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
+            raise HTTPException(status_code=400, detail="緯度または経度が正しくありません")
+        google_url = f"https://www.google.com/maps/search/?api=1&query={latitude},{longitude}"
+        point = Point(longitude, latitude)
+    else:
+        google_url = None
+        point = Point(0.0, 0.0)
     wkb_geom = from_shape(point, srid=4326)
 
     # The existing visited_at column is also the publication timestamp. This

@@ -1208,7 +1208,7 @@ html.withlog-dark body {
               <span class="gradient-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24"><path d="M12 2.8a7 7 0 0 0-7 7c0 5 7 11.4 7 11.4S19 14.8 19 9.8a7 7 0 0 0-7-7Zm0 9.6a2.7 2.7 0 1 1 0-5.4 2.7 2.7 0 0 1 0 5.4Z"/></svg>
               </span>
-              場所を追加
+              場所を追加 <span style="font-size:.72em;font-weight:700;opacity:.62;">（任意）</span>
             </strong>
           </div>
 
@@ -1222,12 +1222,12 @@ html.withlog-dark body {
           </div>
 
           <div id="locationResults" class="location-results"></div>
-          <p id="locationMessage" class="muted">場所を検索するか、地図をクリックしてピンを置いてください。</p>
+          <p id="locationMessage" class="muted">場所を追加したい場合は、検索するか地図をクリックしてピンを置いてください。場所なしでも投稿できます。</p>
 
           <div id="travelMap" aria-label="投稿場所を選択する地図"></div>
 
           <div class="location-status">
-            <strong id="selectedLocationName">場所はまだ選択されていません</strong>
+            <strong id="selectedLocationName">場所は選択されていません（任意）</strong>
             <div class="location-coords">
               <span id="selectedLatitude">緯度: --</span>
               <span id="selectedLongitude">経度: --</span>
@@ -1923,15 +1923,16 @@ postForm.addEventListener("submit", async (event) => {
     }
     if (postSubmitLabel) postSubmitLabel.textContent = scheduled ? "予約設定中..." : "投稿中...";
 
-    if (!Number.isFinite(selectedLatitude) || !Number.isFinite(selectedLongitude)) {
-      throw new Error("地図で投稿場所を選択してください。");
-    }
+    const hasLocation = Number.isFinite(selectedLatitude) && Number.isFinite(selectedLongitude);
 
     const formData = new FormData();
     formData.append("name", name);
     formData.append("visited_at", publishDate.toISOString());
-    formData.append("latitude", String(selectedLatitude));
-    formData.append("longitude", String(selectedLongitude));
+    // Location is optional. Only send coordinates when the user actually selected a place.
+    if (hasLocation) {
+      formData.append("latitude", String(selectedLatitude));
+      formData.append("longitude", String(selectedLongitude));
+    }
 
     // Export exactly what the user arranged in the 4:5 editor.
     // Empty areas are filled with WITHLOG's muted white / muted gray depending on the theme.
