@@ -1902,6 +1902,58 @@ html.withlog-dark .daily-with-locked-overlay p,html.withlog-dark .daily-with-loc
 @media(max-width:560px){.daily-with-locked-stage{min-height:330px;margin:8px 10px 4px;border-radius:24px}.daily-with-locked-overlay{padding:22px}.daily-with-locked-overlay strong{font-size:16px}.daily-with-locked-footer{align-items:flex-start;flex-direction:column;gap:4px}}
 </style>
 
+
+<style id="withlog-double-like-style">
+.tl-post-card .withlog-double-like-target {
+  position: relative !important;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.tl-post-card .withlog-double-like-heart {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  opacity: 0;
+}
+.tl-post-card .withlog-double-like-heart svg {
+  width: min(24vw, 112px);
+  height: min(24vw, 112px);
+  color: rgba(255,255,255,.97);
+  fill: currentColor;
+  filter: drop-shadow(0 5px 18px rgba(61,45,76,.28));
+  transform: scale(.48) rotate(-8deg);
+}
+.tl-post-card .withlog-double-like-target.is-double-liked .withlog-double-like-heart {
+  animation: withlogDoubleLikeFade .72s ease-out both;
+}
+.tl-post-card .withlog-double-like-target.is-double-liked .withlog-double-like-heart svg {
+  animation: withlogDoubleLikeHeart .72s cubic-bezier(.2,.9,.25,1.15) both;
+}
+@keyframes withlogDoubleLikeFade {
+  0% { opacity: 0; }
+  16% { opacity: 1; }
+  68% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes withlogDoubleLikeHeart {
+  0% { transform: scale(.45) rotate(-8deg); }
+  35% { transform: scale(1.12) rotate(3deg); }
+  58% { transform: scale(.94) rotate(0deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tl-post-card .withlog-double-like-target.is-double-liked .withlog-double-like-heart,
+  .tl-post-card .withlog-double-like-target.is-double-liked .withlog-double-like-heart svg {
+    animation-duration: .01ms !important;
+  }
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -3675,7 +3727,7 @@ html.withlog-dark .daily-with-locked-overlay p,html.withlog-dark .daily-with-loc
             ${s.media_url ? (
               s.media_type === 'video' 
                 ? `<div class="post-media-frame"><video src="${s.media_url}" controls onerror="retryWithlogMedia(this)"></video></div>`
-                : `<div class="post-media-frame"><img src="${s.media_url}" alt="${escapeHtml(s.name || 'WITHLOGの投稿画像')}" onerror="retryWithlogMedia(this)" /></div>`
+                : `<div class="post-media-frame withlog-double-like-target" data-double-like-spot="${s.id}" aria-label="ダブルタップでいいね"><div class="withlog-double-like-heart" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s-7.2-4.5-9.6-9C.4 8.3 2.2 4 6.5 4c2.3 0 4 1.3 5.5 3 1.5-1.7 3.2-3 5.5-3 4.3 0 6.1 4.3 4.1 8-2.4 4.5-9.6 9-9.6 9Z"/></svg></div><img src="${s.media_url}" alt="${escapeHtml(s.name || 'WITHLOGの投稿画像')}" onerror="retryWithlogMedia(this)" /></div>`
             ) : ''}
 
             <div class="p-4 bg-white">
@@ -3792,6 +3844,79 @@ html.withlog-dark .daily-with-locked-overlay p,html.withlog-dark .daily-with-loc
         }
       }
     };
+
+
+    // --- Double tap / double click to like post photos ---
+    function setSpotLikeVisualState(spotId, liked) {
+      document.querySelectorAll(`[data-like-spot="${spotId}"]`).forEach(button => {
+        const heart = button.querySelector('.heart-icon');
+        if (!heart) return;
+        if (liked) heart.classList.add('text-rose-500', 'fill-current');
+        else heart.classList.remove('text-rose-500', 'fill-current');
+      });
+    }
+
+    function isSpotVisuallyLiked(spotId) {
+      const button = document.querySelector(`[data-like-spot="${spotId}"]`);
+      const heart = button?.querySelector('.heart-icon');
+      return Boolean(heart?.classList.contains('text-rose-500') || heart?.classList.contains('fill-current'));
+    }
+
+    function playDoubleLikeMotion(frame) {
+      if (!frame) return;
+      frame.classList.remove('is-double-liked');
+      void frame.offsetWidth;
+      frame.classList.add('is-double-liked');
+      window.setTimeout(() => frame.classList.remove('is-double-liked'), 760);
+    }
+
+    async function likeSpotFromMedia(frame) {
+      const spotId = frame?.dataset?.doubleLikeSpot;
+      if (!spotId) return;
+      playDoubleLikeMotion(frame);
+
+      const token = getToken();
+      if (!token || isSpotVisuallyLiked(spotId)) return;
+
+      try {
+        const res = await fetch(`/spots/${spotId}/like`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          cache: 'no-store'
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        setLikeCount(spotId, data.likes_count, {animate:true});
+        setSpotLikeVisualState(spotId, Boolean(data.liked));
+      } catch (_) {}
+    }
+
+    let doubleLikeTouchFrame = null;
+    let doubleLikeTouchAt = 0;
+
+    feedEl.addEventListener('dblclick', event => {
+      const frame = event.target.closest('[data-double-like-spot]');
+      if (!frame || !feedEl.contains(frame)) return;
+      event.preventDefault();
+      void likeSpotFromMedia(frame);
+    });
+
+    feedEl.addEventListener('pointerup', event => {
+      if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return;
+      const frame = event.target.closest('[data-double-like-spot]');
+      if (!frame || !feedEl.contains(frame)) return;
+
+      const now = Date.now();
+      if (doubleLikeTouchFrame === frame && now - doubleLikeTouchAt <= 360) {
+        doubleLikeTouchFrame = null;
+        doubleLikeTouchAt = 0;
+        event.preventDefault();
+        void likeSpotFromMedia(frame);
+        return;
+      }
+      doubleLikeTouchFrame = frame;
+      doubleLikeTouchAt = now;
+    });
 
 
     // --- コメント ---
