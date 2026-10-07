@@ -1481,19 +1481,41 @@ def mark_notifications_read(
 
 class ConnectionManager:
     def __init__(self):
-        self.active_connections: Dict[str, WebSocket] = {}
+        # Keep every tab/device connected for the same account.
+        self.active_connections: Dict[str, List[WebSocket]] = {}
 
     async def connect(self, username: str, websocket: WebSocket):
         await websocket.accept()
-        self.active_connections[username.lower()] = websocket
+        key = username.lower()
+        bucket = self.active_connections.setdefault(key, [])
+        if websocket not in bucket:
+            bucket.append(websocket)
 
-    def disconnect(self, username: str):
-        self.active_connections.pop(username.lower(), None)
+    def disconnect(self, username: str, websocket: Optional[WebSocket] = None):
+        key = username.lower()
+        if websocket is None:
+            self.active_connections.pop(key, None)
+            return
+        bucket = self.active_connections.get(key, [])
+        bucket = [item for item in bucket if item is not websocket]
+        if bucket:
+            self.active_connections[key] = bucket
+        else:
+            self.active_connections.pop(key, None)
 
     async def send_personal_message(self, message: dict, recipient_username: str):
-        websocket = self.active_connections.get(recipient_username.lower())
-        if websocket:
-            await websocket.send_text(json.dumps(message, ensure_ascii=False))
+        sockets = list(self.active_connections.get(recipient_username.lower(), []))
+        if not sockets:
+            return
+        payload = json.dumps(message, ensure_ascii=False)
+        stale = []
+        for websocket in sockets:
+            try:
+                await websocket.send_text(payload)
+            except Exception:
+                stale.append(websocket)
+        for websocket in stale:
+            self.disconnect(recipient_username, websocket)
 
 
 manager = ConnectionManager()
@@ -1569,6 +1591,7 @@ async def send_message(
     db.refresh(msg)
 
     msg_data = {
+        "event": "dm_created",
         "id": str(msg.id),
         "sender_username": current_user.username,
         "recipient_username": recipient.username,
@@ -1589,7 +1612,7 @@ async def send_message(
 
 
 @app.delete("/messages/{message_id}")
-def delete_message(
+async def delete_message(
     message_id: uuid.UUID,
     current_user: User = Depends(require_current_user),
     db: Session = Depends(get_db),
@@ -1600,8 +1623,21 @@ def delete_message(
     if msg.sender_id != current_user.id:
         raise HTTPException(status_code=403, detail="自分の送信メッセージのみ削除できます")
 
+    recipient = db.query(User).filter(User.id == msg.recipient_id).first()
+    recipient_username = recipient.username if recipient else None
+
     db.delete(msg)
     db.commit()
+
+    event = {
+        "event": "dm_deleted",
+        "id": str(message_id),
+        "sender_username": current_user.username,
+        "recipient_username": recipient_username,
+    }
+    await manager.send_personal_message(event, current_user.username)
+    if recipient_username:
+        await manager.send_personal_message(event, recipient_username)
     return {"status": "deleted", "id": str(message_id)}
 
 
@@ -1636,9 +1672,9 @@ async def websocket_dm_endpoint(
         while True:
             await websocket.receive_text()
     except WebSocketDisconnect:
-        manager.disconnect(user.username)
+        manager.disconnect(user.username, websocket)
     except Exception:
-        manager.disconnect(user.username)
+        manager.disconnect(user.username, websocket)
 
 
 # --- YouTube music search ---

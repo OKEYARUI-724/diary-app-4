@@ -2130,6 +2130,7 @@ html.withlog-dark .tl-post-card .post-media-frame > video {
     let dmSocket = null;
     let dmReconnectTimer = null;
     let dmRealtimePollTimer = null;
+    let commentRealtimePollTimer = null;
     let dmLoadInFlight = false;
     let dmReloadQueued = false;
     let notificationTimer = null;
@@ -3324,6 +3325,32 @@ html.withlog-dark .tl-post-card .post-media-frame > video {
       return commentRequestGeneration.get(String(spotId)) || 0;
     }
 
+    function stopCommentRealtimePoll() {
+      if (commentRealtimePollTimer) {
+        clearInterval(commentRealtimePollTimer);
+        commentRealtimePollTimer = null;
+      }
+    }
+
+    function startCommentRealtimePoll() {
+      if (commentRealtimePollTimer) return;
+      commentRealtimePollTimer = setInterval(() => {
+        if (!getToken()) {
+          stopCommentRealtimePoll();
+          return;
+        }
+        const panels = Array.from(document.querySelectorAll('.withlog-comments-panel:not(.hidden)'));
+        if (!panels.length) {
+          stopCommentRealtimePoll();
+          return;
+        }
+        panels.forEach(panel => {
+          const spotId = String(panel.id || '').replace(/^comments-/, '');
+          if (spotId) loadSpotComments(spotId, {force:true, silent:true});
+        });
+      }, 900);
+    }
+
     function setCommentCount(spotId, count) {
       document.querySelectorAll(`[data-comment-count="${spotId}"]`).forEach(el => {
         const value = Math.max(0, Number(count) || 0);
@@ -3448,8 +3475,12 @@ html.withlog-dark .tl-post-card .post-media-frame > video {
       const opening = panel.classList.contains('hidden');
       panel.classList.toggle('hidden', !opening);
       if (button) button.setAttribute('aria-expanded', opening ? 'true' : 'false');
-      // Refresh every time it opens so comments made from another account appear too.
-      if (opening) await loadSpotComments(spotId, {force:true});
+      if (opening) {
+        startCommentRealtimePoll();
+        await loadSpotComments(spotId, {force:true});
+      } else if (!document.querySelector('.withlog-comments-panel:not(.hidden)')) {
+        stopCommentRealtimePoll();
+      }
     };
 
     window.submitSpotComment = async function(event, spotId) {
@@ -4041,16 +4072,35 @@ html.withlog-dark .tl-post-card .post-media-frame > video {
       };
 
       socket.onmessage = (event) => {
-        if (socket !== dmSocket || !activeDmPartner) return;
+        if (socket !== dmSocket) return;
         let payload = null;
         try { payload = JSON.parse(event.data); } catch (_) {}
+        if (!payload) return;
 
-        if (payload) {
-          const partner = String(activeDmPartner).toLowerCase();
-          const sender = String(payload.sender_username || '').toLowerCase();
-          const recipient = String(payload.recipient_username || '').toLowerCase();
-          if (sender && recipient && sender !== partner && recipient !== partner) return;
+        if ((payload.event === 'comment_created' || payload.event === 'comment_deleted') && payload.spot_id) {
+          const spotId = String(payload.spot_id);
+          nextCommentGeneration(spotId);
+          setCommentCount(spotId, payload.count || 0);
+
+          if (payload.event === 'comment_deleted' && payload.comment_id) {
+            const panel = document.getElementById(`comments-${spotId}`);
+            const item = panel?.querySelector(`[data-comment-id="${CSS.escape(String(payload.comment_id))}"]`);
+            if (item) item.remove();
+          }
+
+          const panel = document.getElementById(`comments-${spotId}`);
+          if (panel && !panel.classList.contains('hidden')) {
+            loadSpotComments(spotId, {force:true, silent:true});
+            startCommentRealtimePoll();
+          }
+          return;
         }
+
+        if (!activeDmPartner) return;
+        const partner = String(activeDmPartner).toLowerCase();
+        const sender = String(payload.sender_username || '').toLowerCase();
+        const recipient = String(payload.recipient_username || '').toLowerCase();
+        if (sender && recipient && sender !== partner && recipient !== partner) return;
         loadDmMessages({ preserveScroll: true, quiet: true });
       };
 
@@ -4179,10 +4229,15 @@ html.withlog-dark .tl-post-card .post-media-frame > video {
     });
 
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible' && activeDmPartner) {
-        connectDmWebSocket();
-        loadDmMessages({ preserveScroll: true, quiet: true });
-      }
+      if (document.visibilityState !== 'visible') return;
+      connectDmWebSocket();
+      if (activeDmPartner) loadDmMessages({ preserveScroll: true, quiet: true });
+      const openPanels = Array.from(document.querySelectorAll('.withlog-comments-panel:not(.hidden)'));
+      openPanels.forEach(panel => {
+        const spotId = String(panel.id || '').replace(/^comments-/, '');
+        if (spotId) loadSpotComments(spotId, {force:true, silent:true});
+      });
+      if (openPanels.length) startCommentRealtimePoll();
     });
 
     // --- 投稿の3点メニュー ---
