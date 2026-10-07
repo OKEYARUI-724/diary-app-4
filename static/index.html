@@ -3575,7 +3575,7 @@ html.withlog-dark .withlog-profile-crop-apply { background: #8066c7 !important; 
             <div class="p-4 bg-white">
               <div class="flex items-center justify-between mb-2 gap-2">
                 <div class="withlog-post-actions-left">
-                  <button onclick="toggleSpotLike('${s.id}', this)" class="flex items-center gap-1.5 text-xs text-slate-700 hover:text-slate-950">
+                  <button data-like-spot="${s.id}" onclick="toggleSpotLike('${s.id}', this)" class="flex items-center gap-1.5 text-xs text-slate-700 hover:text-slate-950">
                     <svg class="w-4 h-4 heart-icon transition-colors ${s.is_liked ? 'text-rose-500 fill-current' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                     </svg>
@@ -3620,35 +3620,54 @@ html.withlog-dark .withlog-profile-crop-apply { background: #8066c7 !important; 
     }
 
     // --- いいね処理 ---
+    // Feed / liked-post view can show the same post at the same time, so update every
+    // matching counter together. A count change also replays the existing heart/count
+    // pop animation, including changes made from another account or another device.
+    function setLikeCount(spotId, count, { animate = false } = {}) {
+      const value = Math.max(0, Number(count) || 0);
+      document.querySelectorAll(`[data-like-spot="${spotId}"]`).forEach(button => {
+        const countEl = button.querySelector('.like-count');
+        const heart = button.querySelector('.heart-icon');
+        if (!countEl) return;
+
+        const before = Math.max(0, Number(button.dataset.likeCountValue || countEl.textContent || 0) || 0);
+        button.dataset.likeCountValue = String(value);
+        countEl.textContent = String(value);
+
+        if (!animate || before === value) return;
+        heart?.classList.remove('withlog-heart-pop');
+        countEl.classList.remove('withlog-like-count-pop');
+        void countEl.offsetWidth;
+        heart?.classList.add('withlog-heart-pop');
+        countEl.classList.add('withlog-like-count-pop');
+        window.setTimeout(() => {
+          heart?.classList.remove('withlog-heart-pop');
+          countEl.classList.remove('withlog-like-count-pop');
+        }, 560);
+      });
+    }
+
     window.toggleSpotLike = async function(spotId, btn) {
       const token = getToken();
       if (!token) return;
 
       const res = await fetch(`/spots/${spotId}/like`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 'Authorization': `Bearer ${token}` },
+        cache: 'no-store'
       });
       if (res.ok) {
         const data = await res.json();
         const heart = btn.querySelector('.heart-icon');
-        const countEl = btn.querySelector('.like-count');
-        countEl.innerText = data.likes_count;
-        if (data.liked) {
-          heart.classList.add('text-rose-500', 'fill-current');
 
-          // いいねした瞬間だけ、ハートがポンッと大きくなる演出。
-          heart.classList.remove('withlog-heart-pop');
-          countEl.classList.remove('withlog-like-count-pop');
-          void heart.offsetWidth;
-          heart.classList.add('withlog-heart-pop');
-          countEl.classList.add('withlog-like-count-pop');
-          window.setTimeout(() => {
-            heart.classList.remove('withlog-heart-pop');
-            countEl.classList.remove('withlog-like-count-pop');
-          }, 520);
+        // The WebSocket event can arrive just before this response. setLikeCount only
+        // animates when the number actually changed, so the motion never double-fires.
+        setLikeCount(spotId, data.likes_count, {animate:true});
+
+        if (data.liked) {
+          heart?.classList.add('text-rose-500', 'fill-current');
         } else {
-          heart.classList.remove('text-rose-500', 'fill-current', 'withlog-heart-pop');
-          countEl.classList.remove('withlog-like-count-pop');
+          heart?.classList.remove('text-rose-500', 'fill-current');
 
           // 「いいねした投稿」画面で解除した場合は、その場で一覧から外す。
           const likedCard = btn.closest('[data-liked-post-card]');
@@ -4310,7 +4329,7 @@ html.withlog-dark .withlog-profile-crop-apply { background: #8066c7 !important; 
                 <div class="withlog-liked-post-title">${escapeHtml(s.name || 'WITHLOGの投稿')}</div>
                 ${cleanMemo ? `<div class="withlog-liked-post-memo">${escapeHtml(cleanMemo).replace(/\n/g, '<br>')}</div>` : ''}
                 <div class="withlog-liked-post-actions">
-                  <button type="button" onclick="toggleSpotLike('${s.id}', this)" class="withlog-liked-post-like">
+                  <button type="button" data-like-spot="${s.id}" onclick="toggleSpotLike('${s.id}', this)" class="withlog-liked-post-like">
                     <svg class="heart-icon" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                     </svg>
@@ -4763,6 +4782,11 @@ html.withlog-dark .withlog-profile-crop-apply { background: #8066c7 !important; 
         let payload = null;
         try { payload = JSON.parse(event.data); } catch (_) {}
         if (!payload) return;
+
+        if (payload.event === 'like_changed' && payload.spot_id) {
+          setLikeCount(String(payload.spot_id), payload.count || 0, {animate:true});
+          return;
+        }
 
         if ((payload.event === 'comment_created' || payload.event === 'comment_deleted') && payload.spot_id) {
           const spotId = String(payload.spot_id);

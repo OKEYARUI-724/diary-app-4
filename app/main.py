@@ -1216,7 +1216,7 @@ def get_my_liked_spots(
 
 
 @app.post("/spots/{spot_id}/like")
-def toggle_like(
+async def toggle_like(
     spot_id: uuid.UUID,
     current_user: User = Depends(require_current_user),
     db: Session = Depends(get_db),
@@ -1240,6 +1240,21 @@ def toggle_like(
         is_liked = True
 
     count = db.query(SpotLike).filter(SpotLike.spot_id == spot_id).count()
+
+    # Reuse the authenticated WebSocket connection used by DM/comments so every
+    # connected viewer of this post sees the like counter change immediately.
+    await manager.send_spot_event(
+        {
+            "event": "like_changed",
+            "spot_id": str(spot.id),
+            "count": int(count),
+            "actor_username": current_user.username,
+            "liked": bool(is_liked),
+        },
+        spot,
+        db,
+    )
+
     return {"liked": is_liked, "likes_count": count}
 
 
