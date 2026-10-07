@@ -1252,7 +1252,7 @@ async def create_spot(
     )
 
 
-@app.get("/spots", response_model=List[SpotResponse])
+@app.get("/spots")
 def get_spots(
     target_date: Optional[date] = None,
     feed_type: str = "all",
@@ -1289,26 +1289,24 @@ def get_spots(
         if daily_day and _daily_with_locked_for_viewer(spot, current_user, db):
             # Return only enough metadata to render a blurred/locked placeholder.
             # Never send the photo, caption, song, title, map coordinates or counts.
-            results.append(
-                SpotResponse(
-                    id=spot.id,
-                    user_id=spot.user_id,
-                    username=spot.author.username if spot.author else "guest",
-                    display_name=spot.author.display_name or spot.author.username if spot.author else "Guest",
-                    author_avatar_url=spot.author.avatar_url if spot.author else None,
-                    name="今日のWITH",
-                    memo=f"[[WITH_DAILY_LOCKED:{daily_day}]]",
-                    media_url=None,
-                    media_type=None,
-                    google_map_url=None,
-                    latitude=0.0,
-                    longitude=0.0,
-                    rating=None,
-                    visited_at=spot.visited_at,
-                    likes_count=0,
-                    is_liked=False,
-                )
-            )
+            # Do not construct SpotResponse here. The normal post schema can be
+            # stricter than this privacy placeholder (for example, map/media fields
+            # may be required). Returning a small plain dict prevents one locked
+            # TODAY'S WITH from making the entire /spots request fail validation.
+            results.append({
+                "id": str(spot.id),
+                "user_id": str(spot.user_id) if spot.user_id else None,
+                "username": spot.author.username if spot.author else "guest",
+                "display_name": (spot.author.display_name or spot.author.username) if spot.author else "Guest",
+                "author_avatar_url": spot.author.avatar_url if spot.author else None,
+                "name": "今日のWITH",
+                "memo": f"[[WITH_DAILY_LOCKED:{daily_day}]]",
+                "visited_at": spot.visited_at.isoformat() if spot.visited_at else None,
+                "likes_count": 0,
+                "is_liked": False,
+                "daily_with_locked": True,
+                "daily_with_day": daily_day,
+            })
             continue
 
         pt = to_shape(spot.geom)
