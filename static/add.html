@@ -759,6 +759,101 @@ button:hover, .btn:hover, [role="button"]:hover {
 </style>
 
 
+
+<style id="withlog-scheduled-post-style">
+.schedule-box {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  gap: 14px;
+  padding: 18px 20px;
+  border: 1px solid rgba(128,102,199,.10);
+  border-radius: 28px;
+  background: linear-gradient(135deg, #f5effb 0%, #eef7f2 56%, #fff5e7 100%);
+}
+.schedule-box::after {
+  content: "";
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  right: -48px;
+  top: -54px;
+  border-radius: 50%;
+  background: rgba(128,102,199,.08);
+  pointer-events: none;
+}
+.schedule-main-row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.schedule-copy { min-width: 0; }
+.schedule-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: #51475d;
+  font-size: 14px;
+  font-weight: 900;
+}
+.schedule-title svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.9; }
+.schedule-description { margin: 5px 0 0; color: #857a89; font-size: 11px; line-height: 1.6; }
+.schedule-switch { position: relative; flex: 0 0 auto; width: 52px; height: 30px; }
+.schedule-switch input { position: absolute; opacity: 0; pointer-events: none; }
+.schedule-switch-track {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: #dcd5e5;
+  transition: background .2s ease;
+  cursor: pointer;
+}
+.schedule-switch-track::after {
+  content: "";
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  left: 3px;
+  top: 3px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform .22s cubic-bezier(.2,.8,.2,1);
+}
+.schedule-switch input:checked + .schedule-switch-track { background: #8066c7; }
+.schedule-switch input:checked + .schedule-switch-track::after { transform: translateX(22px); }
+.schedule-details {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 8px;
+  padding-top: 13px;
+  border-top: 1px solid rgba(112,95,123,.10);
+}
+.schedule-details label { color: #665a70; font-size: 11px; font-weight: 900; }
+.schedule-details input[type="datetime-local"] {
+  background: rgba(255,255,255,.72);
+  font-weight: 800;
+  color: #4d4554;
+}
+.schedule-note { margin: 0; color: #897f8e; font-size: 10px; line-height: 1.65; }
+html.withlog-dark .schedule-box { background: #323339 !important; border-color: #44454d !important; }
+html.withlog-dark .schedule-title { color: #f4f1f5 !important; }
+html.withlog-dark .schedule-description,
+html.withlog-dark .schedule-note { color: #aaa4b2 !important; }
+html.withlog-dark .schedule-details { border-color: #484951 !important; }
+html.withlog-dark .schedule-details label { color: #d7d1dc !important; }
+html.withlog-dark .schedule-switch-track { background: #555660; }
+html.withlog-dark .schedule-switch input:checked + .schedule-switch-track { background: #8a75c8; }
+@media (max-width: 560px) {
+  .schedule-box { padding: 16px; border-radius: 24px; }
+  .schedule-main-row { align-items: flex-start; }
+}
+</style>
+
 <style id="withlog-add-dark-mode-style">
 html.withlog-dark { color-scheme: dark; background: #202126; }
 html.withlog-dark body { background: #202126 !important; color: #f4f1f5 !important; }
@@ -1085,6 +1180,28 @@ html.withlog-dark body {
         </label>
 
 
+        <div class="schedule-box" id="scheduleBox">
+          <div class="schedule-main-row">
+            <div class="schedule-copy">
+              <p class="schedule-title">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.2 2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                予約投稿
+              </p>
+              <p class="schedule-description">日時を指定すると、その時間になるまで投稿は公開されません。</p>
+            </div>
+            <label class="schedule-switch" aria-label="予約投稿を使用">
+              <input id="scheduleToggle" type="checkbox" />
+              <span class="schedule-switch-track"></span>
+            </label>
+          </div>
+          <div id="scheduleDetails" class="schedule-details hidden">
+            <label for="scheduleAt">公開する日時</label>
+            <input id="scheduleAt" type="datetime-local" step="60" />
+            <p class="schedule-note">この端末の日時を基準に設定します。指定日時になると自動的に通常の投稿として表示されます。</p>
+          </div>
+        </div>
+
+
         <div class="location-box">
           <div class="location-head">
             <strong class="section-label">
@@ -1149,11 +1266,11 @@ html.withlog-dark body {
           <div id="musicResults" class="music-results"></div>
         </div>
 
-        <button type="submit" class="primary">
+        <button type="submit" class="primary" id="postSubmitButton">
           <span class="button-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 18v1.5A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V18"/></svg>
           </span>
-          投稿する
+          <span id="postSubmitLabel">投稿する</span>
         </button>
       </form>
     </section>
@@ -1228,6 +1345,43 @@ const cropZoomValue = document.getElementById("cropZoomValue");
 const cropFitBtn = document.getElementById("cropFitBtn");
 const cropFillBtn = document.getElementById("cropFillBtn");
 const cropCenterBtn = document.getElementById("cropCenterBtn");
+const scheduleToggle = document.getElementById("scheduleToggle");
+const scheduleDetails = document.getElementById("scheduleDetails");
+const scheduleAt = document.getElementById("scheduleAt");
+const postSubmitLabel = document.getElementById("postSubmitLabel");
+
+function toLocalDateTimeInputValue(date) {
+  const pad = (value) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function nextScheduleDefault() {
+  const date = new Date(Date.now() + 60 * 60 * 1000);
+  date.setSeconds(0, 0);
+  date.setMinutes(Math.ceil(date.getMinutes() / 5) * 5);
+  return date;
+}
+
+function refreshScheduleMinimum() {
+  const minimum = new Date(Date.now() + 60 * 1000);
+  minimum.setSeconds(0, 0);
+  scheduleAt.min = toLocalDateTimeInputValue(minimum);
+}
+
+function updateScheduleUi() {
+  const enabled = Boolean(scheduleToggle?.checked);
+  scheduleDetails?.classList.toggle("hidden", !enabled);
+  if (enabled) {
+    refreshScheduleMinimum();
+    if (scheduleAt && !scheduleAt.value) scheduleAt.value = toLocalDateTimeInputValue(nextScheduleDefault());
+  }
+  if (postSubmitLabel) postSubmitLabel.textContent = enabled ? "予約投稿する" : "投稿する";
+}
+
+scheduleToggle?.addEventListener("change", updateScheduleUi);
+scheduleAt?.addEventListener("focus", refreshScheduleMinimum);
+refreshScheduleMinimum();
+updateScheduleUi();
 
 const dailyWithComposer=document.getElementById("dailyWithComposer");
 const dailyWithComposerQuestion=document.getElementById("dailyWithComposerQuestion");
@@ -1721,9 +1875,8 @@ postForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const submitButton = postForm.querySelector('button[type="submit"]');
-  const originalText = submitButton.textContent;
+  const originalLabel = postSubmitLabel?.textContent || "投稿する";
   submitButton.disabled = true;
-  submitButton.textContent = "投稿中...";
 
   try {
     const imageFile = imageInput.files?.[0];
@@ -1734,13 +1887,25 @@ postForm.addEventListener("submit", async (event) => {
 
     const caption = postForm.querySelector('textarea[name="caption"]')?.value?.trim() || "";
 
+    let publishDate = new Date();
+    const scheduled = Boolean(scheduleToggle?.checked);
+    if (scheduled) {
+      if (!scheduleAt?.value) throw new Error("予約投稿の日時を選択してください。");
+      publishDate = new Date(scheduleAt.value);
+      if (Number.isNaN(publishDate.getTime())) throw new Error("予約投稿の日時が正しくありません。");
+      if (publishDate.getTime() <= Date.now() + 30 * 1000) {
+        throw new Error("予約日時は現在より1分以上あとに設定してください。");
+      }
+    }
+    if (postSubmitLabel) postSubmitLabel.textContent = scheduled ? "予約設定中..." : "投稿中...";
+
     if (!Number.isFinite(selectedLatitude) || !Number.isFinite(selectedLongitude)) {
       throw new Error("地図で投稿場所を選択してください。");
     }
 
     const formData = new FormData();
     formData.append("name", name);
-    formData.append("visited_at", new Date().toISOString());
+    formData.append("visited_at", publishDate.toISOString());
     formData.append("latitude", String(selectedLatitude));
     formData.append("longitude", String(selectedLongitude));
 
@@ -1830,12 +1995,18 @@ postForm.addEventListener("submit", async (event) => {
       throw new Error(data.detail || data.message || `投稿に失敗しました (HTTP ${response.status})`);
     }
 
+    if (scheduled) {
+      const label = publishDate.toLocaleString("ja-JP", {
+        year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit"
+      });
+      alert(`${label} に予約投稿しました。`);
+    }
     window.location.assign("/");
   } catch (error) {
     alert(error.message || "投稿に失敗しました。");
   } finally {
     submitButton.disabled = false;
-    submitButton.textContent = originalText;
+    if (postSubmitLabel) postSubmitLabel.textContent = originalLabel;
   }
 });
 

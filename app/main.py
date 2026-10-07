@@ -9,7 +9,7 @@ import time
 import traceback
 import threading
 import uuid
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 from typing import Dict, List, Optional
 
 from fastapi import (
@@ -262,9 +262,22 @@ def can_view_user_posts(author: Optional[User], viewer: Optional[User], db: Sess
         Follow.status == "accepted",
     ).first() is not None
 
+def _spot_is_published(spot: Spot) -> bool:
+    """Return True once the post's publication time has arrived."""
+    if not spot.visited_at:
+        return True
+    publish_at = spot.visited_at
+    if publish_at.tzinfo is None:
+        publish_at = publish_at.replace(tzinfo=timezone.utc)
+    return publish_at <= datetime.now(timezone.utc)
+
 def can_view_spot(spot: Optional[Spot], viewer: Optional[User], db: Session) -> bool:
     if spot is None:
         return False
+    # A scheduled post stays private until its publication time. The author may
+    # still access its media by direct authenticated URL while preparing it.
+    if not _spot_is_published(spot):
+        return bool(viewer and spot.user_id == viewer.id)
     # Keep historical guest posts public; new posts always require authentication.
     return spot.user_id is None or can_view_user_posts(spot.author, viewer, db)
 
@@ -277,7 +290,9 @@ def visible_spots_query(db: Session, viewer: Optional[User]):
             Follow.status == "accepted",
         ).exists()
         allowed.extend([Spot.user_id == viewer.id, accepted])
-    return db.query(Spot).filter(or_(*allowed))
+    # visited_at doubles as the publication time. Future rows are scheduled
+    # posts and must not appear in any feed until PostgreSQL's clock reaches it.
+    return db.query(Spot).filter(or_(*allowed), Spot.visited_at <= func.now())
 
 def protected_media_url(spot: Spot):
     # A versioned, access-checked URL also avoids earlier public image-cache entries.
@@ -1035,7 +1050,8 @@ def get_following_stories(
     result = []
     for user in users:
         latest_spot = db.query(Spot).filter(
-            Spot.user_id == user.id
+            Spot.user_id == user.id,
+            Spot.visited_at <= func.now(),
         ).order_by(desc(Spot.visited_at)).first()
         result.append(
             {
@@ -1129,6 +1145,17 @@ async def create_spot(
     point = Point(longitude, latitude)
     wkb_geom = from_shape(point, srid=4326)
 
+    # The existing visited_at column is also the publication timestamp. This
+    # keeps scheduled posting backward-compatible and avoids a risky DB migration.
+    now_utc = datetime.now(timezone.utc)
+    publish_at = visited_at or now_utc
+    if publish_at.tzinfo is None:
+        publish_at = publish_at.replace(tzinfo=timezone.utc)
+    # Times within 30 seconds of now are treated as an immediate post.
+    is_scheduled = publish_at > now_utc + timedelta(seconds=30)
+    if not is_scheduled:
+        publish_at = now_utc
+
     spot = Spot(
         user_id=current_user.id if current_user else None,
         name=name,
@@ -1138,7 +1165,7 @@ async def create_spot(
         google_map_url=google_url,
         media_url=media_url,
         media_type=media_type,
-        visited_at=visited_at or datetime.now(),
+        visited_at=publish_at,
     )
     db.add(spot)
     db.flush()
@@ -1154,7 +1181,7 @@ async def create_spot(
         )
         spot.media_url = f"/media/{spot.id}"
 
-    if current_user:
+    if current_user and not is_scheduled:
         followers = db.query(Follow).filter(
             Follow.following_id == current_user.id,
             Follow.status == "accepted",
