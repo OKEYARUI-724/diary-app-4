@@ -8423,6 +8423,90 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 
 
+
+<script id="withlog-mobile-bottom-nav-exclusive-v2">
+(() => {
+  const mobileQuery = window.matchMedia('(max-width: 640px)');
+
+  const panelIds = [
+    'userSearchModal',
+    'notificationsModal',
+    'friendRequestsModal',
+    'conversationsModal',
+    'dmModal',
+    'profileModal',
+    'likedPostsModal',
+    'editProfileModal',
+    'profileImageCropModal',
+    'userListModal',
+    'advancedSettingsModal',
+    'accountDeleteModal',
+    'deleteAccountModal',
+    'postModal',
+    'sharedWithInviteModal',
+    'sharedWithContributeModal'
+  ];
+
+  function hidePanel(id) {
+    const panel = document.getElementById(id);
+    if (!panel) return;
+    panel.classList.add('hidden');
+    panel.setAttribute('aria-hidden', 'true');
+  }
+
+  function closeEveryPanelExcept(exceptId = '') {
+    panelIds.forEach(id => {
+      if (id !== exceptId) hidePanel(id);
+    });
+  }
+
+  function getDestinationPanel(button) {
+    if (!button) return '';
+
+    if (button.id === 'openModalBtn') return 'postModal';
+
+    const title = button.getAttribute('title') || '';
+    if (title === 'ユーザーを探す') return 'userSearchModal';
+    if (title === '通知') return 'notificationsModal';
+    if (title === 'メッセージ') return 'conversationsModal';
+    if (title === 'アカウント') return 'profileModal';
+
+    return '';
+  }
+
+  function bindExclusiveBottomNav() {
+    const nav = document.getElementById('withlogPrimaryActions');
+    if (!nav || nav.dataset.exclusivePanelsBound === 'true') return;
+
+    nav.dataset.exclusivePanelsBound = 'true';
+
+    /*
+      Capture phase is intentional:
+      close the currently-open tab first, then let the button's existing
+      onclick handler open only its destination tab.
+    */
+    nav.addEventListener('click', event => {
+      if (!mobileQuery.matches) return;
+      if (!nav.classList.contains('withlog-mobile-bottom-nav')) return;
+
+      const button = event.target.closest('button');
+      if (!button || !nav.contains(button)) return;
+
+      const destination = getDestinationPanel(button);
+
+      // Logout has no destination modal, so everything is closed.
+      closeEveryPanelExcept(destination);
+    }, true);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindExclusiveBottomNav, { once: true });
+  } else {
+    bindExclusiveBottomNav();
+  }
+})();
+</script>
+
 <script id="withlog-mobile-modal-scroll-lock">
 (() => {
   const mobileQuery = window.matchMedia('(max-width: 640px)');
