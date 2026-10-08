@@ -3578,6 +3578,34 @@ html.withlog-dark .tl-post-card:not(.with-daily-post) > div:last-child .withlog-
 }
 </style>
 
+
+<style id="withlog-mobile-modal-scroll-lock-style">
+@media (max-width: 640px) {
+  html.withlog-mobile-modal-open,
+  body.withlog-mobile-modal-open {
+    overflow: hidden !important;
+    overscroll-behavior: none !important;
+  }
+
+  #userSearchModal,
+  #notificationsModal,
+  #conversationsModal,
+  #dmModal,
+  #profileModal,
+  #likedPostsModal,
+  #editProfileModal,
+  #profileImageCropModal,
+  #userListModal,
+  #advancedSettingsModal,
+  #postModal,
+  #sharedWithInviteModal,
+  #sharedWithContributeModal {
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -8395,11 +8423,10 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 
 
-<script id="withlog-mobile-bottom-nav-single-panel">
+<script id="withlog-mobile-modal-scroll-lock">
 (() => {
   const mobileQuery = window.matchMedia('(max-width: 640px)');
-
-  const panelIds = [
+  const modalIds = [
     'userSearchModal',
     'notificationsModal',
     'conversationsModal',
@@ -8410,65 +8437,95 @@ document.addEventListener("DOMContentLoaded", function () {
     'profileImageCropModal',
     'userListModal',
     'advancedSettingsModal',
-    'accountDeleteModal',
-    'deleteAccountModal',
     'postModal',
     'sharedWithInviteModal',
     'sharedWithContributeModal'
   ];
 
-  function hidePanel(id) {
+  let scrollLocked = false;
+  let savedScrollY = 0;
+
+  function isVisibleModal(id) {
     const el = document.getElementById(id);
-    if (!el) return;
-    el.classList.add('hidden');
-    el.setAttribute('aria-hidden', 'true');
+    return !!el && !el.classList.contains('hidden');
   }
 
-  function closeOtherBottomNavPanels(exceptId = '') {
-    panelIds.forEach(id => {
-      if (id === exceptId) return;
-      hidePanel(id);
+  function hasOpenModal() {
+    return modalIds.some(isVisibleModal);
+  }
+
+  function lockHomeScroll() {
+    if (scrollLocked || !mobileQuery.matches) return;
+
+    savedScrollY = window.scrollY || window.pageYOffset || 0;
+    scrollLocked = true;
+
+    document.documentElement.classList.add('withlog-mobile-modal-open');
+    document.body.classList.add('withlog-mobile-modal-open');
+
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${savedScrollY}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.width = '100%';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function unlockHomeScroll() {
+    if (!scrollLocked) return;
+
+    scrollLocked = false;
+
+    document.documentElement.classList.remove('withlog-mobile-modal-open');
+    document.body.classList.remove('withlog-mobile-modal-open');
+
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    document.body.style.width = '';
+    document.body.style.overflow = '';
+
+    window.scrollTo(0, savedScrollY);
+  }
+
+  function syncScrollLock() {
+    if (!mobileQuery.matches) {
+      unlockHomeScroll();
+      return;
+    }
+
+    if (hasOpenModal()) lockHomeScroll();
+    else unlockHomeScroll();
+  }
+
+  function bindObservers() {
+    modalIds.forEach(id => {
+      const modal = document.getElementById(id);
+      if (!modal || modal.dataset.scrollLockObserved === 'true') return;
+
+      modal.dataset.scrollLockObserved = 'true';
+
+      const observer = new MutationObserver(syncScrollLock);
+      observer.observe(modal, {
+        attributes: true,
+        attributeFilter: ['class', 'aria-hidden']
+      });
     });
-  }
 
-  function resolveTargetPanel(button) {
-    if (!button) return '';
-
-    if (button.id === 'openModalBtn') return 'postModal';
-
-    const title = button.getAttribute('title') || '';
-    if (title === 'ユーザーを探す') return 'userSearchModal';
-    if (title === '通知') return 'notificationsModal';
-    if (title === 'メッセージ') return 'conversationsModal';
-    if (title === 'アカウント') return 'profileModal';
-
-    return '';
-  }
-
-  function bindBottomNavExclusivity() {
-    const actions = document.getElementById('withlogPrimaryActions');
-    if (!actions || actions.dataset.singlePanelBound === 'true') return;
-
-    actions.dataset.singlePanelBound = 'true';
-
-    actions.addEventListener('click', event => {
-      if (!mobileQuery.matches) return;
-      if (!actions.classList.contains('withlog-mobile-bottom-nav')) return;
-
-      const button = event.target.closest('button');
-      if (!button || !actions.contains(button)) return;
-
-      const targetPanel = resolveTargetPanel(button);
-
-      // Logout has no destination panel, so every open panel is closed.
-      closeOtherBottomNavPanels(targetPanel);
-    }, true);
+    syncScrollLock();
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bindBottomNavExclusivity, { once: true });
+    document.addEventListener('DOMContentLoaded', bindObservers, { once: true });
   } else {
-    bindBottomNavExclusivity();
+    bindObservers();
+  }
+
+  if (typeof mobileQuery.addEventListener === 'function') {
+    mobileQuery.addEventListener('change', syncScrollLock);
+  } else if (typeof mobileQuery.addListener === 'function') {
+    mobileQuery.addListener(syncScrollLock);
   }
 })();
 </script>
