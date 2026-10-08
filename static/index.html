@@ -3873,14 +3873,46 @@ html.withlog-dark .shared-with-crop-done{background:#31433b;color:#bfe1ce}
 
     function centerSharedWithInlineCrop(){
       if(!sharedWithCropper||!sharedWithCropReady)return;
-      const canvas=sharedWithCropper.getCanvasData();
+
       const container=sharedWithCropper.getContainerData();
-      sharedWithCropper.setCanvasData({
-        left:(container.width-canvas.width)/2,
-        top:(container.height-canvas.height)/2,
-        width:canvas.width,
-        height:canvas.height
+      const cropBox=sharedWithCropper.getCropBoxData();
+
+      // まず4:5の切り取り枠そのものを編集エリアの中央へ戻す
+      sharedWithCropper.setCropBoxData({
+        left:Math.max(0,(container.width-cropBox.width)/2),
+        top:Math.max(0,(container.height-cropBox.height)/2),
+        width:cropBox.width,
+        height:cropBox.height
       });
+
+      // 次に、写真の中心と切り取り枠の中心が一致するよう写真を移動する
+      const centeredBox=sharedWithCropper.getCropBoxData();
+      const canvas=sharedWithCropper.getCanvasData();
+
+      const boxCenterX=centeredBox.left+(centeredBox.width/2);
+      const boxCenterY=centeredBox.top+(centeredBox.height/2);
+      const canvasCenterX=canvas.left+(canvas.width/2);
+      const canvasCenterY=canvas.top+(canvas.height/2);
+
+      sharedWithCropper.move(
+        boxCenterX-canvasCenterX,
+        boxCenterY-canvasCenterY
+      );
+
+      // viewMode の制限で1回目の移動が補正された場合に、もう一度中央を合わせる
+      requestAnimationFrame(()=>{
+        if(!sharedWithCropper||!sharedWithCropReady)return;
+        const box=sharedWithCropper.getCropBoxData();
+        const currentCanvas=sharedWithCropper.getCanvasData();
+
+        const dx=(box.left+box.width/2)-(currentCanvas.left+currentCanvas.width/2);
+        const dy=(box.top+box.height/2)-(currentCanvas.top+currentCanvas.height/2);
+
+        if(Math.abs(dx)>0.5||Math.abs(dy)>0.5){
+          sharedWithCropper.move(dx,dy);
+        }
+      });
+
       setSharedWithInlineCropMode('');
     }
 
@@ -3906,10 +3938,16 @@ html.withlog-dark .shared-with-crop-done{background:#31433b;color:#bfe1ce}
       document.getElementById('sharedWithCropDone')?.classList.remove('is-visible');
     });
 
-    document.getElementById('sharedWithInlineCropCenterBtn')?.addEventListener('click',()=>{
+    document.getElementById('sharedWithInlineCropCenterBtn')?.addEventListener('click',event=>{
       centerSharedWithInlineCrop();
       sharedWithCroppedPhotoFile=null;
       document.getElementById('sharedWithCropDone')?.classList.remove('is-visible');
+
+      // 押したことが分かる短いフィードバック。ブラウザ標準の黒いフォーカス枠も残さない。
+      const button=event.currentTarget;
+      button.classList.add('is-active');
+      button.blur();
+      window.setTimeout(()=>button.classList.remove('is-active'),220);
     });
 
     document.getElementById('sharedWithInlineCropReselectBtn')?.addEventListener('click',()=>{
