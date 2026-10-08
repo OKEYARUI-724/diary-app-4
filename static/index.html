@@ -3083,228 +3083,67 @@ html.withlog-dark .tl-post-card:not(.with-daily-post) > div:last-child .withlog-
 </style>
 
 
-<style id="withlog-mobile-touch-targets-v1">
+
+<style id="withlog-mobile-bottom-nav-v2">
 /*
-  Mobile ergonomics:
-  keep the pastel visual language, but give frequently-used controls
-  comfortable finger-sized hit areas.
+  Mobile: move the EXISTING six pastel controls into an Instagram-like
+  fixed bottom dock. Desktop keeps the original header layout.
 */
-@media (max-width: 640px), (pointer: coarse) {
-  #appView > header {
-    padding: 11px 12px 12px !important;
-    gap: 10px !important;
-  }
-
-  #appView > header > div:last-child {
-    gap: 7px !important;
-    min-width: 0 !important;
-  }
-
-  #appView > header button[title="ユーザーを探す"],
-  #appView > header button[title="通知"],
-  #appView > header button[title="メッセージ"],
-  #authStatusContainer .withlog-header-icon,
-  #openModalBtn {
-    width: 46px !important;
-    height: 46px !important;
-    min-width: 46px !important;
-    min-height: 46px !important;
-    padding: 0 !important;
-    display: grid !important;
-    place-items: center !important;
-    flex: 0 0 46px !important;
-    border-radius: 9999px !important;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  #appView > header button[title="ユーザーを探す"] svg,
-  #appView > header button[title="通知"] svg,
-  #appView > header button[title="メッセージ"] svg,
-  #authStatusContainer .withlog-header-icon svg {
-    width: 19px !important;
-    height: 19px !important;
-  }
-
-  #openModalBtn {
-    font-size: 20px !important;
-    line-height: 1 !important;
-  }
-
-  #notifBadge {
-    top: 4px !important;
-    right: 4px !important;
-    width: 8px !important;
-    height: 8px !important;
-  }
-
-  /* Other icon-only controls used frequently on phones. */
-  .post-action-btn,
-  .withlog-modal-close,
-  .shared-with-close {
-    min-width: 44px !important;
-    width: 44px !important;
-    min-height: 44px !important;
-    height: 44px !important;
-    padding: 0 !important;
-    display: grid !important;
-    place-items: center !important;
-    touch-action: manipulation;
-  }
-
-  .post-action-btn svg {
-    width: 20px !important;
-    height: 20px !important;
-  }
-
-  #tabAll,
-  #tabFollowing,
-  #clearDate {
-    min-height: 44px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    touch-action: manipulation;
-  }
-
-  /* Give action pills a comfortable finger height without making them bulky. */
-  [data-like-spot],
-  .withlog-comment-toggle,
-  .shared-with-action,
-  .shared-with-danger-action,
-  .shared-with-secondary-action {
-    min-height: 44px !important;
-    touch-action: manipulation;
-  }
-
-  button:active,
-  [role="button"]:active {
-    transform: scale(.96) !important;
-  }
-}
-
-/* On narrow phones, use two tidy rows rather than shrinking the controls. */
-@media (max-width: 420px) {
-  #appView > header {
-    display: grid !important;
-    grid-template-columns: 1fr !important;
-    align-items: center !important;
-    padding: 10px 12px 11px !important;
-  }
-
-  #appView > header > div:first-child {
-    width: 100% !important;
-    min-width: 0 !important;
-    display: flex !important;
-    align-items: baseline !important;
-    gap: 9px !important;
-  }
-
-  #appView > header h1 {
-    font-size: 15px !important;
-    letter-spacing: .16em !important;
-  }
-
-  #appView > header p {
-    font-size: 7px !important;
-    letter-spacing: .13em !important;
-  }
-
-  #appView > header > div:last-child {
-    width: 100% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    gap: 5px !important;
-  }
-
-  #authStatusContainer > div {
-    gap: 5px !important;
-  }
-
-  #appView > header button[title="ユーザーを探す"],
-  #appView > header button[title="通知"],
-  #appView > header button[title="メッセージ"],
-  #authStatusContainer .withlog-header-icon,
-  #openModalBtn {
-    width: 44px !important;
-    height: 44px !important;
-    min-width: 44px !important;
-    min-height: 44px !important;
-    flex-basis: 44px !important;
-  }
-}
-</style>
-
-
-<style id="withlog-mobile-bottom-nav-v1">
-/*
-  Mobile navigation:
-  - Keep the top area as a calm brand bar only.
-  - Move the frequently-used action icons to a fixed bottom dock.
-  - Preserve desktop/tablet layout.
-*/
-@media (max-width: 640px), (pointer: coarse) {
+@media (max-width: 640px) {
   #appView {
-    padding-bottom: calc(104px + env(safe-area-inset-bottom)) !important;
+    padding-bottom: calc(92px + env(safe-area-inset-bottom)) !important;
   }
 
-  /* Top = brand only. */
+  /* Top bar is now only the WITHLOG brand. */
   #appView > header {
     position: sticky !important;
     top: 0 !important;
     z-index: 35 !important;
-    min-height: 64px !important;
-    margin: 0 !important;
-    padding: 10px 16px 11px !important;
+    min-height: 58px !important;
+    padding: 9px 14px 10px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    border-radius: 0 0 22px 22px !important;
     background: rgba(255,253,251,.96) !important;
-    border-bottom: 1px solid rgba(103,91,99,.10) !important;
+    border-bottom: 1px solid rgba(103,91,99,.09) !important;
+    border-radius: 0 0 18px 18px !important;
     backdrop-filter: blur(14px) !important;
     -webkit-backdrop-filter: blur(14px) !important;
   }
 
-  #appView > header > div:first-child {
-    flex: 0 1 auto !important;
+  #appView > header > div {
     width: auto !important;
     min-width: 0 !important;
     display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
+    align-items: baseline !important;
     justify-content: center !important;
-    gap: 1px !important;
+    gap: 8px !important;
     text-align: center !important;
   }
 
   #appView > header h1 {
     margin: 0 !important;
-    font-size: 17px !important;
-    line-height: 1.05 !important;
-    letter-spacing: .18em !important;
+    font-size: 16px !important;
+    line-height: 1 !important;
+    letter-spacing: .17em !important;
   }
 
   #appView > header p {
-    margin: 2px 0 0 !important;
+    margin: 0 !important;
     font-size: 7px !important;
     line-height: 1 !important;
-    letter-spacing: .18em !important;
+    letter-spacing: .14em !important;
   }
 
-  /*
-    Bottom dock.
-    authStatusContainer uses display:contents so Account / Logout participate
-    in the same six-column grid instead of becoming a nested uneven group.
-  */
-  #appView > header > div:last-child {
+  /* This node is re-parented to #appView by JS on phones. */
+  #withlogPrimaryActions.withlog-mobile-bottom-nav {
     position: fixed !important;
-    z-index: 90 !important;
+    z-index: 120 !important;
     left: 50% !important;
     right: auto !important;
     bottom: 0 !important;
     transform: translateX(-50%) !important;
+
     width: min(100vw, 480px) !important;
     max-width: 480px !important;
     min-width: 0 !important;
@@ -3316,27 +3155,31 @@ html.withlog-dark .tl-post-card:not(.with-daily-post) > div:last-child .withlog-
     justify-items: center !important;
     gap: 0 !important;
 
-    padding: 8px 8px calc(8px + env(safe-area-inset-bottom)) !important;
     margin: 0 !important;
+    padding: 7px 8px calc(7px + env(safe-area-inset-bottom)) !important;
 
-    background: rgba(255,253,251,.96) !important;
-    border-top: 1px solid rgba(92,79,104,.13) !important;
-    border-radius: 24px 24px 0 0 !important;
+    background: rgba(255,253,251,.97) !important;
+    border-top: 1px solid rgba(100,84,112,.12) !important;
+    border-radius: 22px 22px 0 0 !important;
+    box-shadow: 0 -8px 28px rgba(39,32,49,.10) !important;
     backdrop-filter: blur(18px) !important;
     -webkit-backdrop-filter: blur(18px) !important;
   }
 
-  #authStatusContainer,
-  #authStatusContainer > div {
+  /*
+    Account + Logout are rendered dynamically inside authStatusContainer.
+    display:contents makes them occupy the same six equal grid columns.
+  */
+  #withlogPrimaryActions.withlog-mobile-bottom-nav #authStatusContainer,
+  #withlogPrimaryActions.withlog-mobile-bottom-nav #authStatusContainer > div {
     display: contents !important;
   }
 
-  /* Equal visual weight and equal tap targets. */
-  #appView > header button[title="ユーザーを探す"],
-  #appView > header button[title="通知"],
-  #appView > header button[title="メッセージ"],
-  #authStatusContainer .withlog-header-icon,
-  #openModalBtn {
+  #withlogPrimaryActions.withlog-mobile-bottom-nav button[title="ユーザーを探す"],
+  #withlogPrimaryActions.withlog-mobile-bottom-nav button[title="通知"],
+  #withlogPrimaryActions.withlog-mobile-bottom-nav button[title="メッセージ"],
+  #withlogPrimaryActions.withlog-mobile-bottom-nav .withlog-header-icon,
+  #withlogPrimaryActions.withlog-mobile-bottom-nav #openModalBtn {
     position: relative !important;
     width: 48px !important;
     height: 48px !important;
@@ -3356,85 +3199,72 @@ html.withlog-dark .tl-post-card:not(.with-daily-post) > div:last-child .withlog-
     -webkit-tap-highlight-color: transparent !important;
   }
 
-  #appView > header button[title="ユーザーを探す"] svg,
-  #appView > header button[title="通知"] svg,
-  #appView > header button[title="メッセージ"] svg,
-  #authStatusContainer .withlog-header-icon svg {
-    width: 21px !important;
-    height: 21px !important;
+  #withlogPrimaryActions.withlog-mobile-bottom-nav button[title="ユーザーを探す"] svg,
+  #withlogPrimaryActions.withlog-mobile-bottom-nav button[title="通知"] svg,
+  #withlogPrimaryActions.withlog-mobile-bottom-nav button[title="メッセージ"] svg,
+  #withlogPrimaryActions.withlog-mobile-bottom-nav .withlog-header-icon svg {
+    width: 20px !important;
+    height: 20px !important;
   }
 
-  #openModalBtn {
-    font-size: 24px !important;
+  #withlogPrimaryActions.withlog-mobile-bottom-nav #openModalBtn {
+    font-size: 23px !important;
     line-height: 1 !important;
   }
 
-  #openModalBtn > span {
+  #withlogPrimaryActions.withlog-mobile-bottom-nav #openModalBtn > span {
     transform: translateY(-1px);
   }
 
-  #notifBadge {
+  #withlogPrimaryActions.withlog-mobile-bottom-nav #notifBadge {
     top: 3px !important;
     right: 3px !important;
     width: 9px !important;
     height: 9px !important;
-    border-width: 2px !important;
   }
 
-  /* Remove old phone rules that could shrink or offset the dock items. */
-  #appView > header > div:last-child,
-  #authStatusContainer > div {
-    gap: 0 !important;
-  }
-
-  /* Give controls a clear pressed state on touch. */
-  #appView > header > div:last-child button:active {
+  #withlogPrimaryActions.withlog-mobile-bottom-nav button:active {
     transform: scale(.92) !important;
   }
 
-  /* Main content begins cleanly below the brand bar. */
-  #appView > .px-4.pt-3 {
-    margin-top: 2px !important;
+  /* Common small phone controls stay easy to tap. */
+  .post-action-btn,
+  .withlog-modal-close,
+  .shared-with-close {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    touch-action: manipulation !important;
   }
 
-  /* Dark mode bottom dock. */
   html.withlog-dark #appView > header {
-    background: rgba(37,38,43,.96) !important;
+    background: rgba(34,35,40,.97) !important;
     border-bottom-color: rgba(255,255,255,.07) !important;
   }
 
-  html.withlog-dark #appView > header > div:last-child {
-    background: rgba(31,32,37,.97) !important;
+  html.withlog-dark #withlogPrimaryActions.withlog-mobile-bottom-nav {
+    background: rgba(29,30,35,.98) !important;
     border-top-color: rgba(255,255,255,.09) !important;
+    box-shadow: 0 -8px 28px rgba(0,0,0,.25) !important;
   }
 }
 
-/* Extra narrow phones: keep six equal slots rather than shrinking unevenly. */
 @media (max-width: 380px) {
-  #appView > header > div:last-child {
+  #withlogPrimaryActions.withlog-mobile-bottom-nav {
     padding-left: 5px !important;
     padding-right: 5px !important;
   }
 
-  #appView > header button[title="ユーザーを探す"],
-  #appView > header button[title="通知"],
-  #appView > header button[title="メッセージ"],
-  #authStatusContainer .withlog-header-icon,
-  #openModalBtn {
+  #withlogPrimaryActions.withlog-mobile-bottom-nav button[title="ユーザーを探す"],
+  #withlogPrimaryActions.withlog-mobile-bottom-nav button[title="通知"],
+  #withlogPrimaryActions.withlog-mobile-bottom-nav button[title="メッセージ"],
+  #withlogPrimaryActions.withlog-mobile-bottom-nav .withlog-header-icon,
+  #withlogPrimaryActions.withlog-mobile-bottom-nav #openModalBtn {
     width: 44px !important;
     height: 44px !important;
     min-width: 44px !important;
     min-height: 44px !important;
     max-width: 44px !important;
     max-height: 44px !important;
-  }
-
-  #appView > header button[title="ユーザーを探す"] svg,
-  #appView > header button[title="通知"] svg,
-  #appView > header button[title="メッセージ"] svg,
-  #authStatusContainer .withlog-header-icon svg {
-    width: 20px !important;
-    height: 20px !important;
   }
 }
 </style>
@@ -3519,7 +3349,7 @@ html.withlog-dark .tl-post-card:not(.with-daily-post) > div:last-child .withlog-
         <p class="text-[9px] tracking-[0.25em] text-slate-500 uppercase font-medium">Everyday Moments</p>
       </div>
 
-      <div class="flex items-center gap-2.5">
+      <div id="withlogPrimaryActions" class="flex items-center gap-2.5">
         <button onclick="openUserSearchModal()" class="text-slate-700 hover:text-slate-950 p-1 transition" title="ユーザーを探す">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -8153,6 +7983,48 @@ html.withlog-dark .tl-post-card:not(.with-daily-post) > div:last-child .withlog-
     // 初期化チェック
     checkAuth();
   </script>
+
+<script id="withlog-mobile-bottom-nav-controller">
+(function () {
+  const mobileQuery = window.matchMedia('(max-width: 640px)');
+
+  function syncWithlogMobileNav() {
+    const appView = document.getElementById('appView');
+    const header = appView?.querySelector(':scope > header');
+    const actions = document.getElementById('withlogPrimaryActions');
+    if (!appView || !header || !actions) return;
+
+    if (mobileQuery.matches) {
+      if (actions.parentElement !== appView) {
+        appView.appendChild(actions);
+      }
+      actions.classList.add('withlog-mobile-bottom-nav');
+    } else {
+      if (actions.parentElement !== header) {
+        header.appendChild(actions);
+      }
+      actions.classList.remove('withlog-mobile-bottom-nav');
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', syncWithlogMobileNav, { once: true });
+  } else {
+    syncWithlogMobileNav();
+  }
+
+  if (typeof mobileQuery.addEventListener === 'function') {
+    mobileQuery.addEventListener('change', syncWithlogMobileNav);
+  } else if (typeof mobileQuery.addListener === 'function') {
+    mobileQuery.addListener(syncWithlogMobileNav);
+  }
+
+  window.addEventListener('orientationchange', function () {
+    window.setTimeout(syncWithlogMobileNav, 80);
+  });
+})();
+</script>
+
 <script id="music-add-route-patch">
 document.addEventListener("DOMContentLoaded", function () {
   var nodes = Array.prototype.slice.call(document.querySelectorAll("button,a,[role='button']"));
