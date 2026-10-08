@@ -2567,6 +2567,177 @@ html.withlog-dark .shared-with-carousel-person-copy span{color:#b8b0bf}
 }
 </style>
 
+
+<style id="withlog-shared-with-music-fixed-marquee">
+/* SHARED WITH music search: keep the modal width fixed and never allow
+   search results or long YouTube titles to create horizontal scrolling. */
+#sharedWithContributeModal{
+  overflow:hidden!important;
+}
+
+#sharedWithContributeModal .shared-with-panel{
+  inline-size:min(420px, calc(100vw - 20px))!important;
+  width:min(420px, calc(100vw - 20px))!important;
+  max-inline-size:420px!important;
+  max-width:420px!important;
+  min-inline-size:0!important;
+  min-width:0!important;
+  overflow-y:auto!important;
+  overflow-x:clip!important;
+  overscroll-behavior:contain;
+}
+
+#sharedWithContributeModal .shared-with-panel *,
+#sharedWithContributeModal .shared-with-contribute-form,
+#sharedWithContributeModal .shared-with-music-box,
+#sharedWithContributeModal .shared-with-music-search,
+#sharedWithContributeModal .shared-with-music-results,
+#sharedWithContributeModal .shared-with-music-result,
+#sharedWithContributeModal .shared-with-music-result-copy{
+  box-sizing:border-box!important;
+  min-width:0!important;
+  min-inline-size:0!important;
+  max-width:100%!important;
+  max-inline-size:100%!important;
+}
+
+#sharedWithContributeModal .shared-with-music-box{
+  width:100%!important;
+  inline-size:100%!important;
+  overflow:hidden!important;
+}
+
+#sharedWithContributeModal .shared-with-music-search{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto!important;
+  gap:8px!important;
+  width:100%!important;
+  inline-size:100%!important;
+  overflow:hidden!important;
+}
+
+#sharedWithContributeModal .shared-with-music-search input{
+  width:100%!important;
+  inline-size:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+}
+
+#sharedWithContributeModal .shared-with-music-search .shared-with-action{
+  width:auto!important;
+  min-width:54px!important;
+  max-width:78px!important;
+  flex:none!important;
+  white-space:nowrap!important;
+}
+
+#sharedWithContributeModal .shared-with-music-results{
+  width:100%!important;
+  inline-size:100%!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  scrollbar-gutter:stable;
+}
+
+#sharedWithContributeModal .shared-with-music-result{
+  display:grid!important;
+  grid-template-columns:56px minmax(0,1fr)!important;
+  width:100%!important;
+  inline-size:100%!important;
+  overflow:hidden!important;
+}
+
+#sharedWithContributeModal .shared-with-music-result-copy{
+  width:auto!important;
+  inline-size:auto!important;
+  overflow:hidden!important;
+}
+
+#sharedWithContributeModal .shared-with-music-result-title{
+  display:block!important;
+  position:relative;
+  width:100%!important;
+  max-width:100%!important;
+  overflow:hidden!important;
+  white-space:nowrap!important;
+  text-overflow:clip!important;
+}
+
+.shared-with-music-title-track{
+  display:inline-flex;
+  align-items:center;
+  gap:32px;
+  width:max-content;
+  max-width:none!important;
+  white-space:nowrap;
+  will-change:transform;
+}
+
+.shared-with-music-title-track > span{
+  display:inline-block;
+  flex:0 0 auto;
+  white-space:nowrap;
+}
+
+.shared-with-music-title-track .shared-with-music-title-copy{
+  display:none;
+}
+
+.shared-with-music-title-track.is-overflowing .shared-with-music-title-copy{
+  display:inline-block;
+}
+
+.shared-with-music-title-track.is-overflowing{
+  animation:sharedWithMusicTitleMarquee var(--shared-marquee-duration,10s) linear infinite;
+}
+
+@keyframes sharedWithMusicTitleMarquee{
+  0%,12%{transform:translateX(0)}
+  88%,100%{transform:translateX(calc(-1 * var(--shared-marquee-shift,0px)))}
+}
+
+#sharedWithContributeModal .shared-with-music-result-artist{
+  display:block!important;
+  width:100%!important;
+  max-width:100%!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+
+/* The selected-song card must also stay inside the modal. */
+#sharedWithContributeModal .shared-with-selected-music{
+  width:100%!important;
+  max-width:100%!important;
+  overflow:hidden!important;
+}
+#sharedWithContributeModal .shared-with-selected-music .copy{
+  min-width:0!important;
+  overflow:hidden!important;
+}
+
+@media(max-width:520px){
+  #sharedWithContributeModal{
+    padding:10px!important;
+  }
+  #sharedWithContributeModal .shared-with-panel{
+    inline-size:calc(100vw - 20px)!important;
+    width:calc(100vw - 20px)!important;
+    max-inline-size:420px!important;
+    max-width:420px!important;
+  }
+  #sharedWithMusicQuery{
+    font-size:16px!important;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .shared-with-music-title-track.is-overflowing{
+    animation:none!important;
+  }
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -4449,7 +4620,12 @@ html.withlog-dark .shared-with-carousel-person-copy span{color:#b8b0bf}
           <button type="button" class="shared-with-music-result" onclick="selectSharedWithMusic(${index})">
             <img src="${escapeHtml(item.cover_url||'')}" alt="">
             <span class="shared-with-music-result-copy">
-              <span class="shared-with-music-result-title">${escapeHtml(item.title||'')}</span>
+              <span class="shared-with-music-result-title">
+                <span class="shared-with-music-title-track">
+                  <span class="shared-with-music-title-main">${escapeHtml(item.title||'')}</span>
+                  <span class="shared-with-music-title-copy" aria-hidden="true">${escapeHtml(item.title||'')}</span>
+                </span>
+              </span>
               <span class="shared-with-music-result-artist">${escapeHtml(item.artist||'')}</span>
             </span>
           </button>
@@ -4459,6 +4635,28 @@ html.withlog-dark .shared-with-carousel-person-copy span{color:#b8b0bf}
           const panel=document.querySelector('#sharedWithContributeModal .shared-with-panel');
           if(panel)panel.scrollLeft=0;
           results.scrollLeft=0;
+
+          results.querySelectorAll('.shared-with-music-result-title').forEach(titleBox=>{
+            const track=titleBox.querySelector('.shared-with-music-title-track');
+            const main=track?.querySelector('.shared-with-music-title-main');
+            if(!track||!main)return;
+
+            track.classList.remove('is-overflowing');
+            track.style.removeProperty('--shared-marquee-shift');
+            track.style.removeProperty('--shared-marquee-duration');
+
+            const titleWidth=main.getBoundingClientRect().width;
+            const boxWidth=titleBox.getBoundingClientRect().width;
+
+            if(titleWidth>boxWidth+4){
+              const gap=32;
+              const shift=titleWidth+gap;
+              const duration=Math.max(8,Math.min(18,shift/42));
+              track.style.setProperty('--shared-marquee-shift',`${shift}px`);
+              track.style.setProperty('--shared-marquee-duration',`${duration}s`);
+              track.classList.add('is-overflowing');
+            }
+          });
         });
       }catch(error){
         sharedWithMusicItems=[];
@@ -4469,6 +4667,8 @@ html.withlog-dark .shared-with-carousel-person-copy span{color:#b8b0bf}
     window.selectSharedWithMusic = function(index){
       const item=sharedWithMusicItems[Number(index)];
       if(!item)return;
+      const panel=document.querySelector('#sharedWithContributeModal .shared-with-panel');
+      if(panel)panel.scrollLeft=0;
       const displayTitle=[item.title,item.artist].filter(Boolean).join(' — ');
       document.getElementById('sharedWithSongTitle').value=displayTitle.slice(0,255);
       document.getElementById('sharedWithSongUrl').value=item.external_url||'';
