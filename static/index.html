@@ -2388,6 +2388,72 @@ html.withlog-dark .shared-with-carousel-person-copy span{color:#b8b0bf}
 }
 </style>
 
+
+<style id="withlog-shared-with-mobile-search-fix">
+/* Prevent mobile browsers (especially iOS Safari) from auto-zooming
+   small text inputs when the SHARED WITH music search is focused. */
+.shared-with-panel,
+.shared-with-contribute-form,
+.shared-with-music-box,
+.shared-with-music-results,
+.shared-with-music-result{
+  box-sizing:border-box;
+  max-width:100%;
+}
+.shared-with-panel{
+  overflow-x:hidden!important;
+}
+.shared-with-music-box,
+.shared-with-music-results{
+  width:100%;
+  min-width:0;
+  overflow-x:hidden;
+}
+.shared-with-music-result{
+  min-width:0;
+}
+.shared-with-music-result-copy{
+  min-width:0;
+  overflow:hidden;
+}
+
+@media (max-width: 768px){
+  #sharedWithMusicQuery,
+  #sharedWithContributeModal input[type="search"],
+  #sharedWithContributeModal input[type="text"],
+  #sharedWithContributeModal input[type="url"],
+  #sharedWithContributeModal textarea{
+    font-size:16px!important;
+  }
+
+  .shared-with-music-search{
+    width:100%;
+    min-width:0;
+  }
+
+  .shared-with-music-search input{
+    flex:1 1 auto!important;
+    width:auto!important;
+    min-width:0!important;
+    max-width:100%!important;
+  }
+
+  .shared-with-music-search .shared-with-action{
+    flex:0 0 auto;
+    white-space:nowrap;
+  }
+
+  .shared-with-music-results{
+    max-height:260px;
+  }
+
+  .shared-with-music-result-title,
+  .shared-with-music-result-artist{
+    max-width:100%;
+  }
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -4246,10 +4312,17 @@ html.withlog-dark .shared-with-carousel-person-copy span{color:#b8b0bf}
     let sharedWithMusicItems = [];
 
     window.searchSharedWithMusic = async function(){
-      const q=document.getElementById('sharedWithMusicQuery').value.trim();
+      const searchInput=document.getElementById('sharedWithMusicQuery');
+      const q=searchInput.value.trim();
       const results=document.getElementById('sharedWithMusicResults');
       const message=document.getElementById('sharedWithMusicMessage');
       if(!q){message.textContent='曲名またはアーティスト名を入力してください。';return;}
+
+      // iPhone / iPad browsers can keep the page zoomed while a small input is focused.
+      // Release focus before the async search and restore the modal's horizontal position.
+      searchInput.blur();
+      const panel=document.querySelector('#sharedWithContributeModal .shared-with-panel');
+      if(panel)panel.scrollLeft=0;
       results.innerHTML='';
       message.textContent='YouTubeを検索しています...';
       try{
@@ -4268,6 +4341,12 @@ html.withlog-dark .shared-with-carousel-person-copy span{color:#b8b0bf}
             </span>
           </button>
         `).join('');
+
+        requestAnimationFrame(()=>{
+          const panel=document.querySelector('#sharedWithContributeModal .shared-with-panel');
+          if(panel)panel.scrollLeft=0;
+          results.scrollLeft=0;
+        });
       }catch(error){
         sharedWithMusicItems=[];
         message.textContent=error.message||'音楽を検索できませんでした。';
