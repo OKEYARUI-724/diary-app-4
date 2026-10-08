@@ -3413,6 +3413,106 @@ html.withlog-dark .tl-post-card:not(.with-daily-post) > div:last-child .withlog-
 }
 </style>
 
+
+<style id="withlog-mobile-bottom-nav-light-unified-v3">
+/*
+  Light mode: match all six mobile bottom-nav controls to the same
+  clean icon-only treatment already used successfully in dark mode.
+*/
+@media (max-width: 640px) {
+  html:not(.withlog-dark) #withlogPrimaryActions.withlog-mobile-bottom-nav
+  button[title="ユーザーを探す"],
+
+  html:not(.withlog-dark) #withlogPrimaryActions.withlog-mobile-bottom-nav
+  button[title="通知"],
+
+  html:not(.withlog-dark) #withlogPrimaryActions.withlog-mobile-bottom-nav
+  button[title="メッセージ"],
+
+  html:not(.withlog-dark) #withlogPrimaryActions.withlog-mobile-bottom-nav
+  .withlog-account-icon,
+
+  html:not(.withlog-dark) #withlogPrimaryActions.withlog-mobile-bottom-nav
+  .withlog-logout-icon,
+
+  html:not(.withlog-dark) #withlogPrimaryActions.withlog-mobile-bottom-nav
+  #openModalBtn {
+    background: transparent !important;
+    background-image: none !important;
+    border: 0 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
+    filter: none !important;
+    color: #3f4f67 !important;
+
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+    max-width: 48px !important;
+    max-height: 48px !important;
+    border-radius: 50% !important;
+  }
+
+  html:not(.withlog-dark) #withlogPrimaryActions.withlog-mobile-bottom-nav
+  button[title="ユーザーを探す"] svg,
+
+  html:not(.withlog-dark) #withlogPrimaryActions.withlog-mobile-bottom-nav
+  button[title="通知"] svg,
+
+  html:not(.withlog-dark) #withlogPrimaryActions.withlog-mobile-bottom-nav
+  button[title="メッセージ"] svg,
+
+  html:not(.withlog-dark) #withlogPrimaryActions.withlog-mobile-bottom-nav
+  .withlog-account-icon svg,
+
+  html:not(.withlog-dark) #withlogPrimaryActions.withlog-mobile-bottom-nav
+  .withlog-logout-icon svg {
+    color: currentColor !important;
+    stroke: currentColor !important;
+  }
+
+  html:not(.withlog-dark) #withlogPrimaryActions.withlog-mobile-bottom-nav
+  #openModalBtn > span {
+    color: currentColor !important;
+  }
+
+  /* Subtle feedback only while tapping; no permanent colored circles. */
+  html:not(.withlog-dark) #withlogPrimaryActions.withlog-mobile-bottom-nav
+  button:active {
+    background: rgba(104,76,145,.08) !important;
+    transform: scale(.92) !important;
+  }
+}
+
+@media (max-width: 380px) {
+  html:not(.withlog-dark) #withlogPrimaryActions.withlog-mobile-bottom-nav
+  button[title="ユーザーを探す"],
+
+  html:not(.withlog-dark) #withlogPrimaryActions.withlog-mobile-bottom-nav
+  button[title="通知"],
+
+  html:not(.withlog-dark) #withlogPrimaryActions.withlog-mobile-bottom-nav
+  button[title="メッセージ"],
+
+  html:not(.withlog-dark) #withlogPrimaryActions.withlog-mobile-bottom-nav
+  .withlog-account-icon,
+
+  html:not(.withlog-dark) #withlogPrimaryActions.withlog-mobile-bottom-nav
+  .withlog-logout-icon,
+
+  html:not(.withlog-dark) #withlogPrimaryActions.withlog-mobile-bottom-nav
+  #openModalBtn {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    max-width: 44px !important;
+    max-height: 44px !important;
+  }
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
