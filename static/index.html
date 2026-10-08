@@ -3812,6 +3812,47 @@ html.withlog-dark .withlog-settings-logout-main small{
 }
 </style>
 
+
+<style id="withlog-shared-with-music-indicator-fix">
+/*
+  SHARED WITH:
+  keep the music control on the lower-left and move the slide indicator
+  to the lower-right so the two controls never overlap.
+*/
+.shared-with-carousel-nav{
+  left:auto!important;
+  right:52px!important;
+  bottom:12px!important;
+  transform:none!important;
+}
+
+.shared-with-carousel-count{
+  right:12px!important;
+  bottom:12px!important;
+}
+
+/* Reserve the lower-right area for the indicator + page count. */
+.shared-with-carousel-caption .shared-with-carousel-song{
+  max-width:min(330px, calc(100% - 108px))!important;
+}
+
+@media(max-width:560px){
+  .shared-with-carousel-nav{
+    right:48px!important;
+    bottom:10px!important;
+  }
+
+  .shared-with-carousel-count{
+    right:10px!important;
+    bottom:10px!important;
+  }
+
+  .shared-with-carousel-caption .shared-with-carousel-song{
+    max-width:calc(100% - 104px)!important;
+  }
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
