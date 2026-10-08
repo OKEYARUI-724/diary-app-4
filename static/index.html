@@ -2454,6 +2454,119 @@ html.withlog-dark .shared-with-carousel-person-copy span{color:#b8b0bf}
 }
 </style>
 
+
+<style id="withlog-shared-with-modal-size-fix">
+/* Keep both SHARED WITH modals at a stable, compact width.
+   This overrides the later max-width:100% rule that accidentally stretched
+   the invite/search modal across the whole screen. */
+#sharedWithInviteModal,
+#sharedWithContributeModal{
+  overflow:hidden!important;
+}
+
+#sharedWithInviteModal .shared-with-panel,
+#sharedWithContributeModal .shared-with-panel{
+  width:min(420px, calc(100vw - 32px))!important;
+  max-width:420px!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  margin:0 auto!important;
+}
+
+/* Prevent flex rows from growing wider than the modal. */
+#sharedWithInviteModal .shared-with-search-row,
+#sharedWithContributeModal .shared-with-music-search{
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+}
+
+#sharedWithInviteModal .shared-with-search-row input,
+#sharedWithContributeModal .shared-with-music-search input{
+  flex:1 1 0!important;
+  width:0!important;
+  min-width:0!important;
+  max-width:none!important;
+  box-sizing:border-box!important;
+}
+
+#sharedWithInviteModal .shared-with-search-row .shared-with-action,
+#sharedWithContributeModal .shared-with-music-search .shared-with-action{
+  flex:0 0 auto!important;
+  width:auto!important;
+  min-width:54px!important;
+  max-width:84px!important;
+  white-space:nowrap!important;
+}
+
+/* Search results must stay inside the panel even with very long video titles. */
+#sharedWithContributeModal .shared-with-music-box,
+#sharedWithContributeModal .shared-with-music-results,
+#sharedWithContributeModal .shared-with-music-result,
+#sharedWithContributeModal .shared-with-music-result-copy,
+#sharedWithInviteModal #sharedWithSearchResults,
+#sharedWithInviteModal .shared-with-result,
+#sharedWithInviteModal .shared-with-result .grow{
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+  overflow-x:hidden!important;
+}
+
+#sharedWithContributeModal .shared-with-music-result{
+  display:grid!important;
+  grid-template-columns:56px minmax(0,1fr)!important;
+  align-items:center!important;
+}
+
+#sharedWithContributeModal .shared-with-music-result-title,
+#sharedWithContributeModal .shared-with-music-result-artist{
+  display:block!important;
+  width:100%!important;
+  max-width:100%!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+
+/* Do not allow the modal page itself to create a horizontal scrollbar. */
+#sharedWithInviteModal .shared-with-panel > *,
+#sharedWithContributeModal .shared-with-panel > *,
+#sharedWithContributeModal .shared-with-contribute-form{
+  max-width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+}
+
+@media (max-width: 520px){
+  #sharedWithInviteModal,
+  #sharedWithContributeModal{
+    padding:10px!important;
+  }
+
+  #sharedWithInviteModal .shared-with-panel,
+  #sharedWithContributeModal .shared-with-panel{
+    width:calc(100vw - 20px)!important;
+    max-width:420px!important;
+    padding:18px!important;
+    border-radius:28px!important;
+  }
+
+  /* 16px prevents mobile Safari's automatic focus zoom. */
+  #sharedWithInviteModal input,
+  #sharedWithContributeModal input[type="search"],
+  #sharedWithContributeModal input[type="text"],
+  #sharedWithContributeModal input[type="url"],
+  #sharedWithContributeModal textarea{
+    font-size:16px!important;
+  }
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
