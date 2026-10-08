@@ -3236,6 +3236,209 @@ html.withlog-dark .tl-post-card:not(.with-daily-post) > div:last-child .withlog-
 }
 </style>
 
+
+<style id="withlog-mobile-bottom-nav-v1">
+/*
+  Mobile navigation:
+  - Keep the top area as a calm brand bar only.
+  - Move the frequently-used action icons to a fixed bottom dock.
+  - Preserve desktop/tablet layout.
+*/
+@media (max-width: 640px), (pointer: coarse) {
+  #appView {
+    padding-bottom: calc(104px + env(safe-area-inset-bottom)) !important;
+  }
+
+  /* Top = brand only. */
+  #appView > header {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 35 !important;
+    min-height: 64px !important;
+    margin: 0 !important;
+    padding: 10px 16px 11px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 0 0 22px 22px !important;
+    background: rgba(255,253,251,.96) !important;
+    border-bottom: 1px solid rgba(103,91,99,.10) !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+  }
+
+  #appView > header > div:first-child {
+    flex: 0 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 1px !important;
+    text-align: center !important;
+  }
+
+  #appView > header h1 {
+    margin: 0 !important;
+    font-size: 17px !important;
+    line-height: 1.05 !important;
+    letter-spacing: .18em !important;
+  }
+
+  #appView > header p {
+    margin: 2px 0 0 !important;
+    font-size: 7px !important;
+    line-height: 1 !important;
+    letter-spacing: .18em !important;
+  }
+
+  /*
+    Bottom dock.
+    authStatusContainer uses display:contents so Account / Logout participate
+    in the same six-column grid instead of becoming a nested uneven group.
+  */
+  #appView > header > div:last-child {
+    position: fixed !important;
+    z-index: 90 !important;
+    left: 50% !important;
+    right: auto !important;
+    bottom: 0 !important;
+    transform: translateX(-50%) !important;
+    width: min(100vw, 480px) !important;
+    max-width: 480px !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+
+    display: grid !important;
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+    align-items: center !important;
+    justify-items: center !important;
+    gap: 0 !important;
+
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom)) !important;
+    margin: 0 !important;
+
+    background: rgba(255,253,251,.96) !important;
+    border-top: 1px solid rgba(92,79,104,.13) !important;
+    border-radius: 24px 24px 0 0 !important;
+    backdrop-filter: blur(18px) !important;
+    -webkit-backdrop-filter: blur(18px) !important;
+  }
+
+  #authStatusContainer,
+  #authStatusContainer > div {
+    display: contents !important;
+  }
+
+  /* Equal visual weight and equal tap targets. */
+  #appView > header button[title="ユーザーを探す"],
+  #appView > header button[title="通知"],
+  #appView > header button[title="メッセージ"],
+  #authStatusContainer .withlog-header-icon,
+  #openModalBtn {
+    position: relative !important;
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+    max-width: 48px !important;
+    max-height: 48px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: grid !important;
+    place-items: center !important;
+    justify-self: center !important;
+    align-self: center !important;
+    flex: none !important;
+    border-radius: 50% !important;
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+
+  #appView > header button[title="ユーザーを探す"] svg,
+  #appView > header button[title="通知"] svg,
+  #appView > header button[title="メッセージ"] svg,
+  #authStatusContainer .withlog-header-icon svg {
+    width: 21px !important;
+    height: 21px !important;
+  }
+
+  #openModalBtn {
+    font-size: 24px !important;
+    line-height: 1 !important;
+  }
+
+  #openModalBtn > span {
+    transform: translateY(-1px);
+  }
+
+  #notifBadge {
+    top: 3px !important;
+    right: 3px !important;
+    width: 9px !important;
+    height: 9px !important;
+    border-width: 2px !important;
+  }
+
+  /* Remove old phone rules that could shrink or offset the dock items. */
+  #appView > header > div:last-child,
+  #authStatusContainer > div {
+    gap: 0 !important;
+  }
+
+  /* Give controls a clear pressed state on touch. */
+  #appView > header > div:last-child button:active {
+    transform: scale(.92) !important;
+  }
+
+  /* Main content begins cleanly below the brand bar. */
+  #appView > .px-4.pt-3 {
+    margin-top: 2px !important;
+  }
+
+  /* Dark mode bottom dock. */
+  html.withlog-dark #appView > header {
+    background: rgba(37,38,43,.96) !important;
+    border-bottom-color: rgba(255,255,255,.07) !important;
+  }
+
+  html.withlog-dark #appView > header > div:last-child {
+    background: rgba(31,32,37,.97) !important;
+    border-top-color: rgba(255,255,255,.09) !important;
+  }
+}
+
+/* Extra narrow phones: keep six equal slots rather than shrinking unevenly. */
+@media (max-width: 380px) {
+  #appView > header > div:last-child {
+    padding-left: 5px !important;
+    padding-right: 5px !important;
+  }
+
+  #appView > header button[title="ユーザーを探す"],
+  #appView > header button[title="通知"],
+  #appView > header button[title="メッセージ"],
+  #authStatusContainer .withlog-header-icon,
+  #openModalBtn {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    max-width: 44px !important;
+    max-height: 44px !important;
+  }
+
+  #appView > header button[title="ユーザーを探す"] svg,
+  #appView > header button[title="通知"] svg,
+  #appView > header button[title="メッセージ"] svg,
+  #authStatusContainer .withlog-header-icon svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
