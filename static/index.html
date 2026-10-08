@@ -1682,7 +1682,7 @@ html.withlog-dark .withlog-profile-file-action {
 .withlog-profile-crop-overlay {
   position: fixed;
   inset: 0;
-  z-index: 95;
+  z-index: 120;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3547,6 +3547,7 @@ html.withlog-dark .shared-with-music-result-artist,html.withlog-dark .shared-wit
 
     window.openSharedWithContributeModal = function(spotId){
       sharedWithContributionSpotId=String(spotId||'');['sharedWithPhoto','sharedWithCaption','sharedWithSongTitle','sharedWithSongUrl','sharedWithMusicQuery'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+      if (typeof resetProfileImageSelection === 'function') resetProfileImageSelection('shared');
       sharedWithMusicItems=[];
       document.getElementById('sharedWithMusicResults').innerHTML='';
       document.getElementById('sharedWithMusicMessage').textContent='YouTubeから、この思い出の1曲を選べます。';
@@ -3558,9 +3559,8 @@ html.withlog-dark .shared-with-music-result-artist,html.withlog-dark .shared-wit
     window.closeSharedWithContributeModal=function(){document.getElementById('sharedWithContributeModal').classList.add('hidden');sharedWithContributionSpotId='';};
 
     document.getElementById('sharedWithPhoto')?.addEventListener('change', event => {
-      const file = event.target.files?.[0];
-      const label = document.getElementById('sharedWithPhotoFileName');
-      if (label) label.textContent = file ? file.name : 'ファイルが選択されていません';
+      const file = event.currentTarget.files?.[0];
+      if (file) openProfileImageCropModal('shared', file);
     });
 
 
@@ -3624,7 +3624,13 @@ html.withlog-dark .shared-with-music-result-artist,html.withlog-dark .shared-wit
     });
 
     document.getElementById('sharedWithContributeForm')?.addEventListener('submit',async event=>{
-      event.preventDefault();if(!sharedWithContributionSpotId)return;const file=document.getElementById('sharedWithPhoto').files?.[0];if(!file)return;
+      event.preventDefault();
+      if(!sharedWithContributionSpotId)return;
+      const file=profileCroppedFiles.shared || document.getElementById('sharedWithPhoto').files?.[0];
+      if(!file){
+        document.getElementById('sharedWithContributeStatus').textContent='写真を選択して、切り取りを完了してください。';
+        return;
+      }
       const button=document.getElementById('sharedWithContributeSubmit'),status=document.getElementById('sharedWithContributeStatus');button.disabled=true;status.textContent='2人の思い出を作っています...';
       const form=new FormData();form.append('file',file);form.append('caption',document.getElementById('sharedWithCaption').value.trim());form.append('song_title',document.getElementById('sharedWithSongTitle').value.trim());form.append('song_url',document.getElementById('sharedWithSongUrl').value.trim());
       try{
@@ -5135,7 +5141,7 @@ html.withlog-dark .shared-with-music-result-artist,html.withlog-dark .shared-wit
     };
 
     // --- プロフィール編集 / アイコン・背景画像の切り取り ---
-    const profileCroppedFiles = { avatar: null, cover: null };
+    const profileCroppedFiles = { avatar: null, cover: null, shared: null };
     let profileCropper = null;
     let profileCropKind = null;
     let profileCropSourceFile = null;
@@ -5155,6 +5161,19 @@ html.withlog-dark .shared-with-music-result-artist,html.withlog-dark .shared-wit
           height: 400,
           help: 'プロフィール上部の横長サイズです。白い3:1の枠をドラッグして、表示したい範囲を調整できます。',
           outputSuffix: 'cover',
+        };
+      }
+      if (kind === 'shared') {
+        return {
+          inputId: 'sharedWithPhoto',
+          labelId: 'sharedWithPhotoFileName',
+          title: 'SHARED WITHの写真を切り取り',
+          ratioLabel: 'CROP 4:5',
+          aspectRatio: 4 / 5,
+          width: 1080,
+          height: 1350,
+          help: '通常の投稿と同じ4:5で切り取ります。白い枠を動かして、2人の思い出に残したい範囲を調整してください。',
+          outputSuffix: 'shared-with',
         };
       }
       return {
@@ -5303,7 +5322,9 @@ html.withlog-dark .shared-with-music-result-artist,html.withlog-dark .shared-wit
       const title = document.getElementById('profileCropTitle');
       const badge = document.getElementById('profileCropRatioBadge');
       const help = document.getElementById('profileCropHelp');
+      const kicker = modal?.querySelector('.withlog-profile-crop-kicker');
 
+      if (kicker) kicker.textContent = kind === 'shared' ? 'SHARED WITH PHOTO EDITOR' : 'PROFILE IMAGE EDITOR';
       if (title) title.textContent = config.title;
       if (badge) badge.textContent = config.ratioLabel;
       if (help) help.textContent = config.help;
