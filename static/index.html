@@ -2504,6 +2504,50 @@ html.withlog-dark .shared-with-music-result-artist,html.withlog-dark .shared-wit
       </div>
     </div>
 
+
+    <!-- SHARED WITH 写真 切り取りモーダル -->
+    <div id="sharedWithPhotoCropModal" class="withlog-profile-crop-overlay hidden" aria-hidden="true">
+      <div class="withlog-profile-crop-panel" role="dialog" aria-modal="true" aria-labelledby="sharedWithCropTitle">
+        <div class="withlog-profile-crop-header">
+          <div class="withlog-profile-crop-header-copy">
+            <p class="withlog-profile-crop-kicker">SHARED WITH PHOTO EDITOR</p>
+            <h2 id="sharedWithCropTitle" class="withlog-profile-crop-title">写真を切り取り</h2>
+          </div>
+          <button type="button" id="sharedWithCropCloseBtn" class="withlog-modal-close" aria-label="切り取り画面を閉じる">×</button>
+        </div>
+        <div class="withlog-profile-crop-body">
+          <div id="sharedWithCropStage" class="withlog-profile-crop-stage">
+            <img id="sharedWithCropImage" alt="SHARED WITH写真の切り取りプレビュー" draggable="false">
+          </div>
+
+          <div class="withlog-profile-crop-controls">
+            <span class="withlog-profile-crop-badge">CROP 4:5</span>
+
+            <div class="withlog-profile-crop-row">
+              <span class="withlog-profile-crop-label">SIZE</span>
+              <input id="sharedWithCropZoom" type="range" min="50" max="250" step="1" value="100" aria-label="画像サイズ">
+              <span id="sharedWithCropZoomValue" class="withlog-profile-crop-value">100%</span>
+            </div>
+
+            <div class="withlog-profile-crop-actions">
+              <button type="button" id="sharedWithCropFitBtn" class="withlog-profile-crop-action is-active">FIT</button>
+              <button type="button" id="sharedWithCropFillBtn" class="withlog-profile-crop-action">FILL</button>
+              <button type="button" id="sharedWithCropCenterBtn" class="withlog-profile-crop-action">中央</button>
+            </div>
+
+            <p class="withlog-profile-crop-help">
+              通常の投稿と同じ4:5で切り取ります。白い枠を動かして、残したい範囲を調整してください。
+            </p>
+          </div>
+
+          <div class="withlog-profile-crop-footer">
+            <button type="button" id="sharedWithCropCancelBtn" class="withlog-profile-crop-cancel">キャンセル</button>
+            <button type="button" id="sharedWithCropApplyBtn" class="withlog-profile-crop-apply">この範囲で決定</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- プロフィール画像 切り取りモーダル -->
     <div id="profileImageCropModal" class="withlog-profile-crop-overlay hidden" aria-hidden="true">
       <div class="withlog-profile-crop-panel" role="dialog" aria-modal="true" aria-labelledby="profileCropTitle">
@@ -2588,7 +2632,7 @@ html.withlog-dark .shared-with-music-result-artist,html.withlog-dark .shared-wit
               </span>
               <span class="withlog-profile-file-action">選択</span>
             </label>
-            <input id="sharedWithPhoto" type="file" accept="image/*" required class="withlog-profile-file-input">
+            <input id="sharedWithPhoto" type="file" accept="image/*" required class="withlog-profile-file-input" onchange="openSharedWithPhotoCropFromInput(this)">
           </div>
           <label>ひとこと<textarea id="sharedWithCaption" rows="3" maxlength="500" placeholder="同じ日の、あなた側の思い出"></textarea></label>
           <div class="shared-with-music-box">
@@ -3547,7 +3591,8 @@ html.withlog-dark .shared-with-music-result-artist,html.withlog-dark .shared-wit
 
     window.openSharedWithContributeModal = function(spotId){
       sharedWithContributionSpotId=String(spotId||'');['sharedWithPhoto','sharedWithCaption','sharedWithSongTitle','sharedWithSongUrl','sharedWithMusicQuery'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-      if (typeof resetProfileImageSelection === 'function') resetProfileImageSelection('shared');
+      sharedWithCroppedPhotoFile=null;
+      destroySharedWithCropper();
       sharedWithMusicItems=[];
       document.getElementById('sharedWithMusicResults').innerHTML='';
       document.getElementById('sharedWithMusicMessage').textContent='YouTubeから、この思い出の1曲を選べます。';
@@ -3556,11 +3601,226 @@ html.withlog-dark .shared-with-music-result-artist,html.withlog-dark .shared-wit
       if(sharedFileName)sharedFileName.textContent='ファイルが選択されていません';
       document.getElementById('sharedWithContributeStatus').textContent='';document.getElementById('sharedWithContributeModal').classList.remove('hidden');
     };
-    window.closeSharedWithContributeModal=function(){document.getElementById('sharedWithContributeModal').classList.add('hidden');sharedWithContributionSpotId='';};
+    window.closeSharedWithContributeModal=function(){
+      closeSharedWithPhotoCropModal({clearSelection:false});
+      document.getElementById('sharedWithContributeModal').classList.add('hidden');
+      sharedWithContributionSpotId='';
+    };
 
-    document.getElementById('sharedWithPhoto')?.addEventListener('change', event => {
-      const file = event.currentTarget.files?.[0];
-      if (file) openProfileImageCropModal('shared', file);
+
+    let sharedWithCroppedPhotoFile = null;
+    let sharedWithCropper = null;
+    let sharedWithCropSourceFile = null;
+    let sharedWithCropObjectUrl = null;
+    let sharedWithCropReady = false;
+    let sharedWithCropInitialRatio = 1;
+
+    function destroySharedWithCropper(){
+      if(sharedWithCropper){
+        try{sharedWithCropper.destroy();}catch(_){}
+        sharedWithCropper=null;
+      }
+      sharedWithCropReady=false;
+      if(sharedWithCropObjectUrl){
+        URL.revokeObjectURL(sharedWithCropObjectUrl);
+        sharedWithCropObjectUrl=null;
+      }
+    }
+
+    function setSharedWithCropMode(mode){
+      document.getElementById('sharedWithCropFitBtn')?.classList.toggle('is-active',mode==='fit');
+      document.getElementById('sharedWithCropFillBtn')?.classList.toggle('is-active',mode==='fill');
+    }
+
+    function syncSharedWithCropZoom(value){
+      const percent=Math.max(50,Math.min(250,Math.round(Number(value)||100)));
+      const slider=document.getElementById('sharedWithCropZoom');
+      const label=document.getElementById('sharedWithCropZoomValue');
+      if(slider)slider.value=String(percent);
+      if(label)label.textContent=`${percent}%`;
+    }
+
+    function centerSharedWithCropBox(){
+      if(!sharedWithCropper||!sharedWithCropReady)return;
+      const container=sharedWithCropper.getContainerData();
+      const box=sharedWithCropper.getCropBoxData();
+      sharedWithCropper.setCropBoxData({
+        left:Math.max(0,(container.width-box.width)/2),
+        top:Math.max(0,(container.height-box.height)/2),
+        width:box.width,
+        height:box.height
+      });
+      setSharedWithCropMode('');
+    }
+
+    function fitSharedWithCropImage(){
+      if(!sharedWithCropper||!sharedWithCropReady)return;
+      sharedWithCropper.zoomTo(sharedWithCropInitialRatio);
+      syncSharedWithCropZoom(100);
+      setSharedWithCropMode('fit');
+    }
+
+    function fillSharedWithCropImage(){
+      if(!sharedWithCropper||!sharedWithCropReady)return;
+      const image=sharedWithCropper.getImageData();
+      const box=sharedWithCropper.getCropBoxData();
+      if(!image.naturalWidth||!image.naturalHeight)return;
+      const neededRatio=Math.max(box.width/image.naturalWidth,box.height/image.naturalHeight);
+      sharedWithCropper.zoomTo(neededRatio);
+      const percent=sharedWithCropInitialRatio?(neededRatio/sharedWithCropInitialRatio)*100:100;
+      syncSharedWithCropZoom(percent);
+      setSharedWithCropMode('fill');
+    }
+
+    function closeSharedWithPhotoCropModal({clearSelection=true}={}){
+      const modal=document.getElementById('sharedWithPhotoCropModal');
+      modal?.classList.add('hidden');
+      modal?.setAttribute('aria-hidden','true');
+      destroySharedWithCropper();
+
+      if(clearSelection){
+        const input=document.getElementById('sharedWithPhoto');
+        if(input)input.value='';
+        sharedWithCroppedPhotoFile=null;
+        const label=document.getElementById('sharedWithPhotoFileName');
+        if(label)label.textContent='ファイルが選択されていません';
+      }
+      sharedWithCropSourceFile=null;
+    }
+    window.closeSharedWithPhotoCropModal=closeSharedWithPhotoCropModal;
+
+    window.openSharedWithPhotoCropFromInput=function(input){
+      const file=input?.files?.[0];
+      if(!file)return;
+      const label=document.getElementById('sharedWithPhotoFileName');
+      if(label)label.textContent=file.name;
+
+      if(!file.type?.startsWith('image/')){
+        alert('画像ファイルを選択してください。');
+        input.value='';
+        if(label)label.textContent='ファイルが選択されていません';
+        return;
+      }
+      if(!window.Cropper){
+        alert('画像編集ツールを読み込めませんでした。通信状態を確認して、もう一度お試しください。');
+        return;
+      }
+
+      destroySharedWithCropper();
+      sharedWithCroppedPhotoFile=null;
+      sharedWithCropSourceFile=file;
+
+      const modal=document.getElementById('sharedWithPhotoCropModal');
+      const image=document.getElementById('sharedWithCropImage');
+
+      sharedWithCropObjectUrl=URL.createObjectURL(file);
+      modal?.classList.remove('hidden');
+      modal?.setAttribute('aria-hidden','false');
+      syncSharedWithCropZoom(100);
+      setSharedWithCropMode('fit');
+
+      image.onload=()=>{
+        try{
+          sharedWithCropper=new Cropper(image,{
+            aspectRatio:4/5,
+            viewMode:0,
+            dragMode:'none',
+            responsive:true,
+            restore:true,
+            checkCrossOrigin:false,
+            checkOrientation:true,
+            modal:true,
+            guides:false,
+            center:false,
+            highlight:false,
+            background:false,
+            autoCrop:true,
+            autoCropArea:.72,
+            movable:false,
+            rotatable:false,
+            scalable:false,
+            zoomable:true,
+            zoomOnTouch:false,
+            zoomOnWheel:false,
+            cropBoxMovable:true,
+            cropBoxResizable:true,
+            toggleDragModeOnDblclick:false,
+            minCropBoxWidth:110,
+            minCropBoxHeight:138,
+            ready(){
+              sharedWithCropReady=true;
+              sharedWithCropInitialRatio=sharedWithCropper.getImageData().ratio||1;
+              syncSharedWithCropZoom(100);
+              setSharedWithCropMode('fit');
+            }
+          });
+        }catch(error){
+          closeSharedWithPhotoCropModal({clearSelection:true});
+          alert(error?.message||'画像編集画面を開けませんでした。');
+        }
+      };
+      image.src=sharedWithCropObjectUrl;
+    };
+
+    document.getElementById('sharedWithCropZoom')?.addEventListener('input',event=>{
+      if(!sharedWithCropper||!sharedWithCropReady)return;
+      const percent=Math.max(50,Number(event.currentTarget.value||100));
+      sharedWithCropper.zoomTo(sharedWithCropInitialRatio*(percent/100));
+      syncSharedWithCropZoom(percent);
+      setSharedWithCropMode('');
+    });
+
+    document.getElementById('sharedWithCropFitBtn')?.addEventListener('click',fitSharedWithCropImage);
+    document.getElementById('sharedWithCropFillBtn')?.addEventListener('click',fillSharedWithCropImage);
+    document.getElementById('sharedWithCropCenterBtn')?.addEventListener('click',centerSharedWithCropBox);
+    document.getElementById('sharedWithCropCloseBtn')?.addEventListener('click',()=>closeSharedWithPhotoCropModal({clearSelection:true}));
+    document.getElementById('sharedWithCropCancelBtn')?.addEventListener('click',()=>closeSharedWithPhotoCropModal({clearSelection:true}));
+    document.getElementById('sharedWithPhotoCropModal')?.addEventListener('click',event=>{
+      if(event.target===event.currentTarget)closeSharedWithPhotoCropModal({clearSelection:true});
+    });
+
+    document.getElementById('sharedWithCropApplyBtn')?.addEventListener('click',event=>{
+      const button=event.currentTarget;
+      if(!sharedWithCropper||!sharedWithCropReady||!sharedWithCropSourceFile)return;
+
+      button.disabled=true;
+      try{
+        const canvas=sharedWithCropper.getCroppedCanvas({
+          width:1080,
+          height:1350,
+          fillColor:'#fffdfb',
+          imageSmoothingEnabled:true,
+          imageSmoothingQuality:'high'
+        });
+        if(!canvas)throw new Error('画像を切り取れませんでした。');
+
+        canvas.toBlob(blob=>{
+          if(!blob){
+            button.disabled=false;
+            alert('画像の書き出しに失敗しました。');
+            return;
+          }
+
+          const original=sharedWithCropSourceFile?.name||'shared-with.jpg';
+          const base=original.replace(/\.[^.]+$/,'')||'shared-with';
+          sharedWithCroppedPhotoFile=new File(
+            [blob],
+            `${base}_shared-with.jpg`,
+            {type:'image/jpeg',lastModified:Date.now()}
+          );
+
+          const input=document.getElementById('sharedWithPhoto');
+          if(input)input.value='';
+          const label=document.getElementById('sharedWithPhotoFileName');
+          if(label)label.textContent=`${sharedWithCroppedPhotoFile.name} · 切り取り済み`;
+
+          closeSharedWithPhotoCropModal({clearSelection:false});
+          button.disabled=false;
+        },'image/jpeg',.92);
+      }catch(error){
+        button.disabled=false;
+        alert(error?.message||'画像を切り取れませんでした。');
+      }
     });
 
 
@@ -3626,7 +3886,7 @@ html.withlog-dark .shared-with-music-result-artist,html.withlog-dark .shared-wit
     document.getElementById('sharedWithContributeForm')?.addEventListener('submit',async event=>{
       event.preventDefault();
       if(!sharedWithContributionSpotId)return;
-      const file=profileCroppedFiles.shared || document.getElementById('sharedWithPhoto').files?.[0];
+      const file=sharedWithCroppedPhotoFile;
       if(!file){
         document.getElementById('sharedWithContributeStatus').textContent='写真を選択して、切り取りを完了してください。';
         return;
