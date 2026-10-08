@@ -2738,6 +2738,54 @@ html.withlog-dark .shared-with-carousel-person-copy span{color:#b8b0bf}
 }
 </style>
 
+
+<style id="withlog-shared-song-inline-player-style">
+.shared-with-carousel-song{
+  appearance:none;
+  border:0!important;
+  cursor:pointer;
+  max-width:min(78%, 330px)!important;
+  transition:transform .18s ease, background .18s ease, color .18s ease;
+}
+.shared-with-carousel-song:active{
+  transform:scale(.98);
+}
+.shared-with-carousel-song.is-playing{
+  background:rgba(120,100,194,.95)!important;
+  color:#fff!important;
+}
+.shared-with-carousel-song-icon{
+  flex:0 0 18px;
+  width:18px;
+  height:18px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:rgba(118,97,189,.12);
+  font-size:8px;
+  line-height:1;
+}
+.shared-with-carousel-song.is-playing .shared-with-carousel-song-icon{
+  background:rgba(255,255,255,.20);
+}
+.shared-with-carousel-song-title{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.shared-with-youtube-audio-frame{
+  position:absolute!important;
+  width:1px!important;
+  height:1px!important;
+  left:-9999px!important;
+  top:-9999px!important;
+  border:0!important;
+  opacity:0!important;
+  pointer-events:none!important;
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -4783,6 +4831,8 @@ html.withlog-dark .shared-with-carousel-person-copy span{color:#b8b0bf}
     }
 
     function restoreSharedWithMedia(spotId){
+      const songFrame=document.querySelector(`[data-shared-song-frame="${CSS.escape(String(spotId))}"]`);
+      if(songFrame)songFrame.src='';
       const host=document.querySelector(`[data-shared-media-spot="${CSS.escape(String(spotId))}"]`);
       if(!host)return;
       if(host.dataset.sharedCarouselActive!=='true')return;
@@ -4885,6 +4935,55 @@ html.withlog-dark .shared-with-carousel-person-copy span{color:#b8b0bf}
       updateSharedWithCarouselNav(carousel);
     }
 
+
+    function stopAllSharedWithSongs(exceptSpotId=''){
+      document.querySelectorAll('[data-shared-song-spot]').forEach(button=>{
+        const spotId=String(button.dataset.sharedSongSpot||'');
+        if(exceptSpotId&&spotId===String(exceptSpotId))return;
+
+        const frame=document.querySelector(`[data-shared-song-frame="${CSS.escape(spotId)}"]`);
+        if(frame)frame.src='';
+
+        button.classList.remove('is-playing');
+        button.setAttribute('aria-label','この音楽を再生');
+        const icon=button.querySelector('.shared-with-carousel-song-icon');
+        if(icon)icon.textContent='▶';
+      });
+    }
+
+    window.toggleSharedWithSong=function(spotId,videoId,button){
+      if(!spotId||!videoId||!button)return;
+
+      const frame=document.querySelector(`[data-shared-song-frame="${CSS.escape(String(spotId))}"]`);
+      if(!frame)return;
+
+      const isPlaying=button.classList.contains('is-playing');
+
+      if(isPlaying){
+        frame.src='';
+        button.classList.remove('is-playing');
+        button.setAttribute('aria-label','この音楽を再生');
+        const icon=button.querySelector('.shared-with-carousel-song-icon');
+        if(icon)icon.textContent='▶';
+        return;
+      }
+
+      // Stop other inline SHARED WITH songs and the normal post music player first.
+      stopAllSharedWithSongs(String(spotId));
+      try{
+        closeAllHomeSongPlayers();
+      }catch(_){}
+
+      frame.src=
+        `https://www.youtube.com/embed/${encodeURIComponent(videoId)}`+
+        '?autoplay=1&playsinline=1&rel=0&controls=0';
+
+      button.classList.add('is-playing');
+      button.setAttribute('aria-label','音楽を停止');
+      const icon=button.querySelector('.shared-with-carousel-song-icon');
+      if(icon)icon.textContent='■';
+    };
+
     function renderSharedWithStatus(spotId,state){
       const mount=document.querySelector(`[data-shared-with-spot="${CSS.escape(String(spotId))}"]`);
       if(mount)mount.innerHTML='';
@@ -4926,10 +5025,30 @@ html.withlog-dark .shared-with-carousel-person-copy span{color:#b8b0bf}
       const songText=contribution.song_title||'';
       const caption=contribution.caption||'';
 
-      const sharedSong=songText?`
-        <a class="shared-with-carousel-song" href="${escapeHtml(contribution.song_url||'#')}" ${contribution.song_url?'target="_blank" rel="noopener"':''} onclick="event.stopPropagation()">
-          <span>♪ ${escapeHtml(songText)}</span>
-        </a>`:'';
+      const sharedSong=(songText&&videoId)?`
+        <button
+          type="button"
+          class="shared-with-carousel-song"
+          data-shared-song-spot="${escapeHtml(String(spotId))}"
+          data-video-id="${escapeHtml(videoId)}"
+          onclick="event.stopPropagation();toggleSharedWithSong('${escapeHtml(String(spotId))}','${escapeHtml(videoId)}',this)"
+          aria-label="この音楽を再生"
+        >
+          <span class="shared-with-carousel-song-icon" aria-hidden="true">▶</span>
+          <span class="shared-with-carousel-song-title">${escapeHtml(songText)}</span>
+        </button>
+        <iframe
+          class="shared-with-youtube-audio-frame"
+          data-shared-song-frame="${escapeHtml(String(spotId))}"
+          title="SHARED WITH music player"
+          src=""
+          allow="autoplay; encrypted-media"
+          referrerpolicy="strict-origin-when-cross-origin"
+        ></iframe>`:(songText?`
+        <span class="shared-with-carousel-song">
+          <span class="shared-with-carousel-song-icon" aria-hidden="true">♪</span>
+          <span class="shared-with-carousel-song-title">${escapeHtml(songText)}</span>
+        </span>`:'');
 
       host.classList.add('shared-with-carousel-host');
       host.classList.remove('withlog-double-like-target');
