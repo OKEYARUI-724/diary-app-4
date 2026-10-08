@@ -3269,6 +3269,58 @@ html.withlog-dark .tl-post-card:not(.with-daily-post) > div:last-child .withlog-
 }
 </style>
 
+
+<style id="withlog-mobile-bottom-nav-icon-match">
+/* Match the three left mobile-nav icons to the same filled-circle style
+   already used by Account / Logout / Add. */
+@media (max-width: 640px) {
+  #withlogPrimaryActions.withlog-mobile-bottom-nav button[title="ユーザーを探す"] {
+    background: #efe7ff !important;
+    color: #684c91 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  #withlogPrimaryActions.withlog-mobile-bottom-nav button[title="通知"] {
+    background: #fff1bf !important;
+    color: #8a6e1f !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  #withlogPrimaryActions.withlog-mobile-bottom-nav button[title="メッセージ"] {
+    background: #dff3ff !important;
+    color: #46769a !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  #withlogPrimaryActions.withlog-mobile-bottom-nav button[title="ユーザーを探す"],
+  #withlogPrimaryActions.withlog-mobile-bottom-nav button[title="通知"],
+  #withlogPrimaryActions.withlog-mobile-bottom-nav button[title="メッセージ"],
+  #withlogPrimaryActions.withlog-mobile-bottom-nav .withlog-account-icon,
+  #withlogPrimaryActions.withlog-mobile-bottom-nav .withlog-logout-icon,
+  #withlogPrimaryActions.withlog-mobile-bottom-nav #openModalBtn {
+    border-radius: 50% !important;
+  }
+
+  html.withlog-dark #withlogPrimaryActions.withlog-mobile-bottom-nav button[title="ユーザーを探す"] {
+    background: #3a3348 !important;
+    color: #c8b7ef !important;
+  }
+
+  html.withlog-dark #withlogPrimaryActions.withlog-mobile-bottom-nav button[title="通知"] {
+    background: #4a4028 !important;
+    color: #f0d36e !important;
+  }
+
+  html.withlog-dark #withlogPrimaryActions.withlog-mobile-bottom-nav button[title="メッセージ"] {
+    background: #2d414f !important;
+    color: #9fd2ee !important;
+  }
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
