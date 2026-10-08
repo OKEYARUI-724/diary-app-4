@@ -2834,6 +2834,254 @@ html.withlog-dark .post-action-item.is-youtube{
 }
 </style>
 
+
+<style id="withlog-everyday-post-style-v1">
+/*
+  Ordinary posts = calm "memory paper" design.
+  TODAY'S WITH keeps its existing colorful circles / daily banner, so the two
+  post types stay visually distinct.
+*/
+.tl-post-card:not(.with-daily-post){
+  position:relative!important;
+  isolation:isolate;
+  border:1px solid rgba(112,96,136,.12)!important;
+  border-radius:34px!important;
+  background:
+    linear-gradient(145deg,
+      rgba(247,242,255,.96) 0%,
+      rgba(239,248,244,.98) 42%,
+      rgba(255,247,238,.98) 100%)!important;
+  overflow:hidden!important;
+}
+
+/* A slim editorial accent instead of the colorful TODAY'S WITH circles. */
+.tl-post-card:not(.with-daily-post)::before{
+  content:""!important;
+  display:block!important;
+  position:absolute!important;
+  z-index:20!important;
+  top:0!important;
+  left:24px!important;
+  right:24px!important;
+  width:auto!important;
+  height:4px!important;
+  border-radius:0 0 999px 999px!important;
+  background:
+    linear-gradient(90deg,
+      #b7a6e6 0%,
+      #b9d9d0 38%,
+      #efd2da 69%,
+      #f1d69a 100%)!important;
+  pointer-events:none!important;
+}
+
+/* Header: remove the standalone yellow strip and blend it into the card. */
+.tl-post-card:not(.with-daily-post) > div:first-child{
+  position:relative!important;
+  z-index:2!important;
+  margin:0!important;
+  padding:18px 18px 14px!important;
+  border:0!important;
+  border-radius:34px 34px 22px 22px!important;
+  background:
+    linear-gradient(115deg,
+      rgba(244,238,255,.96) 0%,
+      rgba(235,247,242,.96) 54%,
+      rgba(255,239,221,.96) 100%)!important;
+}
+
+/* Soft separator to make the header feel attached, not stacked. */
+.tl-post-card:not(.with-daily-post) > div:first-child::after{
+  content:"";
+  position:absolute;
+  left:18px;
+  right:18px;
+  bottom:0;
+  height:1px;
+  background:linear-gradient(
+    90deg,
+    transparent,
+    rgba(108,91,132,.15) 18%,
+    rgba(108,91,132,.15) 82%,
+    transparent
+  );
+}
+
+/* Avatar: slightly more polished ring. */
+.tl-post-card:not(.with-daily-post) > div:first-child .w-8.h-8{
+  width:38px!important;
+  height:38px!important;
+  border-radius:50%!important;
+  border:3px solid rgba(255,255,255,.82)!important;
+  outline:1px solid rgba(108,91,132,.12)!important;
+  background-color:#e7e2f6!important;
+}
+
+/* Display name + username hierarchy. */
+.tl-post-card:not(.with-daily-post) > div:first-child .text-xs.font-bold{
+  font-size:13px!important;
+  font-weight:900!important;
+  color:#342c3d!important;
+}
+.tl-post-card:not(.with-daily-post) > div:first-child .text-\[10px\]{
+  color:#9387a0!important;
+  letter-spacing:.01em!important;
+}
+
+/* The location / title becomes a subtle capsule, matching the rest of the UI. */
+.tl-post-card:not(.with-daily-post) > div:first-child h2{
+  display:inline-flex!important;
+  align-items:center!important;
+  width:fit-content!important;
+  max-width:100%!important;
+  margin-top:5px!important;
+  padding:4px 9px!important;
+  border:1px solid rgba(112,96,136,.08)!important;
+  border-radius:999px!important;
+  background:rgba(255,255,255,.60)!important;
+  color:#554a61!important;
+  font-size:10px!important;
+  font-weight:800!important;
+  line-height:1.25!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+
+/* Three-dot button follows the same glassy / muted palette. */
+.tl-post-card:not(.with-daily-post) .post-action-btn{
+  width:39px!important;
+  height:39px!important;
+  background:rgba(255,255,255,.62)!important;
+  color:#766789!important;
+  border:1px solid rgba(112,96,136,.09)!important;
+  backdrop-filter:blur(8px);
+}
+
+/* Media gets a softer matte that belongs to the same card. */
+.tl-post-card:not(.with-daily-post) .post-media-frame{
+  position:relative!important;
+  z-index:1!important;
+  width:calc(100% - 24px)!important;
+  margin:12px!important;
+  padding:4px!important;
+  border:1px solid rgba(112,96,136,.12)!important;
+  border-radius:26px!important;
+  background:
+    linear-gradient(135deg,
+      rgba(238,232,248,.95),
+      rgba(234,244,240,.95) 52%,
+      rgba(249,238,229,.95))!important;
+}
+.tl-post-card:not(.with-daily-post) .post-media-frame > img,
+.tl-post-card:not(.with-daily-post) .post-media-frame > video{
+  border:0!important;
+  border-radius:21px!important;
+}
+
+/* Footer / actions: carry the same paper gradient instead of a separate white slab. */
+.tl-post-card:not(.with-daily-post) > div:last-child{
+  position:relative!important;
+  z-index:1!important;
+  margin:0 8px 8px!important;
+  padding:14px 14px 15px!important;
+  border:1px solid rgba(112,96,136,.07)!important;
+  border-radius:22px 22px 28px 28px!important;
+  background:
+    linear-gradient(120deg,
+      rgba(255,253,251,.90),
+      rgba(244,248,246,.90) 48%,
+      rgba(250,242,247,.90))!important;
+}
+
+/* Make the action pills look like one family. */
+.tl-post-card:not(.with-daily-post) > div:last-child [data-like-spot],
+.tl-post-card:not(.with-daily-post) > div:last-child .withlog-comment-toggle{
+  min-height:44px!important;
+  padding:9px 14px!important;
+  border-radius:999px!important;
+  border:1px solid rgba(112,96,136,.07)!important;
+  background:rgba(246,240,252,.88)!important;
+}
+.tl-post-card:not(.with-daily-post) > div:last-child .withlog-comment-toggle{
+  background:rgba(241,246,245,.92)!important;
+}
+
+/* Timestamp becomes quieter and more editorial. */
+.tl-post-card:not(.with-daily-post) > div:last-child .text-\[10px\].text-slate-400{
+  color:#9b91a3!important;
+}
+
+/* Dark mode: same structure, muted night-paper palette. */
+html.withlog-dark .tl-post-card:not(.with-daily-post){
+  border-color:rgba(216,207,226,.10)!important;
+  background:
+    linear-gradient(145deg,#302e37 0%,#2c3633 48%,#37312e 100%)!important;
+}
+html.withlog-dark .tl-post-card:not(.with-daily-post) > div:first-child{
+  background:
+    linear-gradient(115deg,#3b3545 0%,#303d39 54%,#433830 100%)!important;
+}
+html.withlog-dark .tl-post-card:not(.with-daily-post) > div:first-child .text-xs.font-bold{
+  color:#f4eff7!important;
+}
+html.withlog-dark .tl-post-card:not(.with-daily-post) > div:first-child .text-\[10px\]{
+  color:#b5aabd!important;
+}
+html.withlog-dark .tl-post-card:not(.with-daily-post) > div:first-child h2{
+  color:#ded4e4!important;
+  background:rgba(255,255,255,.07)!important;
+  border-color:rgba(255,255,255,.06)!important;
+}
+html.withlog-dark .tl-post-card:not(.with-daily-post) .post-action-btn{
+  color:#ddd2e6!important;
+  background:rgba(255,255,255,.08)!important;
+  border-color:rgba(255,255,255,.06)!important;
+}
+html.withlog-dark .tl-post-card:not(.with-daily-post) .post-media-frame{
+  border-color:rgba(216,207,226,.10)!important;
+  background:linear-gradient(135deg,#37333d,#303936 52%,#3d3430)!important;
+}
+html.withlog-dark .tl-post-card:not(.with-daily-post) > div:last-child{
+  border-color:rgba(216,207,226,.07)!important;
+  background:linear-gradient(120deg,#302f35,#2d3533 52%,#373036)!important;
+}
+html.withlog-dark .tl-post-card:not(.with-daily-post) > div:last-child [data-like-spot],
+html.withlog-dark .tl-post-card:not(.with-daily-post) > div:last-child .withlog-comment-toggle{
+  background:rgba(255,255,255,.06)!important;
+  border-color:rgba(255,255,255,.05)!important;
+}
+
+@media(max-width:560px){
+  .tl-post-card:not(.with-daily-post){
+    border-radius:30px!important;
+  }
+  .tl-post-card:not(.with-daily-post) > div:first-child{
+    padding:16px 14px 13px!important;
+    border-radius:30px 30px 20px 20px!important;
+  }
+  .tl-post-card:not(.with-daily-post) > div:first-child::after{
+    left:14px;
+    right:14px;
+  }
+  .tl-post-card:not(.with-daily-post) .post-media-frame{
+    width:calc(100% - 18px)!important;
+    margin:9px!important;
+    padding:3px!important;
+    border-radius:23px!important;
+  }
+  .tl-post-card:not(.with-daily-post) .post-media-frame > img,
+  .tl-post-card:not(.with-daily-post) .post-media-frame > video{
+    border-radius:19px!important;
+  }
+  .tl-post-card:not(.with-daily-post) > div:last-child{
+    margin:0 6px 6px!important;
+    padding:12px!important;
+    border-radius:20px 20px 25px 25px!important;
+  }
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
