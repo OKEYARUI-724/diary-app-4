@@ -2152,6 +2152,242 @@ html.withlog-dark .shared-with-crop-done{background:#31433b;color:#bfe1ce}
 }
 </style>
 
+
+<style id="withlog-shared-with-carousel-style">
+.shared-with-carousel-host{
+  position:relative!important;
+  display:block!important;
+  padding:0!important;
+}
+.shared-with-carousel{
+  position:relative;
+  width:100%;
+  overflow:hidden;
+  border-radius:17px;
+  background:#d5d5d2;
+}
+.shared-with-carousel-track{
+  display:flex;
+  width:100%;
+  overflow-x:auto;
+  scroll-snap-type:x mandatory;
+  scroll-behavior:smooth;
+  scrollbar-width:none;
+  overscroll-behavior-x:contain;
+  touch-action:pan-x pan-y;
+}
+.shared-with-carousel-track::-webkit-scrollbar{display:none}
+.shared-with-carousel-slide{
+  position:relative;
+  flex:0 0 100%;
+  width:100%;
+  min-width:100%;
+  scroll-snap-align:start;
+  scroll-snap-stop:always;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  background:#d5d5d2;
+}
+.shared-with-carousel-slide > img,
+.shared-with-carousel-slide > video{
+  display:block;
+  width:100%;
+  max-height:520px;
+  object-fit:contain!important;
+  background:#d5d5d2!important;
+}
+.shared-with-carousel-person{
+  position:absolute;
+  top:12px;
+  left:12px;
+  z-index:3;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  max-width:calc(100% - 74px);
+  padding:6px 9px 6px 6px;
+  border-radius:999px;
+  background:rgba(255,253,251,.88);
+  backdrop-filter:blur(10px);
+  box-shadow:0 4px 16px rgba(27,24,34,.09);
+}
+.shared-with-carousel-person-avatar{
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  flex:0 0 28px;
+  background:#e6ddf6 center/cover no-repeat;
+  display:grid;
+  place-items:center;
+  border:2px solid rgba(255,255,255,.9);
+  color:#63537e;
+  font-size:9px;
+  font-weight:900;
+}
+.shared-with-carousel-person-copy{
+  min-width:0;
+  line-height:1.2;
+}
+.shared-with-carousel-person-copy strong{
+  display:block;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#332c39;
+  font-size:9px;
+}
+.shared-with-carousel-person-copy span{
+  display:block;
+  margin-top:2px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#8c8196;
+  font-size:7px;
+}
+.shared-with-carousel-badge{
+  position:absolute;
+  top:13px;
+  right:12px;
+  z-index:3;
+  padding:6px 9px;
+  border-radius:999px;
+  background:rgba(118,97,189,.92);
+  color:#fff;
+  font-size:7px;
+  font-weight:900;
+  letter-spacing:.11em;
+}
+.shared-with-carousel-caption{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:3;
+  padding:50px 14px 15px;
+  background:linear-gradient(to top,rgba(22,20,26,.74),rgba(22,20,26,0));
+  color:#fff;
+  pointer-events:none;
+}
+.shared-with-carousel-caption strong{
+  display:block;
+  font-size:11px;
+  font-weight:900;
+}
+.shared-with-carousel-caption p{
+  margin-top:4px;
+  font-size:9px;
+  line-height:1.55;
+}
+.shared-with-carousel-song{
+  pointer-events:auto;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  max-width:100%;
+  margin-top:7px;
+  padding:6px 9px;
+  border-radius:999px;
+  background:rgba(255,255,255,.92);
+  color:#5e5073;
+  text-decoration:none;
+  font-size:8px;
+  font-weight:900;
+}
+.shared-with-carousel-song span{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.shared-with-carousel-prev,
+.shared-with-carousel-next{
+  position:absolute;
+  top:50%;
+  z-index:4;
+  width:34px;
+  height:34px;
+  margin-top:-17px;
+  display:grid;
+  place-items:center;
+  border:0!important;
+  border-radius:50%!important;
+  background:rgba(255,255,255,.88)!important;
+  color:#685984!important;
+  box-shadow:0 4px 14px rgba(30,27,35,.14);
+  font-size:18px!important;
+  font-weight:900!important;
+}
+.shared-with-carousel-prev{left:10px}
+.shared-with-carousel-next{right:10px}
+.shared-with-carousel-nav{
+  position:absolute;
+  z-index:4;
+  left:50%;
+  bottom:12px;
+  transform:translateX(-50%);
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:5px 8px;
+  border-radius:999px;
+  background:rgba(28,25,31,.38);
+  backdrop-filter:blur(8px);
+}
+.shared-with-carousel-dot{
+  width:7px!important;
+  height:7px!important;
+  min-width:7px!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:50%!important;
+  background:rgba(255,255,255,.50)!important;
+}
+.shared-with-carousel-dot.is-active{
+  width:17px!important;
+  border-radius:999px!important;
+  background:#fff!important;
+}
+.shared-with-carousel-count{
+  position:absolute;
+  z-index:4;
+  right:12px;
+  bottom:12px;
+  padding:5px 8px;
+  border-radius:999px;
+  background:rgba(28,25,31,.42);
+  color:#fff;
+  font-size:7px;
+  font-weight:900;
+}
+.shared-with-pending-overlay{
+  position:absolute;
+  z-index:3;
+  left:12px;
+  bottom:12px;
+  padding:8px 10px;
+  border-radius:14px;
+  background:rgba(255,253,251,.90);
+  color:#756887;
+  font-size:8px;
+  font-weight:800;
+  backdrop-filter:blur(8px);
+}
+html.withlog-dark .shared-with-carousel,
+html.withlog-dark .shared-with-carousel-slide,
+html.withlog-dark .shared-with-carousel-slide > img,
+html.withlog-dark .shared-with-carousel-slide > video{background:#1f2024!important}
+html.withlog-dark .shared-with-carousel-person,
+html.withlog-dark .shared-with-pending-overlay{background:rgba(45,46,52,.90);color:#ddd3e3}
+html.withlog-dark .shared-with-carousel-person-copy strong{color:#f2edf4}
+html.withlog-dark .shared-with-carousel-person-copy span{color:#b8b0bf}
+@media(max-width:560px){
+  .shared-with-carousel-slide > img,.shared-with-carousel-slide > video{max-height:none}
+  .shared-with-carousel-prev,.shared-with-carousel-next{display:none!important}
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -4143,30 +4379,204 @@ html.withlog-dark .shared-with-crop-done{background:#31433b;color:#bfe1ce}
       return '';
     }
 
-    function renderSharedWithStatus(spotId,state){
-      const mount=document.querySelector(`[data-shared-with-spot="${CSS.escape(String(spotId))}"]`);if(!mount||!state||state.state==='none'||state.state==='available'){if(mount)mount.innerHTML='';return;}
-      const owner=state.owner||{},invitee=state.invitee||{},contribution=state.contribution;
-      const avatar=person=>`<span class="shared-with-avatar" ${person.avatar_url?`style="background-image:url('${escapeHtml(person.avatar_url)}')"`:''}>${person.avatar_url?'':escapeHtml((person.display_name||person.username||'?').charAt(0).toUpperCase())}</span>`;
-      let body='';
-      if(state.state==='pending'){
-        body=`<p class="shared-with-note">@${escapeHtml(invitee.username||'')} さんの参加を待っています。</p>
-              ${state.is_owner?`<div class="shared-with-actions"><button type="button" class="shared-with-danger-action" onclick="cancelSharedWith('${escapeHtml(spotId)}',this)">招待をキャンセル</button></div>`:''}`;
-      }else if(contribution){
-        const videoId=sharedWithYoutubeId(contribution.song_url||'');
-        const songCard=contribution.song_title?`
-          <a class="shared-with-song-card" ${contribution.song_url?`href="${escapeHtml(contribution.song_url)}" target="_blank" rel="noopener"`:''}>
-            ${videoId?`<img src="https://i.ytimg.com/vi/${escapeHtml(videoId)}/mqdefault.jpg" alt="">`:''}
-            <span class="copy"><strong>${escapeHtml(contribution.song_title)}</strong><span>TODAY'S SONG · YouTube</span></span>
-            ${contribution.song_url?`<span class="shared-with-song-play">▶</span>`:''}
-          </a>`:'';
-        body=`<div class="shared-with-contribution"><img src="${escapeHtml(contribution.media_url)}" alt="SHARED WITHの追加写真"><div><strong>${escapeHtml(contribution.display_name||contribution.username)} の思い出</strong>${contribution.caption?`<p>${escapeHtml(contribution.caption).replace(/\n/g,'<br>')}</p>`:''}${songCard}</div></div>
-              ${(state.is_owner||state.is_invitee)?`<div class="shared-with-actions"><button type="button" class="shared-with-danger-action" onclick="cancelSharedWith('${escapeHtml(spotId)}',this)">SHARED WITHをキャンセル</button></div>`:''}`;
-      }else if(state.can_contribute){
-        body=`<div class="shared-with-actions"><button type="button" class="shared-with-action" onclick="openSharedWithContributeModal('${escapeHtml(spotId)}')">あなたの写真を追加</button><button type="button" class="shared-with-danger-action" onclick="cancelSharedWith('${escapeHtml(spotId)}',this)">キャンセル</button></div>`;
-      }else{
-        body=`<p class="shared-with-note">2人の思い出を作成中です。</p>${(state.is_owner||state.is_invitee)?`<div class="shared-with-actions"><button type="button" class="shared-with-danger-action" onclick="cancelSharedWith('${escapeHtml(spotId)}',this)">SHARED WITHをキャンセル</button></div>`:''}`;
+    function sharedWithOwnerMediaHtml(host,spotId){
+      const url=host?.dataset?.ownerMediaUrl||'';
+      const type=host?.dataset?.ownerMediaType||'image';
+      const alt=host?.dataset?.ownerAlt||'WITHLOGの投稿';
+      if(!url)return '';
+      if(type==='video'){
+        return `<video src="${url}" controls onerror="retryWithlogMedia(this)"></video>`;
       }
-      mount.innerHTML=`<section class="shared-with-block"><div class="shared-with-head"><div><div class="shared-with-kicker">SHARED WITH</div><div class="shared-with-people">${avatar(owner)}<span class="shared-with-plus">＋</span>${avatar(invitee)}</div></div><span class="shared-with-note">2 PEOPLE · 1 MEMORY</span></div>${body}</section>`;
+      return `<div class="withlog-double-like-heart" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s-7.2-4.5-9.6-9C.4 8.3 2.2 4 6.5 4c2.3 0 4 1.3 5.5 3 1.5-1.7 3.2-3 5.5-3 4.3 0 6.1 4.3 4.1 8-2.4 4.5-9.6 9-9.6 9Z"/></svg></div><img src="${url}" alt="${alt}" onerror="retryWithlogMedia(this)">`;
+    }
+
+    function restoreSharedWithMedia(spotId){
+      const host=document.querySelector(`[data-shared-media-spot="${CSS.escape(String(spotId))}"]`);
+      if(!host)return;
+      if(host.dataset.sharedCarouselActive!=='true')return;
+
+      host.classList.remove('shared-with-carousel-host');
+      host.dataset.sharedCarouselActive='false';
+      host.innerHTML=sharedWithOwnerMediaHtml(host,spotId);
+
+      if(host.dataset.ownerMediaType==='image'){
+        host.classList.add('withlog-double-like-target');
+        host.dataset.doubleLikeSpot=String(spotId);
+      }else{
+        host.classList.remove('withlog-double-like-target');
+        delete host.dataset.doubleLikeSpot;
+      }
+    }
+
+    function ensureSharedWithCancelMenu(spotId,state){
+      const menu=document.getElementById(`post-menu-${spotId}`);
+      if(!menu)return;
+
+      menu.querySelectorAll('[data-shared-with-cancel-menu]').forEach(node=>node.remove());
+
+      if(!state||!['pending','accepted'].includes(state.state))return;
+      if(!(state.is_owner||state.is_invitee))return;
+
+      const button=document.createElement('button');
+      button.type='button';
+      button.className='post-action-item is-delete';
+      button.dataset.sharedWithCancelMenu='true';
+      button.innerHTML='<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 6l12 12M18 6L6 18"/></svg><span>SHARED WITHをキャンセル</span>';
+      button.addEventListener('click',()=>cancelSharedWith(String(spotId),button));
+
+      const deleteButton=menu.querySelector('.post-action-item.is-delete:not([data-shared-with-cancel-menu])');
+      if(deleteButton)menu.insertBefore(button,deleteButton);
+      else menu.appendChild(button);
+    }
+
+    function sharedWithCarouselPerson(person){
+      const avatarUrl=person?.avatar_url||'';
+      const display=person?.display_name||person?.username||'';
+      const username=person?.username||'';
+      const avatarStyle=avatarUrl?`style="background-image:url('${escapeHtml(avatarUrl)}')"`:'';
+      const initial=avatarUrl?'':escapeHtml(String(display||'?').charAt(0).toUpperCase());
+      return `<div class="shared-with-carousel-person">
+        <span class="shared-with-carousel-person-avatar" ${avatarStyle}>${initial}</span>
+        <span class="shared-with-carousel-person-copy">
+          <strong>${escapeHtml(display)}</strong>
+          <span>@${escapeHtml(username)}</span>
+        </span>
+      </div>`;
+    }
+
+    function updateSharedWithCarouselNav(carousel){
+      if(!carousel)return;
+      const track=carousel.querySelector('.shared-with-carousel-track');
+      const slides=[...carousel.querySelectorAll('.shared-with-carousel-slide')];
+      if(!track||!slides.length)return;
+
+      const index=Math.max(0,Math.min(slides.length-1,Math.round(track.scrollLeft/Math.max(1,track.clientWidth))));
+      carousel.querySelectorAll('.shared-with-carousel-dot').forEach((dot,i)=>dot.classList.toggle('is-active',i===index));
+      const count=carousel.querySelector('.shared-with-carousel-count');
+      if(count)count.textContent=`${index+1} / ${slides.length}`;
+
+      const prev=carousel.querySelector('.shared-with-carousel-prev');
+      const next=carousel.querySelector('.shared-with-carousel-next');
+      if(prev)prev.style.opacity=index===0?'.42':'1';
+      if(next)next.style.opacity=index===slides.length-1?'.42':'1';
+    }
+
+    window.goSharedWithSlide=function(spotId,index){
+      const carousel=document.querySelector(`[data-shared-carousel="${CSS.escape(String(spotId))}"]`);
+      const track=carousel?.querySelector('.shared-with-carousel-track');
+      if(!track)return;
+      track.scrollTo({left:track.clientWidth*Number(index||0),behavior:'smooth'});
+    };
+
+    window.moveSharedWithSlide=function(spotId,delta){
+      const carousel=document.querySelector(`[data-shared-carousel="${CSS.escape(String(spotId))}"]`);
+      const track=carousel?.querySelector('.shared-with-carousel-track');
+      if(!track)return;
+      const current=Math.round(track.scrollLeft/Math.max(1,track.clientWidth));
+      const max=Math.max(0,carousel.querySelectorAll('.shared-with-carousel-slide').length-1);
+      const target=Math.max(0,Math.min(max,current+Number(delta||0)));
+      goSharedWithSlide(spotId,target);
+    };
+
+    function bindSharedWithCarousel(spotId){
+      const carousel=document.querySelector(`[data-shared-carousel="${CSS.escape(String(spotId))}"]`);
+      const track=carousel?.querySelector('.shared-with-carousel-track');
+      if(!carousel||!track||track.dataset.sharedBound==='true')return;
+
+      track.dataset.sharedBound='true';
+      let raf=0;
+      track.addEventListener('scroll',()=>{
+        cancelAnimationFrame(raf);
+        raf=requestAnimationFrame(()=>updateSharedWithCarouselNav(carousel));
+      },{passive:true});
+
+      updateSharedWithCarouselNav(carousel);
+    }
+
+    function renderSharedWithStatus(spotId,state){
+      const mount=document.querySelector(`[data-shared-with-spot="${CSS.escape(String(spotId))}"]`);
+      if(mount)mount.innerHTML='';
+
+      const host=document.querySelector(`[data-shared-media-spot="${CSS.escape(String(spotId))}"]`);
+      if(!host)return;
+
+      if(!state||state.state==='none'||state.state==='available'){
+        ensureSharedWithCancelMenu(spotId,null);
+        restoreSharedWithMedia(spotId);
+        return;
+      }
+
+      ensureSharedWithCancelMenu(spotId,state);
+
+      const owner=state.owner||{};
+      const invitee=state.invitee||{};
+      const contribution=state.contribution;
+
+      // Until the invited user adds a photo, keep the owner's normal post intact.
+      // Status/cancel actions stay in the existing three-dot menu instead of adding
+      // a separate SHARED WITH block under the post.
+      if(!contribution){
+        restoreSharedWithMedia(spotId);
+        if(state.state==='pending'){
+          const note=document.createElement('div');
+          note.className='shared-with-pending-overlay';
+          note.dataset.sharedPending='true';
+          note.textContent=`@${invitee.username||''} さんの参加待ち`;
+          host.appendChild(note);
+        }
+        return;
+      }
+
+      host.querySelectorAll('[data-shared-pending]').forEach(node=>node.remove());
+
+      const originalMedia=sharedWithOwnerMediaHtml(host,spotId);
+      const videoId=sharedWithYoutubeId(contribution.song_url||'');
+      const songText=contribution.song_title||'';
+      const caption=contribution.caption||'';
+
+      const sharedSong=songText?`
+        <a class="shared-with-carousel-song" href="${escapeHtml(contribution.song_url||'#')}" ${contribution.song_url?'target="_blank" rel="noopener"':''} onclick="event.stopPropagation()">
+          <span>♪ ${escapeHtml(songText)}</span>
+        </a>`:'';
+
+      host.classList.add('shared-with-carousel-host');
+      host.classList.remove('withlog-double-like-target');
+      delete host.dataset.doubleLikeSpot;
+      host.dataset.sharedCarouselActive='true';
+
+      host.innerHTML=`
+        <div class="shared-with-carousel" data-shared-carousel="${escapeHtml(String(spotId))}">
+          <div class="shared-with-carousel-track">
+            <section class="shared-with-carousel-slide ${host.dataset.ownerMediaType==='image'?'withlog-double-like-target':''}" ${host.dataset.ownerMediaType==='image'?`data-double-like-spot="${escapeHtml(String(spotId))}"`:''}>
+              ${originalMedia}
+              ${sharedWithCarouselPerson(owner)}
+              <span class="shared-with-carousel-badge">SHARED 1 / 2</span>
+            </section>
+
+            <section class="shared-with-carousel-slide withlog-double-like-target" data-double-like-spot="${escapeHtml(String(spotId))}">
+              <div class="withlog-double-like-heart" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s-7.2-4.5-9.6-9C.4 8.3 2.2 4 6.5 4c2.3 0 4 1.3 5.5 3 1.5-1.7 3.2-3 5.5-3 4.3 0 6.1 4.3 4.1 8-2.4 4.5-9.6 9-9.6 9Z"/></svg></div>
+              <img src="${escapeHtml(contribution.media_url)}" alt="${escapeHtml((contribution.display_name||contribution.username||'SHARED WITH')+' の思い出')}" onerror="retryWithlogMedia(this)">
+              ${sharedWithCarouselPerson(invitee)}
+              <span class="shared-with-carousel-badge">SHARED 2 / 2</span>
+              ${(caption||songText)?`
+                <div class="shared-with-carousel-caption">
+                  ${caption?`<strong>${escapeHtml(contribution.display_name||contribution.username||'')} の思い出</strong><p>${escapeHtml(caption).replace(/\n/g,'<br>')}</p>`:''}
+                  ${sharedSong}
+                </div>`:''}
+            </section>
+          </div>
+
+          <button type="button" class="shared-with-carousel-prev" onclick="moveSharedWithSlide('${escapeHtml(String(spotId))}',-1)" aria-label="前の思い出">‹</button>
+          <button type="button" class="shared-with-carousel-next" onclick="moveSharedWithSlide('${escapeHtml(String(spotId))}',1)" aria-label="次の思い出">›</button>
+
+          <div class="shared-with-carousel-nav" aria-label="SHARED WITHのページ">
+            <button type="button" class="shared-with-carousel-dot is-active" onclick="goSharedWithSlide('${escapeHtml(String(spotId))}',0)" aria-label="1枚目"></button>
+            <button type="button" class="shared-with-carousel-dot" onclick="goSharedWithSlide('${escapeHtml(String(spotId))}',1)" aria-label="2枚目"></button>
+          </div>
+          <span class="shared-with-carousel-count">1 / 2</span>
+        </div>`;
+
+      bindSharedWithCarousel(spotId);
     }
 
     window.loadSharedWithStatuses=async function(spots){
@@ -4675,8 +5085,8 @@ html.withlog-dark .shared-with-crop-done{background:#31433b;color:#bfe1ce}
 
             ${s.media_url ? (
               s.media_type === 'video' 
-                ? `<div class="post-media-frame"><video src="${s.media_url}" controls onerror="retryWithlogMedia(this)"></video></div>`
-                : `<div class="post-media-frame withlog-double-like-target" data-double-like-spot="${s.id}" aria-label="ダブルタップでいいね"><div class="withlog-double-like-heart" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s-7.2-4.5-9.6-9C.4 8.3 2.2 4 6.5 4c2.3 0 4 1.3 5.5 3 1.5-1.7 3.2-3 5.5-3 4.3 0 6.1 4.3 4.1 8-2.4 4.5-9.6 9-9.6 9Z"/></svg></div><img src="${s.media_url}" alt="${escapeHtml(s.name || 'WITHLOGの投稿画像')}" onerror="retryWithlogMedia(this)" /></div>`
+                ? `<div class="post-media-frame" data-shared-media-spot="${s.id}" data-owner-media-url="${escapeHtml(s.media_url)}" data-owner-media-type="video" data-owner-alt="${escapeHtml(s.name || 'WITHLOGの投稿')}"><video src="${s.media_url}" controls onerror="retryWithlogMedia(this)"></video></div>`
+                : `<div class="post-media-frame withlog-double-like-target" data-double-like-spot="${s.id}" data-shared-media-spot="${s.id}" data-owner-media-url="${escapeHtml(s.media_url)}" data-owner-media-type="image" data-owner-alt="${escapeHtml(s.name || 'WITHLOGの投稿画像')}" aria-label="ダブルタップでいいね"><div class="withlog-double-like-heart" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s-7.2-4.5-9.6-9C.4 8.3 2.2 4 6.5 4c2.3 0 4 1.3 5.5 3 1.5-1.7 3.2-3 5.5-3 4.3 0 6.1 4.3 4.1 8-2.4 4.5-9.6 9-9.6 9Z"/></svg></div><img src="${s.media_url}" alt="${escapeHtml(s.name || 'WITHLOGの投稿画像')}" onerror="retryWithlogMedia(this)" /></div>`
             ) : ''}
 
             <div class="p-4 bg-white">
@@ -4698,7 +5108,7 @@ html.withlog-dark .shared-with-crop-done{background:#31433b;color:#bfe1ce}
               </div>
               ${musicCard}
               ${parsedMemo.memo ? `<p class="text-xs text-slate-600 leading-relaxed">${escapeHtml(parsedMemo.memo).replace(/\n/g, '<br>')}</p>` : ''}
-              <div data-shared-with-spot="${s.id}"></div>
+              <div data-shared-with-spot="${s.id}" hidden></div>
               <div id="comments-${s.id}" class="withlog-comments-panel hidden" data-comments-loaded="false">
                 <div class="withlog-comments-list" data-comments-list="${s.id}">
                   <div class="withlog-comment-empty">コメントを読み込んでいます...</div>
