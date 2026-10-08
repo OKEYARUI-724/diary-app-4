@@ -1762,10 +1762,11 @@ def _shared_with_status_for_spot(db: Session, spot: Spot, current_user: Optional
 
 
 @app.post("/shared-with/{spot_id}/invite")
-def create_shared_with_invite(spot_id: uuid.UUID, payload: SharedWithInviteCreate, current_user: User = Depends(require_current_user), db: Session = Depends(get_db)):
+async def create_shared_with_invite(spot_id: uuid.UUID, payload: SharedWithInviteCreate, current_user: User = Depends(require_current_user), db: Session = Depends(get_db)):
     spot = db.query(Spot).filter(Spot.id == spot_id).first()
     if not spot or spot.user_id != current_user.id:
         raise HTTPException(status_code=404, detail="投稿が見つかりません")
+
     username = (payload.username or "").strip().lstrip("@")
     invitee = find_user_by_username_exact_ci(db, username)
     if not invitee:
@@ -1774,18 +1775,60 @@ def create_shared_with_invite(spot_id: uuid.UUID, payload: SharedWithInviteCreat
         raise HTTPException(status_code=400, detail="自分自身は招待できません")
     if not can_view_spot(spot, invitee, db):
         raise HTTPException(status_code=403, detail="このユーザーは現在この投稿を閲覧できません。非公開アカウントの場合は先にフォローを承認してください。")
-    if db.execute(text("SELECT id FROM shared_with_invites WHERE spot_id = :spot_id LIMIT 1"), {"spot_id": spot.id}).first():
-        raise HTTPException(status_code=409, detail="この投稿にはすでにSHARED WITHの招待があります")
+
+    existing = db.execute(
+        text("SELECT id, invitee_id, status FROM shared_with_invites WHERE spot_id = :spot_id LIMIT 1"),
+        {"spot_id": spot.id},
+    ).first()
+    if existing:
+        item = _shared_with_row_dict(existing)
+        if str(item["invitee_id"]) == str(invitee.id) and item["status"] in {"pending", "accepted"}:
+            return {
+                "status": item["status"],
+                "invite_id": str(item["id"]),
+                "already_exists": True,
+            }
+        raise HTTPException(status_code=409, detail="この投稿にはすでに別のSHARED WITH招待があります")
+
     invite_id = uuid.uuid4()
-    db.execute(text("""INSERT INTO shared_with_invites (id, spot_id, owner_id, invitee_id, status) VALUES (:id,:spot_id,:owner_id,:invitee_id,'pending')"""),
-               {"id":invite_id,"spot_id":spot.id,"owner_id":current_user.id,"invitee_id":invitee.id})
-    add_notification(db, invitee.id, current_user.id, "shared_with_invite", f"@{current_user.username} さんからSHARED WITHに招待されました！")
+    invitee_username = invitee.username
+    sender_username = current_user.username
+
+    db.execute(
+        text("""INSERT INTO shared_with_invites (id, spot_id, owner_id, invitee_id, status)
+                VALUES (:id,:spot_id,:owner_id,:invitee_id,'pending')"""),
+        {
+            "id": invite_id,
+            "spot_id": spot.id,
+            "owner_id": current_user.id,
+            "invitee_id": invitee.id,
+        },
+    )
+    add_notification(
+        db,
+        invitee.id,
+        current_user.id,
+        "shared_with_invite",
+        f"@{sender_username} さんからSHARED WITHに招待されました！",
+    )
     db.commit()
+
+    # Realtime delivery is best-effort only. A WebSocket problem must never turn
+    # a successfully committed invite into an HTTP error.
     try:
-        asyncio.create_task(manager.send_personal_message({"event":"shared_with_invite","spot_id":str(spot.id),"invite_id":str(invite_id),"sender_username":current_user.username}, invitee.username))
-    except RuntimeError:
-        pass
-    return {"status":"pending","invite_id":str(invite_id)}
+        await manager.send_personal_message(
+            {
+                "event": "shared_with_invite",
+                "spot_id": str(spot.id),
+                "invite_id": str(invite_id),
+                "sender_username": sender_username,
+            },
+            invitee_username,
+        )
+    except Exception as exc:
+        print(f"[SHARED WITH realtime invite note] {exc}", flush=True)
+
+    return {"status": "pending", "invite_id": str(invite_id)}
 
 
 @app.get("/shared-with/incoming")
@@ -1819,25 +1862,71 @@ def get_shared_with_incoming(current_user: User = Depends(require_current_user),
 
 
 @app.post("/shared-with/invites/{invite_id}/decision")
-def decide_shared_with_invite(invite_id: uuid.UUID, payload: SharedWithDecision, current_user: User = Depends(require_current_user), db: Session = Depends(get_db)):
-    action=(payload.action or "").strip().lower()
-    if action not in {"accept","decline"}: raise HTTPException(status_code=400,detail="操作が正しくありません")
-    row=db.execute(text("""SELECT i.id,i.spot_id,i.owner_id,i.invitee_id,i.status,u.username AS owner_username FROM shared_with_invites i JOIN users u ON u.id=i.owner_id WHERE i.id=:id LIMIT 1"""),{"id":invite_id}).first()
-    if not row: raise HTTPException(status_code=404,detail="招待が見つかりません")
-    item=_shared_with_row_dict(row)
-    if str(item["invitee_id"])!=str(current_user.id): raise HTTPException(status_code=403,detail="この招待は操作できません")
-    if item["status"]!="pending": return {"status":item["status"],"spot_id":str(item["spot_id"])}
-    new_status="accepted" if action=="accept" else "declined"
-    db.execute(text("UPDATE shared_with_invites SET status=:status, responded_at=CURRENT_TIMESTAMP WHERE id=:id"),{"status":new_status,"id":invite_id})
-    owner=db.query(User).filter(User.id==item["owner_id"]).first()
+async def decide_shared_with_invite(invite_id: uuid.UUID, payload: SharedWithDecision, current_user: User = Depends(require_current_user), db: Session = Depends(get_db)):
+    action = (payload.action or "").strip().lower()
+    if action not in {"accept", "decline"}:
+        raise HTTPException(status_code=400, detail="操作が正しくありません")
+
+    row = db.execute(
+        text("""SELECT i.id,i.spot_id,i.owner_id,i.invitee_id,i.status,u.username AS owner_username
+                FROM shared_with_invites i
+                JOIN users u ON u.id=i.owner_id
+                WHERE i.id=:id LIMIT 1"""),
+        {"id": invite_id},
+    ).first()
+    if not row:
+        raise HTTPException(status_code=404, detail="招待が見つかりません")
+
+    item = _shared_with_row_dict(row)
+    if str(item["invitee_id"]) != str(current_user.id):
+        raise HTTPException(status_code=403, detail="この招待は操作できません")
+
+    # Idempotent retries: if the first request committed but the browser did not
+    # receive the response, repeat the same action as success.
+    if item["status"] != "pending":
+        expected = "accepted" if action == "accept" else "declined"
+        if item["status"] == expected:
+            return {
+                "status": item["status"],
+                "spot_id": str(item["spot_id"]),
+                "already_done": True,
+            }
+        return {"status": item["status"], "spot_id": str(item["spot_id"])}
+
+    new_status = "accepted" if action == "accept" else "declined"
+    db.execute(
+        text("UPDATE shared_with_invites SET status=:status, responded_at=CURRENT_TIMESTAMP WHERE id=:id"),
+        {"status": new_status, "id": invite_id},
+    )
+
+    owner = db.query(User).filter(User.id == item["owner_id"]).first()
+    owner_username = owner.username if owner else None
     if owner:
-        add_notification(db, owner.id, current_user.id, "shared_with_accepted" if new_status=="accepted" else "shared_with_declined",
-                         f"@{current_user.username} さんがSHARED WITHに参加しました！" if new_status=="accepted" else f"@{current_user.username} さんがSHARED WITHの招待を辞退しました。")
+        add_notification(
+            db,
+            owner.id,
+            current_user.id,
+            "shared_with_accepted" if new_status == "accepted" else "shared_with_declined",
+            f"@{current_user.username} さんがSHARED WITHに参加しました！"
+            if new_status == "accepted"
+            else f"@{current_user.username} さんがSHARED WITHの招待を辞退しました。",
+        )
     db.commit()
-    if owner:
-        try: asyncio.create_task(manager.send_personal_message({"event":"shared_with_changed","spot_id":str(item["spot_id"]),"status":new_status},owner.username))
-        except RuntimeError: pass
-    return {"status":new_status,"spot_id":str(item["spot_id"])}
+
+    if owner_username:
+        try:
+            await manager.send_personal_message(
+                {
+                    "event": "shared_with_changed",
+                    "spot_id": str(item["spot_id"]),
+                    "status": new_status,
+                },
+                owner_username,
+            )
+        except Exception as exc:
+            print(f"[SHARED WITH realtime decision note] {exc}", flush=True)
+
+    return {"status": new_status, "spot_id": str(item["spot_id"])}
 
 
 
@@ -1865,6 +1954,10 @@ async def cancel_shared_with(
         {"spot_id": spot.id},
     ).first()
     if not row:
+        # If the owner retries after a successful cancel whose response was lost,
+        # treat it as already cancelled instead of showing a false failure.
+        if spot.user_id == current_user.id:
+            return {"status": "cancelled", "spot_id": str(spot.id), "already_done": True}
         raise HTTPException(status_code=404, detail="SHARED WITHが見つかりません")
 
     item = _shared_with_row_dict(row)

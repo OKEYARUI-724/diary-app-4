@@ -3438,25 +3438,111 @@ html.withlog-dark .shared-with-music-result-artist,html.withlog-dark .shared-wit
       }catch(error){results.innerHTML=`<p class="shared-with-note mt-3">${escapeHtml(error.message||'検索できませんでした')}</p>`;}
     };
 
+
+    async function getSharedWithStatus(spotId){
+      try{
+        const res=await fetch('/shared-with/statuses',{
+          method:'POST',
+          headers:sharedWithHeaders(true),
+          body:JSON.stringify({spot_ids:[String(spotId)]}),
+          cache:'no-store'
+        });
+        if(!res.ok)return null;
+        const data=await res.json();
+        return data?.[String(spotId)]||null;
+      }catch(_){
+        return null;
+      }
+    }
+
     window.sendSharedWithInvite = async function(username,button){
       if(!activeSharedWithSpotId)return;
-      const status=document.getElementById('sharedWithInviteStatus');button.disabled=true;status.textContent='招待を送っています...';
+      const spotId=String(activeSharedWithSpotId);
+      const status=document.getElementById('sharedWithInviteStatus');
+      button.disabled=true;
+      status.textContent='招待を送っています...';
+
       try{
-        const res=await fetch(`/shared-with/${activeSharedWithSpotId}/invite`,{method:'POST',headers:sharedWithHeaders(true),body:JSON.stringify({username})});
-        const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.detail||'招待を送れませんでした');
-        status.textContent=`@${username} さんにSHARED WITHの招待を送りました。`;button.textContent='送信済み';
-        await loadSharedWithStatuses([{id:activeSharedWithSpotId}]);
-      }catch(error){status.textContent=error.message||'招待を送れませんでした';button.disabled=false;}
+        const res=await fetch(`/shared-with/${spotId}/invite`,{
+          method:'POST',
+          headers:sharedWithHeaders(true),
+          body:JSON.stringify({username})
+        });
+        const data=await res.json().catch(()=>({}));
+
+        if(!res.ok){
+          // A previous request can be committed even when the response is lost.
+          // Confirm the real DB state before displaying an error.
+          const actual=await getSharedWithStatus(spotId);
+          const sameInvitee=actual?.invitee?.username?.toLowerCase()===String(username).toLowerCase();
+          if(actual && sameInvitee && ['pending','accepted'].includes(actual.state)){
+            status.textContent=`@${username} さんにSHARED WITHの招待を送りました。`;
+            button.textContent='送信済み';
+            void loadSharedWithStatuses([{id:spotId}]);
+            return;
+          }
+          throw new Error(data.detail||'招待を送れませんでした');
+        }
+
+        status.textContent=`@${username} さんにSHARED WITHの招待を送りました。`;
+        button.textContent='送信済み';
+        void loadSharedWithStatuses([{id:spotId}]);
+      }catch(error){
+        status.textContent=error.message||'招待を送れませんでした';
+        button.disabled=false;
+      }
     };
 
     window.decideSharedWithInvite = async function(inviteId,action,button){
-      const card=button?.closest('[data-shared-invite]');card?.querySelectorAll('button').forEach(b=>b.disabled=true);
+      const card=button?.closest('[data-shared-invite]');
+      card?.querySelectorAll('button').forEach(b=>b.disabled=true);
+
+      let data={};
       try{
-        const res=await fetch(`/shared-with/invites/${inviteId}/decision`,{method:'POST',headers:sharedWithHeaders(true),body:JSON.stringify({action})});
-        const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.detail||'操作できませんでした');
-        await openNotificationsModal({quiet:true});
-        if(data.spot_id){await loadSharedWithStatuses([{id:data.spot_id}]);if(action==='accept'){closeNotificationsModal();openSharedWithContributeModal(data.spot_id);}}
-      }catch(error){alert(error.message||'操作できませんでした');card?.querySelectorAll('button').forEach(b=>b.disabled=false);}
+        const res=await fetch(`/shared-with/invites/${inviteId}/decision`,{
+          method:'POST',
+          headers:sharedWithHeaders(true),
+          body:JSON.stringify({action})
+        });
+        data=await res.json().catch(()=>({}));
+        if(!res.ok)throw new Error(data.detail||'操作できませんでした');
+      }catch(error){
+        // Before showing an error, reload the actual invitation list. If the
+        // requested state is already committed, continue as success.
+        try{
+          const incomingRes=await fetch('/shared-with/incoming',{headers:sharedWithHeaders(),cache:'no-store'});
+          const incoming=incomingRes.ok?await incomingRes.json():[];
+          const current=(incoming||[]).find(item=>String(item.id)===String(inviteId));
+          const expected=action==='accept'?'accepted':'declined';
+          if(current?.status===expected){
+            data={status:expected,spot_id:current.spot_id,already_done:true};
+          }else if(action==='decline' && !current){
+            // Declined invitations disappear from /incoming.
+            card?.remove();
+            void refreshNotificationBadge();
+            return;
+          }else{
+            alert(error.message||'操作できませんでした');
+            card?.querySelectorAll('button').forEach(b=>b.disabled=false);
+            return;
+          }
+        }catch(_){
+          alert(error.message||'操作できませんでした');
+          card?.querySelectorAll('button').forEach(b=>b.disabled=false);
+          return;
+        }
+      }
+
+      // The action itself succeeded. Refresh failures must not be reported as
+      // "操作できませんでした".
+      try{await openNotificationsModal({quiet:true});}catch(_){}
+      if(data.spot_id){
+        void loadSharedWithStatuses([{id:data.spot_id}]);
+        if(action==='accept'){
+          closeNotificationsModal();
+          openSharedWithContributeModal(data.spot_id);
+        }
+      }
     };
 
     window.openSharedWithContributeModal = function(spotId){
@@ -3553,18 +3639,46 @@ html.withlog-dark .shared-with-music-result-artist,html.withlog-dark .shared-wit
       const ok=window.confirm('SHARED WITHをキャンセルしますか？\n相手が追加した写真・ひとこと・曲がある場合、それらもSHARED WITHから削除されます。');
       if(!ok)return;
       if(button)button.disabled=true;
+
+      let succeeded=false;
+      let failureMessage='キャンセルできませんでした';
+
       try{
-        const res=await fetch(`/shared-with/${spotId}`,{method:'DELETE',headers:sharedWithHeaders()});
+        const res=await fetch(`/shared-with/${spotId}`,{
+          method:'DELETE',
+          headers:sharedWithHeaders()
+        });
         const data=await res.json().catch(()=>({}));
-        if(!res.ok)throw new Error(data.detail||'キャンセルできませんでした');
-        renderSharedWithStatus(spotId,{state:'available'});
-        const modal=document.getElementById('notificationsModal');
-        if(modal&&!modal.classList.contains('hidden'))await openNotificationsModal({quiet:true});
-        await refreshNotificationBadge();
+        if(res.ok){
+          succeeded=true;
+        }else{
+          failureMessage=data.detail||failureMessage;
+          const actual=await getSharedWithStatus(spotId);
+          // state=available for the owner, or no shared state after cancellation.
+          if(!actual || actual.state==='available' || actual.state==='none'){
+            succeeded=true;
+          }
+        }
       }catch(error){
-        alert(error.message||'キャンセルできませんでした');
-        if(button)button.disabled=false;
+        failureMessage=error.message||failureMessage;
+        const actual=await getSharedWithStatus(spotId);
+        if(!actual || actual.state==='available' || actual.state==='none'){
+          succeeded=true;
+        }
       }
+
+      if(!succeeded){
+        alert(failureMessage);
+        if(button)button.disabled=false;
+        return;
+      }
+
+      renderSharedWithStatus(spotId,{state:'available'});
+      const modal=document.getElementById('notificationsModal');
+      if(modal&&!modal.classList.contains('hidden')){
+        try{await openNotificationsModal({quiet:true});}catch(_){}
+      }
+      void refreshNotificationBadge();
     };
 
     function sharedWithYoutubeId(url){
