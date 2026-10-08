@@ -3150,7 +3150,7 @@ html.withlog-dark .tl-post-card:not(.with-daily-post) > div:last-child .withlog-
     box-sizing: border-box !important;
 
     display: grid !important;
-    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
     align-items: center !important;
     justify-items: center !important;
     gap: 0 !important;
@@ -3167,8 +3167,8 @@ html.withlog-dark .tl-post-card:not(.with-daily-post) > div:last-child .withlog-
   }
 
   /*
-    Account + Logout are rendered dynamically inside authStatusContainer.
-    display:contents makes them occupy the same six equal grid columns.
+    Account is rendered dynamically inside authStatusContainer.
+    display:contents lets it occupy one of the five equal grid columns.
   */
   #withlogPrimaryActions.withlog-mobile-bottom-nav #authStatusContainer,
   #withlogPrimaryActions.withlog-mobile-bottom-nav #authStatusContainer > div {
@@ -3686,6 +3686,132 @@ html.withlog-dark body #dmModal #dmMessageList .withlog-dm-bubble.is-other *{
 }
 </style>
 
+
+<style id="withlog-logout-settings-and-nav-rebalance">
+.withlog-settings-logout-button{
+  width:100%;
+  min-height:58px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:10px;
+  padding:12px 15px;
+  border:1px solid #ded6e6!important;
+  border-radius:18px!important;
+  background:#f4f0f8!important;
+  color:#665773!important;
+  text-align:left;
+}
+.withlog-settings-logout-main{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  min-width:0;
+}
+.withlog-settings-logout-icon{
+  width:34px;
+  height:34px;
+  flex:0 0 34px;
+  display:grid;
+  place-items:center;
+  border-radius:12px;
+  background:#e9e1f3;
+  color:#755f8c;
+}
+.withlog-settings-logout-icon svg{
+  width:18px;
+  height:18px;
+}
+.withlog-settings-logout-main strong{
+  display:block;
+  color:inherit;
+  font-size:12px;
+  font-weight:900;
+}
+.withlog-settings-logout-main small{
+  display:block;
+  margin-top:3px;
+  color:#94889d;
+  font-size:9px;
+  font-weight:600;
+}
+.withlog-settings-logout-arrow{
+  flex:none;
+  font-size:18px;
+  line-height:1;
+}
+
+/* Keep delete visually separate and more destructive than logout. */
+.withlog-settings-logout-button + .withlog-delete-account-button{
+  margin-top:0;
+}
+
+/* Desktop/tablet header: five remaining controls share one rhythm. */
+@media (min-width:641px){
+  #withlogPrimaryActions{
+    gap:8px!important;
+    align-items:center!important;
+  }
+  #withlogPrimaryActions > button[title="ユーザーを探す"],
+  #withlogPrimaryActions > button[title="通知"],
+  #withlogPrimaryActions > button[title="メッセージ"],
+  #withlogPrimaryActions #authStatusContainer .withlog-account-icon,
+  #withlogPrimaryActions #openModalBtn{
+    width:40px!important;
+    height:40px!important;
+    min-width:40px!important;
+    min-height:40px!important;
+    display:grid!important;
+    place-items:center!important;
+    padding:0!important;
+    margin:0!important;
+    flex:0 0 40px!important;
+  }
+  #withlogPrimaryActions #authStatusContainer,
+  #withlogPrimaryActions #authStatusContainer > div{
+    display:flex!important;
+    align-items:center!important;
+    margin:0!important;
+  }
+}
+
+/* Mobile footer: now exactly five equally-spaced actions. */
+@media (max-width:640px){
+  #withlogPrimaryActions.withlog-mobile-bottom-nav{
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    padding-left:12px!important;
+    padding-right:12px!important;
+  }
+
+  #withlogPrimaryActions.withlog-mobile-bottom-nav
+  button[title="ユーザーを探す"],
+  #withlogPrimaryActions.withlog-mobile-bottom-nav
+  button[title="通知"],
+  #withlogPrimaryActions.withlog-mobile-bottom-nav
+  button[title="メッセージ"],
+  #withlogPrimaryActions.withlog-mobile-bottom-nav
+  .withlog-account-icon,
+  #withlogPrimaryActions.withlog-mobile-bottom-nav
+  #openModalBtn{
+    justify-self:center!important;
+  }
+}
+
+html.withlog-dark .withlog-settings-logout-button{
+  border-color:#51495a!important;
+  background:#3c3844!important;
+  color:#e4d8ec!important;
+}
+html.withlog-dark .withlog-settings-logout-icon{
+  background:#4a4254;
+  color:#d9c5e8;
+}
+html.withlog-dark .withlog-settings-logout-main small{
+  color:#b6a9be;
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -4039,6 +4165,23 @@ html.withlog-dark body #dmModal #dmMessageList .withlog-dm-bubble.is-other *{
 
           <div class="withlog-danger-zone">
             <p class="withlog-settings-section">アカウント</p>
+
+            <button type="button" class="withlog-settings-logout-button" onclick="logout()" aria-label="ログアウト">
+              <span class="withlog-settings-logout-main">
+                <span class="withlog-settings-logout-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.625A2.625 2.625 0 0 0 13.125 3h-6.75A2.625 2.625 0 0 0 3.75 5.625v12.75A2.625 2.625 0 0 0 6.375 21h6.75a2.625 2.625 0 0 0 2.625-2.625V15"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M18 15l3-3m0 0-3-3m3 3H9"/>
+                  </svg>
+                </span>
+                <span>
+                  <strong>ログアウト</strong>
+                  <small>この端末からログアウトします</small>
+                </span>
+              </span>
+              <span class="withlog-settings-logout-arrow" aria-hidden="true">›</span>
+            </button>
+
             <button type="button" class="withlog-delete-account-button" onclick="openDeleteAccountModal()">
               <span>アカウントを削除</span><span aria-hidden="true">›</span>
             </button>
@@ -4508,15 +4651,10 @@ html.withlog-dark body #dmModal #dmMessageList .withlog-dm-bubble.is-other *{
       const c = document.getElementById('authStatusContainer');
       if (user) {
         c.innerHTML = `
-          <div class="flex items-center gap-2">
+          <div class="flex items-center">
             <button onclick="openProfile('${user.username}')" class="withlog-header-icon withlog-account-icon" title="アカウント" aria-label="アカウント">
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M15.75 6.75a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.25a7.5 7.5 0 0 1 15 0"/>
-              </svg>
-            </button>
-            <button onclick="logout()" class="withlog-header-icon withlog-logout-icon" title="ログアウト" aria-label="ログアウト">
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9" d="M15.75 9V5.625A2.625 2.625 0 0 0 13.125 3h-6.75A2.625 2.625 0 0 0 3.75 5.625v12.75A2.625 2.625 0 0 0 6.375 21h6.75a2.625 2.625 0 0 0 2.625-2.625V15M18 15l3-3m0 0-3-3m3 3H9"/>
               </svg>
             </button>
           </div>
