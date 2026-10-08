@@ -3606,6 +3606,64 @@ html.withlog-dark .tl-post-card:not(.with-daily-post) > div:last-child .withlog-
 }
 </style>
 
+
+<style id="withlog-dm-bubble-contrast-fix">
+/* DM bubbles: always keep sender/receiver readable on both themes. */
+.withlog-dm-bubble{
+  display:inline-block;
+  max-width:75%;
+  padding:9px 12px!important;
+  border-radius:18px!important;
+  line-height:1.55;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+}
+
+/* Light mode */
+html:not(.withlog-dark) .withlog-dm-bubble.is-me{
+  background:#2f3440!important;
+  color:#ffffff!important;
+}
+html:not(.withlog-dark) .withlog-dm-bubble.is-other{
+  background:#f1edf6!important;
+  color:#2f2a35!important;
+}
+
+/* Dark mode: intentionally high contrast / inverted pairing. */
+html.withlog-dark .withlog-dm-bubble.is-me{
+  background:#7c68b5!important;
+  color:#ffffff!important;
+}
+html.withlog-dark .withlog-dm-bubble.is-other{
+  background:#f3eef7!important;
+  color:#29252f!important;
+}
+
+/* Prevent generic dark-mode text utilities from overriding bubble text. */
+html.withlog-dark #dmMessageList .withlog-dm-bubble.is-me,
+html.withlog-dark #dmMessageList .withlog-dm-bubble.is-me *,
+html.withlog-dark #dmMessageList .withlog-dm-bubble.is-other,
+html.withlog-dark #dmMessageList .withlog-dm-bubble.is-other *{
+  color:inherit!important;
+}
+
+/* Slight visual separation from the dark chat background. */
+html.withlog-dark .withlog-dm-bubble.is-other{
+  border:1px solid rgba(255,255,255,.18)!important;
+}
+html.withlog-dark .withlog-dm-bubble.is-me{
+  border:1px solid rgba(255,255,255,.08)!important;
+}
+
+/* Deletion action should remain legible too. */
+html.withlog-dark #dmMessageList button[onclick*="deleteDmMessage"]{
+  color:#b8b0bf!important;
+}
+html.withlog-dark #dmMessageList button[onclick*="deleteDmMessage"]:hover{
+  color:#f0a8ba!important;
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -7976,7 +8034,7 @@ html.withlog-dark .tl-post-card:not(.with-daily-post) > div:last-child .withlog-
             const isMe = String(m.sender_username || '').toLowerCase() === String(currentUser?.username || '').toLowerCase();
             return `
               <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}" data-dm-id="${escapeHtml(String(m.id || ''))}">
-                <div class="max-w-[75%] p-2 rounded-2xl ${isMe ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-800'}">
+                <div class="withlog-dm-bubble ${isMe ? 'is-me' : 'is-other'} max-w-[75%] p-2 rounded-2xl">
                   ${escapeHtml(m.content || '')}
                 </div>
                 ${isMe ? `<button type="button" onclick="deleteDmMessage('${escapeHtml(String(m.id || ''))}')" class="mt-1 text-[9px] text-slate-400 hover:text-rose-500">削除</button>` : ''}
