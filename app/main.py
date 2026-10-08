@@ -1791,9 +1791,21 @@ def create_shared_with_invite(spot_id: uuid.UUID, payload: SharedWithInviteCreat
 @app.get("/shared-with/incoming")
 def get_shared_with_incoming(current_user: User = Depends(require_current_user), db: Session = Depends(get_db)):
     rows = db.execute(text("""
-        SELECT i.id, i.spot_id, i.status, i.created_at, u.username AS owner_username, COALESCE(u.display_name,u.username) AS owner_display_name, u.avatar_url AS owner_avatar_url, s.name AS spot_name
-        FROM shared_with_invites i JOIN users u ON u.id=i.owner_id JOIN spots s ON s.id=i.spot_id
-        WHERE i.invitee_id=:user_id AND i.status IN ('pending','accepted') ORDER BY i.created_at DESC
+        SELECT i.id, i.spot_id, i.status, i.created_at,
+               u.username AS owner_username,
+               COALESCE(u.display_name,u.username) AS owner_display_name,
+               u.avatar_url AS owner_avatar_url,
+               s.name AS spot_name,
+               EXISTS(
+                   SELECT 1 FROM shared_with_contributions c
+                   WHERE c.spot_id = i.spot_id
+               ) AS has_contribution
+        FROM shared_with_invites i
+        JOIN users u ON u.id=i.owner_id
+        JOIN spots s ON s.id=i.spot_id
+        WHERE i.invitee_id=:user_id
+          AND i.status IN ('pending','accepted')
+        ORDER BY i.created_at DESC
     """), {"user_id":current_user.id}).all()
     result=[]
     for row in rows:
@@ -1801,7 +1813,8 @@ def get_shared_with_incoming(current_user: User = Depends(require_current_user),
         result.append({"id":str(item["id"]),"spot_id":str(item["spot_id"]),"status":item["status"],
                        "created_at":item["created_at"].isoformat() if item["created_at"] else None,
                        "owner_username":item["owner_username"],"owner_display_name":item["owner_display_name"],"owner_avatar_url":item["owner_avatar_url"],
-                       "spot_name":item["spot_name"] or "思い出"})
+                       "spot_name":item["spot_name"] or "思い出",
+                       "has_contribution":bool(item["has_contribution"])})
     return result
 
 
@@ -1825,6 +1838,85 @@ def decide_shared_with_invite(invite_id: uuid.UUID, payload: SharedWithDecision,
         try: asyncio.create_task(manager.send_personal_message({"event":"shared_with_changed","spot_id":str(item["spot_id"]),"status":new_status},owner.username))
         except RuntimeError: pass
     return {"status":new_status,"spot_id":str(item["spot_id"])}
+
+
+
+@app.delete("/shared-with/{spot_id}")
+async def cancel_shared_with(
+    spot_id: uuid.UUID,
+    current_user: User = Depends(require_current_user),
+    db: Session = Depends(get_db),
+):
+    spot = db.query(Spot).filter(Spot.id == spot_id).first()
+    if not spot:
+        raise HTTPException(status_code=404, detail="投稿が見つかりません")
+
+    row = db.execute(
+        text("""
+            SELECT i.id, i.owner_id, i.invitee_id, i.status,
+                   owner.username AS owner_username,
+                   invitee.username AS invitee_username
+            FROM shared_with_invites i
+            JOIN users owner ON owner.id = i.owner_id
+            JOIN users invitee ON invitee.id = i.invitee_id
+            WHERE i.spot_id = :spot_id
+            LIMIT 1
+        """),
+        {"spot_id": spot.id},
+    ).first()
+    if not row:
+        raise HTTPException(status_code=404, detail="SHARED WITHが見つかりません")
+
+    item = _shared_with_row_dict(row)
+    is_owner = str(item["owner_id"]) == str(current_user.id)
+    is_invitee = str(item["invitee_id"]) == str(current_user.id)
+    if not (is_owner or is_invitee):
+        raise HTTPException(status_code=403, detail="このSHARED WITHはキャンセルできません")
+
+    other_user_id = item["invitee_id"] if is_owner else item["owner_id"]
+    other_username = item["invitee_username"] if is_owner else item["owner_username"]
+
+    # Cancel the collaboration and remove the invitee's contribution with it.
+    db.execute(
+        text("DELETE FROM shared_with_contributions WHERE spot_id = :spot_id"),
+        {"spot_id": spot.id},
+    )
+    db.execute(
+        text("DELETE FROM shared_with_invites WHERE spot_id = :spot_id"),
+        {"spot_id": spot.id},
+    )
+
+    add_notification(
+        db,
+        other_user_id,
+        current_user.id,
+        "shared_with_cancelled",
+        f"@{current_user.username} さんがSHARED WITHをキャンセルしました。",
+    )
+    db.commit()
+
+    try:
+        await manager.send_spot_event(
+            {
+                "event": "shared_with_changed",
+                "spot_id": str(spot.id),
+                "status": "cancelled",
+            },
+            spot,
+            db,
+        )
+        await manager.send_personal_message(
+            {
+                "event": "shared_with_changed",
+                "spot_id": str(spot.id),
+                "status": "cancelled",
+            },
+            other_username,
+        )
+    except Exception:
+        pass
+
+    return {"status": "cancelled", "spot_id": str(spot.id)}
 
 
 @app.post("/shared-with/statuses")

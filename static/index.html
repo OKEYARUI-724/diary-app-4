@@ -1996,6 +1996,41 @@ html.withlog-dark .shared-with-result,html.withlog-dark .shared-with-invite-card
 @media(max-width:560px){.shared-with-contribution{grid-template-columns:92px 1fr}.shared-with-contribution img{width:92px;height:115px}}
 </style>
 
+
+<style id="withlog-shared-with-cancel-music-style">
+.shared-with-secondary-action{border:0!important;border-radius:999px!important;padding:9px 13px!important;background:#eee8f3!important;color:#6d6178!important;font-size:9px!important;font-weight:900!important}
+.shared-with-danger-action{border:1px solid rgba(184,95,116,.18)!important;border-radius:999px!important;padding:8px 12px!important;background:#fff3f5!important;color:#b85f74!important;font-size:9px!important;font-weight:900!important}
+.shared-with-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:9px}
+.shared-with-music-box{padding:12px;border-radius:20px;background:linear-gradient(135deg,#f7f1fb,#eef8f4 55%,#fff3f0);border:1px solid rgba(120,102,151,.10)}
+.shared-with-music-search{display:flex;align-items:center;gap:8px;margin-top:7px}
+.shared-with-music-search input{flex:1;min-width:0}
+.shared-with-music-results{display:grid;gap:7px;margin-top:9px;max-height:210px;overflow:auto}
+.shared-with-music-result{width:100%;display:flex;align-items:center;gap:9px;padding:8px;border:0!important;border-radius:16px!important;background:rgba(255,255,255,.72)!important;text-align:left;cursor:pointer}
+.shared-with-music-result img{width:56px;height:42px;flex:0 0 56px;object-fit:cover;border-radius:11px}
+.shared-with-music-result-copy{min-width:0;flex:1}
+.shared-with-music-result-title{display:block;color:#3f3748;font-size:10px;font-weight:900;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.shared-with-music-result-artist{display:block;margin-top:2px;color:#93899b;font-size:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.shared-with-selected-music{margin-top:9px;padding:8px;border-radius:17px;background:#fff;display:flex;align-items:center;gap:9px}
+.shared-with-selected-music.hidden{display:none}
+.shared-with-selected-music img{width:58px;height:44px;object-fit:cover;border-radius:11px}
+.shared-with-selected-music .copy{min-width:0;flex:1}
+.shared-with-selected-music strong{display:block;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.shared-with-selected-music span{display:block;margin-top:2px;color:#92899a;font-size:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.shared-with-selected-music button{border:0!important;border-radius:999px!important;padding:7px 9px!important;background:#eee8f5!important;color:#736682!important;font-size:8px!important;font-weight:900!important}
+.shared-with-song-card{display:flex;align-items:center;gap:8px;margin-top:8px;padding:8px;border-radius:16px;background:rgba(255,255,255,.74);color:inherit;text-decoration:none}
+.shared-with-song-card img{width:52px!important;height:52px!important;border:0!important;border-radius:12px!important;object-fit:cover}
+.shared-with-song-card .copy{min-width:0;flex:1}
+.shared-with-song-card strong{display:block;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.shared-with-song-card span{display:block;margin-top:2px;color:#8c8196;font-size:8px}
+.shared-with-song-play{width:32px;height:32px;border-radius:50%;display:grid!important;place-items:center;background:#8169ca;color:#fff!important;flex:0 0 32px;font-size:12px!important}
+html.withlog-dark .shared-with-secondary-action{background:#46414d!important;color:#ddd3e3!important}
+html.withlog-dark .shared-with-danger-action{background:#46363d!important;color:#f0a8ba!important;border-color:#624650!important}
+html.withlog-dark .shared-with-music-box{background:#34353b;border-color:#4b4c54}
+html.withlog-dark .shared-with-music-result,html.withlog-dark .shared-with-selected-music,html.withlog-dark .shared-with-song-card{background:#3d3e45!important}
+html.withlog-dark .shared-with-music-result-title{color:#f2edf4}
+html.withlog-dark .shared-with-music-result-artist,html.withlog-dark .shared-with-selected-music span,html.withlog-dark .shared-with-song-card span{color:#b8b0bf}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -2556,8 +2591,25 @@ html.withlog-dark .shared-with-result,html.withlog-dark .shared-with-invite-card
             <input id="sharedWithPhoto" type="file" accept="image/*" required class="withlog-profile-file-input">
           </div>
           <label>ひとこと<textarea id="sharedWithCaption" rows="3" maxlength="500" placeholder="同じ日の、あなた側の思い出"></textarea></label>
-          <label>曲名（任意）<input id="sharedWithSongTitle" type="text" maxlength="255" placeholder="この思い出の1曲"></label>
-          <label>YouTubeなどの曲URL（任意）<input id="sharedWithSongUrl" type="url" maxlength="1000" placeholder="https://..."></label>
+          <div class="shared-with-music-box">
+            <label class="block text-[9px] font-black text-slate-500">音楽を追加（任意）</label>
+            <div class="shared-with-music-search">
+              <input id="sharedWithMusicQuery" type="search" placeholder="曲名・アーティスト名で検索">
+              <button type="button" class="shared-with-action" onclick="searchSharedWithMusic()">検索</button>
+            </div>
+            <p id="sharedWithMusicMessage" class="shared-with-note mt-2">YouTubeから、この思い出の1曲を選べます。</p>
+            <div id="sharedWithMusicResults" class="shared-with-music-results"></div>
+            <div id="sharedWithSelectedMusic" class="shared-with-selected-music hidden">
+              <img id="sharedWithSelectedMusicCover" src="" alt="">
+              <div class="copy">
+                <strong id="sharedWithSelectedMusicTitle"></strong>
+                <span id="sharedWithSelectedMusicArtist"></span>
+              </div>
+              <button type="button" onclick="clearSharedWithMusic()">解除</button>
+            </div>
+            <input id="sharedWithSongTitle" type="hidden">
+            <input id="sharedWithSongUrl" type="hidden">
+          </div>
           <button id="sharedWithContributeSubmit" type="submit" class="shared-with-action">この思い出に追加</button>
           <p id="sharedWithContributeStatus" class="shared-with-note"></p>
         </form>
@@ -3308,7 +3360,10 @@ html.withlog-dark .shared-with-result,html.withlog-dark .shared-with-invite-card
                 <button type="button" class="decline" onclick="decideSharedWithInvite('${escapeHtml(item.id)}','decline',this)">今回はやめる</button>
               </div>
             ` : `
-              <div class="shared-with-invite-actions"><button type="button" class="accept" onclick="openSharedWithContributeModal('${escapeHtml(item.spot_id)}')">思い出を追加</button></div>
+              <div class="shared-with-invite-actions">
+                ${item.has_contribution ? `<span class="shared-with-note">SHARED WITH 完成済み</span>` : `<button type="button" class="accept" onclick="openSharedWithContributeModal('${escapeHtml(item.spot_id)}')">思い出を追加</button>`}
+                <button type="button" class="decline" onclick="cancelSharedWith('${escapeHtml(item.spot_id)}',this)">キャンセル</button>
+              </div>
             `}
           </div>
         `).join('') : '<p class="text-slate-400 py-2">SHARED WITHの招待はありません</p>';
@@ -3405,7 +3460,11 @@ html.withlog-dark .shared-with-result,html.withlog-dark .shared-with-invite-card
     };
 
     window.openSharedWithContributeModal = function(spotId){
-      sharedWithContributionSpotId=String(spotId||'');['sharedWithPhoto','sharedWithCaption','sharedWithSongTitle','sharedWithSongUrl'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+      sharedWithContributionSpotId=String(spotId||'');['sharedWithPhoto','sharedWithCaption','sharedWithSongTitle','sharedWithSongUrl','sharedWithMusicQuery'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+      sharedWithMusicItems=[];
+      document.getElementById('sharedWithMusicResults').innerHTML='';
+      document.getElementById('sharedWithMusicMessage').textContent='YouTubeから、この思い出の1曲を選べます。';
+      document.getElementById('sharedWithSelectedMusic').classList.add('hidden');
       const sharedFileName=document.getElementById('sharedWithPhotoFileName');
       if(sharedFileName)sharedFileName.textContent='ファイルが選択されていません';
       document.getElementById('sharedWithContributeStatus').textContent='';document.getElementById('sharedWithContributeModal').classList.remove('hidden');
@@ -3418,6 +3477,66 @@ html.withlog-dark .shared-with-result,html.withlog-dark .shared-with-invite-card
       if (label) label.textContent = file ? file.name : 'ファイルが選択されていません';
     });
 
+
+    let sharedWithMusicItems = [];
+
+    window.searchSharedWithMusic = async function(){
+      const q=document.getElementById('sharedWithMusicQuery').value.trim();
+      const results=document.getElementById('sharedWithMusicResults');
+      const message=document.getElementById('sharedWithMusicMessage');
+      if(!q){message.textContent='曲名またはアーティスト名を入力してください。';return;}
+      results.innerHTML='';
+      message.textContent='YouTubeを検索しています...';
+      try{
+        const res=await fetch(`/api/music/search?q=${encodeURIComponent(q)}&limit=8`,{cache:'no-store'});
+        const data=await res.json().catch(()=>({}));
+        if(!res.ok)throw new Error(data.detail||'音楽を検索できませんでした');
+        sharedWithMusicItems=Array.isArray(data.items)?data.items:[];
+        if(!sharedWithMusicItems.length){message.textContent='曲が見つかりませんでした。';return;}
+        message.textContent='この思い出に残したい曲を選んでください。';
+        results.innerHTML=sharedWithMusicItems.map((item,index)=>`
+          <button type="button" class="shared-with-music-result" onclick="selectSharedWithMusic(${index})">
+            <img src="${escapeHtml(item.cover_url||'')}" alt="">
+            <span class="shared-with-music-result-copy">
+              <span class="shared-with-music-result-title">${escapeHtml(item.title||'')}</span>
+              <span class="shared-with-music-result-artist">${escapeHtml(item.artist||'')}</span>
+            </span>
+          </button>
+        `).join('');
+      }catch(error){
+        sharedWithMusicItems=[];
+        message.textContent=error.message||'音楽を検索できませんでした。';
+      }
+    };
+
+    window.selectSharedWithMusic = function(index){
+      const item=sharedWithMusicItems[Number(index)];
+      if(!item)return;
+      const displayTitle=[item.title,item.artist].filter(Boolean).join(' — ');
+      document.getElementById('sharedWithSongTitle').value=displayTitle.slice(0,255);
+      document.getElementById('sharedWithSongUrl').value=item.external_url||'';
+      document.getElementById('sharedWithSelectedMusicCover').src=item.cover_url||'';
+      document.getElementById('sharedWithSelectedMusicTitle').textContent=item.title||'';
+      document.getElementById('sharedWithSelectedMusicArtist').textContent=item.artist||'';
+      document.getElementById('sharedWithSelectedMusic').classList.remove('hidden');
+      document.getElementById('sharedWithMusicResults').innerHTML='';
+      document.getElementById('sharedWithMusicMessage').textContent='この曲をSHARED WITHに追加します。';
+    };
+
+    window.clearSharedWithMusic = function(){
+      document.getElementById('sharedWithSongTitle').value='';
+      document.getElementById('sharedWithSongUrl').value='';
+      document.getElementById('sharedWithSelectedMusic').classList.add('hidden');
+      document.getElementById('sharedWithMusicMessage').textContent='YouTubeから、この思い出の1曲を選べます。';
+    };
+
+    document.getElementById('sharedWithMusicQuery')?.addEventListener('keydown',event=>{
+      if(event.key==='Enter'){
+        event.preventDefault();
+        searchSharedWithMusic();
+      }
+    });
+
     document.getElementById('sharedWithContributeForm')?.addEventListener('submit',async event=>{
       event.preventDefault();if(!sharedWithContributionSpotId)return;const file=document.getElementById('sharedWithPhoto').files?.[0];if(!file)return;
       const button=document.getElementById('sharedWithContributeSubmit'),status=document.getElementById('sharedWithContributeStatus');button.disabled=true;status.textContent='2人の思い出を作っています...';
@@ -3428,15 +3547,62 @@ html.withlog-dark .shared-with-result,html.withlog-dark .shared-with-invite-card
       }catch(error){status.textContent=error.message||'追加できませんでした';}finally{button.disabled=false;}
     });
 
+
+    window.cancelSharedWith = async function(spotId,button){
+      if(!spotId)return;
+      const ok=window.confirm('SHARED WITHをキャンセルしますか？\n相手が追加した写真・ひとこと・曲がある場合、それらもSHARED WITHから削除されます。');
+      if(!ok)return;
+      if(button)button.disabled=true;
+      try{
+        const res=await fetch(`/shared-with/${spotId}`,{method:'DELETE',headers:sharedWithHeaders()});
+        const data=await res.json().catch(()=>({}));
+        if(!res.ok)throw new Error(data.detail||'キャンセルできませんでした');
+        renderSharedWithStatus(spotId,{state:'available'});
+        const modal=document.getElementById('notificationsModal');
+        if(modal&&!modal.classList.contains('hidden'))await openNotificationsModal({quiet:true});
+        await refreshNotificationBadge();
+      }catch(error){
+        alert(error.message||'キャンセルできませんでした');
+        if(button)button.disabled=false;
+      }
+    };
+
+    function sharedWithYoutubeId(url){
+      try{
+        const parsed=new URL(String(url||''),window.location.origin);
+        if(parsed.hostname.includes('youtu.be'))return parsed.pathname.replace(/^\/+/,'').split('/')[0]||'';
+        if(parsed.hostname.includes('youtube.com')){
+          if(parsed.searchParams.get('v'))return parsed.searchParams.get('v');
+          const parts=parsed.pathname.split('/').filter(Boolean);
+          return parts.length?parts[parts.length-1]:'';
+        }
+      }catch(_){}
+      return '';
+    }
+
     function renderSharedWithStatus(spotId,state){
       const mount=document.querySelector(`[data-shared-with-spot="${CSS.escape(String(spotId))}"]`);if(!mount||!state||state.state==='none'||state.state==='available'){if(mount)mount.innerHTML='';return;}
       const owner=state.owner||{},invitee=state.invitee||{},contribution=state.contribution;
       const avatar=person=>`<span class="shared-with-avatar" ${person.avatar_url?`style="background-image:url('${escapeHtml(person.avatar_url)}')"`:''}>${person.avatar_url?'':escapeHtml((person.display_name||person.username||'?').charAt(0).toUpperCase())}</span>`;
       let body='';
-      if(state.state==='pending')body=`<p class="shared-with-note">@${escapeHtml(invitee.username||'')} さんの参加を待っています。</p>`;
-      else if(contribution)body=`<div class="shared-with-contribution"><img src="${escapeHtml(contribution.media_url)}" alt="SHARED WITHの追加写真"><div><strong>${escapeHtml(contribution.display_name||contribution.username)} の思い出</strong>${contribution.caption?`<p>${escapeHtml(contribution.caption).replace(/\n/g,'<br>')}</p>`:''}${contribution.song_title?`<a class="shared-with-song" ${contribution.song_url?`href="${escapeHtml(contribution.song_url)}" target="_blank" rel="noopener"`:''}>♪ ${escapeHtml(contribution.song_title)}</a>`:''}</div></div>`;
-      else if(state.can_contribute)body=`<button type="button" class="shared-with-action" onclick="openSharedWithContributeModal('${escapeHtml(spotId)}')">あなたの写真を追加</button>`;
-      else body='<p class="shared-with-note">2人の思い出を作成中です。</p>';
+      if(state.state==='pending'){
+        body=`<p class="shared-with-note">@${escapeHtml(invitee.username||'')} さんの参加を待っています。</p>
+              ${state.is_owner?`<div class="shared-with-actions"><button type="button" class="shared-with-danger-action" onclick="cancelSharedWith('${escapeHtml(spotId)}',this)">招待をキャンセル</button></div>`:''}`;
+      }else if(contribution){
+        const videoId=sharedWithYoutubeId(contribution.song_url||'');
+        const songCard=contribution.song_title?`
+          <a class="shared-with-song-card" ${contribution.song_url?`href="${escapeHtml(contribution.song_url)}" target="_blank" rel="noopener"`:''}>
+            ${videoId?`<img src="https://i.ytimg.com/vi/${escapeHtml(videoId)}/mqdefault.jpg" alt="">`:''}
+            <span class="copy"><strong>${escapeHtml(contribution.song_title)}</strong><span>TODAY'S SONG · YouTube</span></span>
+            ${contribution.song_url?`<span class="shared-with-song-play">▶</span>`:''}
+          </a>`:'';
+        body=`<div class="shared-with-contribution"><img src="${escapeHtml(contribution.media_url)}" alt="SHARED WITHの追加写真"><div><strong>${escapeHtml(contribution.display_name||contribution.username)} の思い出</strong>${contribution.caption?`<p>${escapeHtml(contribution.caption).replace(/\n/g,'<br>')}</p>`:''}${songCard}</div></div>
+              ${(state.is_owner||state.is_invitee)?`<div class="shared-with-actions"><button type="button" class="shared-with-danger-action" onclick="cancelSharedWith('${escapeHtml(spotId)}',this)">SHARED WITHをキャンセル</button></div>`:''}`;
+      }else if(state.can_contribute){
+        body=`<div class="shared-with-actions"><button type="button" class="shared-with-action" onclick="openSharedWithContributeModal('${escapeHtml(spotId)}')">あなたの写真を追加</button><button type="button" class="shared-with-danger-action" onclick="cancelSharedWith('${escapeHtml(spotId)}',this)">キャンセル</button></div>`;
+      }else{
+        body=`<p class="shared-with-note">2人の思い出を作成中です。</p>${(state.is_owner||state.is_invitee)?`<div class="shared-with-actions"><button type="button" class="shared-with-danger-action" onclick="cancelSharedWith('${escapeHtml(spotId)}',this)">SHARED WITHをキャンセル</button></div>`:''}`;
+      }
       mount.innerHTML=`<section class="shared-with-block"><div class="shared-with-head"><div><div class="shared-with-kicker">SHARED WITH</div><div class="shared-with-people">${avatar(owner)}<span class="shared-with-plus">＋</span>${avatar(invitee)}</div></div><span class="shared-with-note">2 PEOPLE · 1 MEMORY</span></div>${body}</section>`;
     }
 
