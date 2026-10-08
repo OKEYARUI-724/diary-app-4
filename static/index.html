@@ -3639,12 +3639,16 @@ html.withlog-dark .withlog-dm-bubble.is-other{
   color:#29252f!important;
 }
 
-/* Prevent generic dark-mode text utilities from overriding bubble text. */
-html.withlog-dark #dmMessageList .withlog-dm-bubble.is-me,
-html.withlog-dark #dmMessageList .withlog-dm-bubble.is-me *,
-html.withlog-dark #dmMessageList .withlog-dm-bubble.is-other,
-html.withlog-dark #dmMessageList .withlog-dm-bubble.is-other *{
-  color:inherit!important;
+/* Keep the DM text color explicit in dark mode.
+   Do NOT inherit from #dmMessageList because that parent uses light text. */
+html.withlog-dark body #dmModal #dmMessageList .withlog-dm-bubble.is-me,
+html.withlog-dark body #dmModal #dmMessageList .withlog-dm-bubble.is-me *{
+  color:#ffffff!important;
+}
+
+html.withlog-dark body #dmModal #dmMessageList .withlog-dm-bubble.is-other,
+html.withlog-dark body #dmModal #dmMessageList .withlog-dm-bubble.is-other *{
+  color:#24212a!important;
 }
 
 /* Slight visual separation from the dark chat background. */
@@ -3661,6 +3665,24 @@ html.withlog-dark #dmMessageList button[onclick*="deleteDmMessage"]{
 }
 html.withlog-dark #dmMessageList button[onclick*="deleteDmMessage"]:hover{
   color:#f0a8ba!important;
+}
+</style>
+
+
+<style id="withlog-dm-bubble-contrast-fix-v2">
+html.withlog-dark body #dmModal #dmMessageList .withlog-dm-bubble.is-me{
+  background:#7562a8!important;
+  color:#ffffff!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+}
+html.withlog-dark body #dmModal #dmMessageList .withlog-dm-bubble.is-other{
+  background:#f4eff8!important;
+  color:#24212a!important;
+  border:1px solid rgba(255,255,255,.22)!important;
+}
+html.withlog-dark body #dmModal #dmMessageList .withlog-dm-bubble.is-me *,
+html.withlog-dark body #dmModal #dmMessageList .withlog-dm-bubble.is-other *{
+  color:inherit!important;
 }
 </style>
 
