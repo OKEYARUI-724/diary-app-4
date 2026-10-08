@@ -2541,7 +2541,20 @@ html.withlog-dark .shared-with-result,html.withlog-dark .shared-with-invite-card
           <button type="button" class="shared-with-close" onclick="closeSharedWithContributeModal()" aria-label="閉じる">×</button>
         </div>
         <form id="sharedWithContributeForm" class="shared-with-contribute-form">
-          <label>あなたの写真<input id="sharedWithPhoto" type="file" accept="image/*" required></label>
+          <div class="withlog-profile-file-field">
+            <label class="block text-[9px] font-black text-slate-500 mb-1.5">あなたの写真</label>
+            <label class="withlog-profile-file-control" for="sharedWithPhoto">
+              <span class="withlog-profile-file-icon" aria-hidden="true">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2 1.586-1.586a2 2 0 012.828 0L20 14m-9-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              </span>
+              <span class="withlog-profile-file-copy">
+                <span class="withlog-profile-file-title">思い出の写真を選択</span>
+                <span id="sharedWithPhotoFileName" class="withlog-profile-file-name">ファイルが選択されていません</span>
+              </span>
+              <span class="withlog-profile-file-action">選択</span>
+            </label>
+            <input id="sharedWithPhoto" type="file" accept="image/*" required class="withlog-profile-file-input">
+          </div>
           <label>ひとこと<textarea id="sharedWithCaption" rows="3" maxlength="500" placeholder="同じ日の、あなた側の思い出"></textarea></label>
           <label>曲名（任意）<input id="sharedWithSongTitle" type="text" maxlength="255" placeholder="この思い出の1曲"></label>
           <label>YouTubeなどの曲URL（任意）<input id="sharedWithSongUrl" type="url" maxlength="1000" placeholder="https://..."></label>
@@ -3393,9 +3406,17 @@ html.withlog-dark .shared-with-result,html.withlog-dark .shared-with-invite-card
 
     window.openSharedWithContributeModal = function(spotId){
       sharedWithContributionSpotId=String(spotId||'');['sharedWithPhoto','sharedWithCaption','sharedWithSongTitle','sharedWithSongUrl'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+      const sharedFileName=document.getElementById('sharedWithPhotoFileName');
+      if(sharedFileName)sharedFileName.textContent='ファイルが選択されていません';
       document.getElementById('sharedWithContributeStatus').textContent='';document.getElementById('sharedWithContributeModal').classList.remove('hidden');
     };
     window.closeSharedWithContributeModal=function(){document.getElementById('sharedWithContributeModal').classList.add('hidden');sharedWithContributionSpotId='';};
+
+    document.getElementById('sharedWithPhoto')?.addEventListener('change', event => {
+      const file = event.target.files?.[0];
+      const label = document.getElementById('sharedWithPhotoFileName');
+      if (label) label.textContent = file ? file.name : 'ファイルが選択されていません';
+    });
 
     document.getElementById('sharedWithContributeForm')?.addEventListener('submit',async event=>{
       event.preventDefault();if(!sharedWithContributionSpotId)return;const file=document.getElementById('sharedWithPhoto').files?.[0];if(!file)return;
