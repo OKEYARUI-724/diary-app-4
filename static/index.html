@@ -1954,6 +1954,48 @@ html.withlog-dark .daily-with-locked-overlay p,html.withlog-dark .daily-with-loc
 }
 </style>
 
+
+<style id="withlog-shared-with-style">
+.shared-with-block{margin-top:12px;padding:14px;border-radius:24px;background:linear-gradient(135deg,#f4ecff,#eaf7f2 58%,#fff2dc);border:1px solid rgba(119,97,160,.12)}
+.shared-with-kicker{font-size:8px;font-weight:900;letter-spacing:.18em;color:#715f95}
+.shared-with-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.shared-with-people{display:flex;align-items:center;gap:8px}
+.shared-with-avatar{width:32px;height:32px;border-radius:50%;background:#e7ddfb center/cover no-repeat;display:grid;place-items:center;font-size:10px;font-weight:900;color:#63537e;border:2px solid rgba(255,255,255,.9)}
+.shared-with-plus{font-size:13px;font-weight:900;color:#8f83a2}
+.shared-with-action{border:0!important;border-radius:999px!important;padding:9px 13px!important;background:#7661bd!important;color:#fff!important;font-size:9px!important;font-weight:900!important}
+.shared-with-note{font-size:9px;color:#847b8d;line-height:1.55}
+.shared-with-contribution{margin-top:10px;display:grid;grid-template-columns:108px 1fr;gap:11px;align-items:start}
+.shared-with-contribution img{width:108px;height:135px;object-fit:cover;border-radius:18px;border:3px solid rgba(255,255,255,.72)}
+.shared-with-contribution strong{display:block;font-size:11px;color:#3e3548}
+.shared-with-contribution p{margin-top:5px;font-size:10px;line-height:1.6;color:#6e6676}
+.shared-with-song{display:inline-flex;margin-top:7px;padding:6px 9px;border-radius:999px;background:rgba(255,255,255,.72);font-size:8px;font-weight:800;color:#69578d;text-decoration:none}
+.shared-with-modal{position:fixed;inset:0;z-index:95;background:rgba(15,23,42,.62);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:16px}
+.shared-with-modal.hidden{display:none}
+.shared-with-panel{width:100%;max-width:420px;max-height:calc(100dvh - 32px);overflow-y:auto;border-radius:32px;background:#fffdfb;padding:20px;color:#3e3746}
+.shared-with-modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:13px;border-bottom:1px solid #eee7f1}
+.shared-with-modal-head h2{font-size:15px;font-weight:900}
+.shared-with-close{width:42px;height:42px;border:0;border-radius:50%;background:#f2eef8;font-size:24px;color:#867693}
+.shared-with-search-row{display:flex;gap:8px;margin-top:15px}
+.shared-with-search-row input,.shared-with-contribute-form input,.shared-with-contribute-form textarea{width:100%;border:1px solid #e4ddea;border-radius:18px;background:#f7f3fa;padding:11px 13px;font-size:11px;outline:none}
+.shared-with-result{display:flex;align-items:center;gap:10px;padding:10px;margin-top:8px;border-radius:18px;background:#f6f2f9}
+.shared-with-result .grow{flex:1;min-width:0}
+.shared-with-result button{border:0;border-radius:999px;padding:8px 12px;background:#7661bd;color:#fff;font-size:9px;font-weight:900}
+.shared-with-invite-card{padding:12px;border-radius:20px;background:#f5f0fb;margin-bottom:8px}
+.shared-with-invite-actions{display:flex;gap:8px;margin-top:9px}
+.shared-with-invite-actions button{border:0;border-radius:999px;padding:8px 12px;font-size:9px;font-weight:900}
+.shared-with-invite-actions .accept{background:#7661bd;color:#fff}
+.shared-with-invite-actions .decline{background:#ece7f1;color:#6d6477}
+.shared-with-contribute-form{display:grid;gap:10px;margin-top:14px}
+.shared-with-contribute-form label{font-size:9px;font-weight:900;color:#786d80}
+html.withlog-dark .shared-with-panel{background:#2b2c31;color:#f3eff5}
+html.withlog-dark .shared-with-block{background:linear-gradient(135deg,#393343,#31413e 58%,#433a31);border-color:#4b4c54}
+html.withlog-dark .shared-with-note,html.withlog-dark .shared-with-contribution p{color:#beb6c5}
+html.withlog-dark .shared-with-contribution strong{color:#f2edf4}
+html.withlog-dark .shared-with-search-row input,html.withlog-dark .shared-with-contribute-form input,html.withlog-dark .shared-with-contribute-form textarea{background:#34353b;border-color:#4c4d56;color:#f4f1f5}
+html.withlog-dark .shared-with-result,html.withlog-dark .shared-with-invite-card{background:#34353b}
+@media(max-width:560px){.shared-with-contribution{grid-template-columns:92px 1fr}.shared-with-contribution img{width:92px;height:115px}}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -2474,6 +2516,41 @@ html.withlog-dark .daily-with-locked-overlay p,html.withlog-dark .daily-with-loc
       </div>
     </div>
 
+    <!-- SHARED WITH 招待モーダル -->
+    <div id="sharedWithInviteModal" class="shared-with-modal hidden">
+      <div class="shared-with-panel">
+        <div class="shared-with-modal-head">
+          <div><div class="shared-with-kicker">TWO PEOPLE · ONE MEMORY</div><h2>SHARED WITH</h2></div>
+          <button type="button" class="shared-with-close" onclick="closeSharedWithInviteModal()" aria-label="閉じる">×</button>
+        </div>
+        <p class="shared-with-note mt-3">この思い出にもう1人を招待して、2人でひとつの投稿を完成させます。</p>
+        <div class="shared-with-search-row">
+          <input id="sharedWithSearchInput" type="search" placeholder="@ユーザーID または名前">
+          <button type="button" class="shared-with-action" onclick="searchSharedWithUsers()">検索</button>
+        </div>
+        <div id="sharedWithSearchResults"></div>
+        <p id="sharedWithInviteStatus" class="shared-with-note mt-3"></p>
+      </div>
+    </div>
+
+    <!-- SHARED WITH 思い出追加モーダル -->
+    <div id="sharedWithContributeModal" class="shared-with-modal hidden">
+      <div class="shared-with-panel">
+        <div class="shared-with-modal-head">
+          <div><div class="shared-with-kicker">ADD YOUR SIDE</div><h2>思い出を追加</h2></div>
+          <button type="button" class="shared-with-close" onclick="closeSharedWithContributeModal()" aria-label="閉じる">×</button>
+        </div>
+        <form id="sharedWithContributeForm" class="shared-with-contribute-form">
+          <label>あなたの写真<input id="sharedWithPhoto" type="file" accept="image/*" required></label>
+          <label>ひとこと<textarea id="sharedWithCaption" rows="3" maxlength="500" placeholder="同じ日の、あなた側の思い出"></textarea></label>
+          <label>曲名（任意）<input id="sharedWithSongTitle" type="text" maxlength="255" placeholder="この思い出の1曲"></label>
+          <label>YouTubeなどの曲URL（任意）<input id="sharedWithSongUrl" type="url" maxlength="1000" placeholder="https://..."></label>
+          <button id="sharedWithContributeSubmit" type="submit" class="shared-with-action">この思い出に追加</button>
+          <p id="sharedWithContributeStatus" class="shared-with-note"></p>
+        </form>
+      </div>
+    </div>
+
     <!-- 通知 / フォロー申請 -->
     <div id="notificationsModal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
       <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-5  max-h-[82vh] overflow-y-auto">
@@ -2491,6 +2568,11 @@ html.withlog-dark .daily-with-locked-overlay p,html.withlog-dark .daily-with-loc
         <section class="mb-4">
           <div class="text-[10px] font-black tracking-widest text-slate-500 uppercase mb-2">送信した申請</div>
           <div id="outgoingRequestsList" class="space-y-2 text-xs"></div>
+        </section>
+
+        <section class="mb-4">
+          <div class="text-[10px] font-black tracking-widest text-slate-500 uppercase mb-2">SHARED WITH</div>
+          <div id="sharedWithIncomingList" class="text-xs"></div>
         </section>
 
         <section>
@@ -3136,15 +3218,19 @@ html.withlog-dark .daily-with-locked-overlay p,html.withlog-dark .daily-with-loc
       if (!token || !badge) return;
 
       try {
-        const [notifRes, reqRes] = await Promise.all([
-          fetch('/notifications', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('/friends/incoming-requests', { headers: { 'Authorization': `Bearer ${token}` } })
+        const headers = { 'Authorization': `Bearer ${token}` };
+        const [notifRes, reqRes, sharedRes] = await Promise.all([
+          fetch('/notifications', { headers }),
+          fetch('/friends/incoming-requests', { headers }),
+          fetch('/shared-with/incoming', { headers })
         ]);
         const notifications = notifRes.ok ? await notifRes.json() : [];
         const requests = reqRes.ok ? await reqRes.json() : [];
+        const sharedInvites = sharedRes.ok ? await sharedRes.json() : [];
         const hasUnread = Array.isArray(notifications) && notifications.some(n => !n.is_read);
         const hasRequests = Array.isArray(requests) && requests.length > 0;
-        badge.classList.toggle('hidden', !(hasUnread || hasRequests));
+        const hasShared = Array.isArray(sharedInvites) && sharedInvites.some(item => item.status === 'pending');
+        badge.classList.toggle('hidden', !(hasUnread || hasRequests || hasShared));
       } catch (_) {}
     }
 
@@ -3155,26 +3241,30 @@ html.withlog-dark .daily-with-locked-overlay p,html.withlog-dark .daily-with-loc
       document.getElementById('notificationsModal').classList.remove('hidden');
       const incomingEl = document.getElementById('incomingRequestsList');
       const outgoingEl = document.getElementById('outgoingRequestsList');
+      const sharedEl = document.getElementById('sharedWithIncomingList');
       const notifEl = document.getElementById('notificationsList');
       if (!quiet) {
       incomingEl.innerHTML = '<p class="text-slate-400 py-2">読み込み中...</p>';
       outgoingEl.innerHTML = '<p class="text-slate-400 py-2">読み込み中...</p>';
+      sharedEl.innerHTML = '<p class="text-slate-400 py-2">読み込み中...</p>';
       notifEl.innerHTML = '<p class="text-slate-400 py-2">読み込み中...</p>';
       }
 
       try {
         const headers = { 'Authorization': `Bearer ${token}` };
-        const [incomingRes, outgoingRes, notifRes] = await Promise.all([
+        const [incomingRes, outgoingRes, notifRes, sharedRes] = await Promise.all([
           fetch('/friends/incoming-requests', { headers }),
           fetch('/friends/outgoing-requests', { headers }),
-          fetch('/notifications', { headers })
+          fetch('/notifications', { headers }),
+          fetch('/shared-with/incoming', { headers })
         ]);
 
         if (token !== getToken()) return;
-        if (!incomingRes.ok || !outgoingRes.ok || !notifRes.ok) throw new Error('通知の取得に失敗しました');
+        if (!incomingRes.ok || !outgoingRes.ok || !notifRes.ok || !sharedRes.ok) throw new Error('通知の取得に失敗しました');
         const incoming = await incomingRes.json();
         const outgoing = await outgoingRes.json();
         const notifications = await notifRes.json();
+        const sharedInvites = await sharedRes.json();
 
         incomingEl.innerHTML = incoming.length ? incoming.map(u => `
           <div data-follow-request="${escapeHtml(u.username)}" class="p-2.5 rounded-xl border border-slate-200 bg-slate-50">
@@ -3194,6 +3284,21 @@ html.withlog-dark .daily-with-locked-overlay p,html.withlog-dark .daily-with-loc
             <span class="text-slate-400"> · 承認待ち</span>
           </div>
         `).join('') : '<p class="text-slate-400 py-2">送信中の申請はありません</p>';
+
+        sharedEl.innerHTML = sharedInvites.length ? sharedInvites.map(item => `
+          <div class="shared-with-invite-card" data-shared-invite="${escapeHtml(item.id)}">
+            <div class="font-black text-slate-800">${escapeHtml(item.owner_display_name || item.owner_username)} <span class="font-normal text-slate-400">@${escapeHtml(item.owner_username)}</span></div>
+            <div class="shared-with-note mt-1">「${escapeHtml(item.spot_name || '思い出')}」を2人の思い出にしよう</div>
+            ${item.status === 'pending' ? `
+              <div class="shared-with-invite-actions">
+                <button type="button" class="accept" onclick="decideSharedWithInvite('${escapeHtml(item.id)}','accept',this)">参加する</button>
+                <button type="button" class="decline" onclick="decideSharedWithInvite('${escapeHtml(item.id)}','decline',this)">今回はやめる</button>
+              </div>
+            ` : `
+              <div class="shared-with-invite-actions"><button type="button" class="accept" onclick="openSharedWithContributeModal('${escapeHtml(item.spot_id)}')">思い出を追加</button></div>
+            `}
+          </div>
+        `).join('') : '<p class="text-slate-400 py-2">SHARED WITHの招待はありません</p>';
 
         notifEl.innerHTML = notifications.length ? notifications.map(n => {
           const username = String(n.sender_username || '').trim();
@@ -3227,6 +3332,96 @@ html.withlog-dark .daily-with-locked-overlay p,html.withlog-dark .daily-with-loc
         console.error(err);
         notifEl.innerHTML = '<p class="text-rose-500 py-2">通知の取得に失敗しました</p>';
       }
+    };
+
+
+    let activeSharedWithSpotId = '';
+    let sharedWithContributionSpotId = '';
+
+    function sharedWithHeaders(json = false) {
+      const token = getToken();
+      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+      if (json) headers['Content-Type'] = 'application/json';
+      return headers;
+    }
+
+    window.openSharedWithInviteModal = function(spotId) {
+      activeSharedWithSpotId = String(spotId || '');
+      document.querySelectorAll('.post-action-menu.is-open').forEach(menu => menu.classList.remove('is-open'));
+      document.getElementById('sharedWithSearchInput').value = '';
+      document.getElementById('sharedWithSearchResults').innerHTML = '';
+      document.getElementById('sharedWithInviteStatus').textContent = '';
+      document.getElementById('sharedWithInviteModal').classList.remove('hidden');
+      setTimeout(() => document.getElementById('sharedWithSearchInput').focus(), 0);
+    };
+    window.closeSharedWithInviteModal = function() { document.getElementById('sharedWithInviteModal').classList.add('hidden'); activeSharedWithSpotId=''; };
+
+    window.searchSharedWithUsers = async function() {
+      const q=document.getElementById('sharedWithSearchInput').value.trim();
+      const results=document.getElementById('sharedWithSearchResults');
+      if(!q)return;
+      results.innerHTML='<p class="shared-with-note mt-3">検索中...</p>';
+      try{
+        const res=await fetch(`/users/search?q=${encodeURIComponent(q)}`,{headers:sharedWithHeaders()});
+        if(!res.ok)throw new Error('検索できませんでした');
+        const users=await res.json();
+        const filtered=users.filter(u=>!currentUser||u.username!==currentUser.username);
+        results.innerHTML=filtered.length?filtered.map(u=>`<div class="shared-with-result"><div class="shared-with-avatar" ${u.avatar_url?`style="background-image:url('${escapeHtml(u.avatar_url)}')"`:''}>${u.avatar_url?'':escapeHtml((u.display_name||u.username||'?').charAt(0).toUpperCase())}</div><div class="grow"><div class="font-black text-[11px]">${escapeHtml(u.display_name||u.username)}</div><div class="text-[9px] text-slate-400">@${escapeHtml(u.username)}</div></div><button type="button" onclick="sendSharedWithInvite('${escapeHtml(u.username)}',this)">招待</button></div>`).join(''):'<p class="shared-with-note mt-3">ユーザーが見つかりません</p>';
+      }catch(error){results.innerHTML=`<p class="shared-with-note mt-3">${escapeHtml(error.message||'検索できませんでした')}</p>`;}
+    };
+
+    window.sendSharedWithInvite = async function(username,button){
+      if(!activeSharedWithSpotId)return;
+      const status=document.getElementById('sharedWithInviteStatus');button.disabled=true;status.textContent='招待を送っています...';
+      try{
+        const res=await fetch(`/shared-with/${activeSharedWithSpotId}/invite`,{method:'POST',headers:sharedWithHeaders(true),body:JSON.stringify({username})});
+        const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.detail||'招待を送れませんでした');
+        status.textContent=`@${username} さんにSHARED WITHの招待を送りました。`;button.textContent='送信済み';
+        await loadSharedWithStatuses([{id:activeSharedWithSpotId}]);
+      }catch(error){status.textContent=error.message||'招待を送れませんでした';button.disabled=false;}
+    };
+
+    window.decideSharedWithInvite = async function(inviteId,action,button){
+      const card=button?.closest('[data-shared-invite]');card?.querySelectorAll('button').forEach(b=>b.disabled=true);
+      try{
+        const res=await fetch(`/shared-with/invites/${inviteId}/decision`,{method:'POST',headers:sharedWithHeaders(true),body:JSON.stringify({action})});
+        const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.detail||'操作できませんでした');
+        await openNotificationsModal({quiet:true});
+        if(data.spot_id){await loadSharedWithStatuses([{id:data.spot_id}]);if(action==='accept'){closeNotificationsModal();openSharedWithContributeModal(data.spot_id);}}
+      }catch(error){alert(error.message||'操作できませんでした');card?.querySelectorAll('button').forEach(b=>b.disabled=false);}
+    };
+
+    window.openSharedWithContributeModal = function(spotId){
+      sharedWithContributionSpotId=String(spotId||'');['sharedWithPhoto','sharedWithCaption','sharedWithSongTitle','sharedWithSongUrl'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+      document.getElementById('sharedWithContributeStatus').textContent='';document.getElementById('sharedWithContributeModal').classList.remove('hidden');
+    };
+    window.closeSharedWithContributeModal=function(){document.getElementById('sharedWithContributeModal').classList.add('hidden');sharedWithContributionSpotId='';};
+
+    document.getElementById('sharedWithContributeForm')?.addEventListener('submit',async event=>{
+      event.preventDefault();if(!sharedWithContributionSpotId)return;const file=document.getElementById('sharedWithPhoto').files?.[0];if(!file)return;
+      const button=document.getElementById('sharedWithContributeSubmit'),status=document.getElementById('sharedWithContributeStatus');button.disabled=true;status.textContent='2人の思い出を作っています...';
+      const form=new FormData();form.append('file',file);form.append('caption',document.getElementById('sharedWithCaption').value.trim());form.append('song_title',document.getElementById('sharedWithSongTitle').value.trim());form.append('song_url',document.getElementById('sharedWithSongUrl').value.trim());
+      try{
+        const res=await fetch(`/shared-with/${sharedWithContributionSpotId}/contribute`,{method:'POST',headers:sharedWithHeaders(),body:form});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.detail||'追加できませんでした');
+        const spotId=sharedWithContributionSpotId;status.textContent='SHARED WITHが完成しました！';await loadSharedWithStatuses([{id:spotId}]);setTimeout(()=>closeSharedWithContributeModal(),650);
+      }catch(error){status.textContent=error.message||'追加できませんでした';}finally{button.disabled=false;}
+    });
+
+    function renderSharedWithStatus(spotId,state){
+      const mount=document.querySelector(`[data-shared-with-spot="${CSS.escape(String(spotId))}"]`);if(!mount||!state||state.state==='none'||state.state==='available'){if(mount)mount.innerHTML='';return;}
+      const owner=state.owner||{},invitee=state.invitee||{},contribution=state.contribution;
+      const avatar=person=>`<span class="shared-with-avatar" ${person.avatar_url?`style="background-image:url('${escapeHtml(person.avatar_url)}')"`:''}>${person.avatar_url?'':escapeHtml((person.display_name||person.username||'?').charAt(0).toUpperCase())}</span>`;
+      let body='';
+      if(state.state==='pending')body=`<p class="shared-with-note">@${escapeHtml(invitee.username||'')} さんの参加を待っています。</p>`;
+      else if(contribution)body=`<div class="shared-with-contribution"><img src="${escapeHtml(contribution.media_url)}" alt="SHARED WITHの追加写真"><div><strong>${escapeHtml(contribution.display_name||contribution.username)} の思い出</strong>${contribution.caption?`<p>${escapeHtml(contribution.caption).replace(/\n/g,'<br>')}</p>`:''}${contribution.song_title?`<a class="shared-with-song" ${contribution.song_url?`href="${escapeHtml(contribution.song_url)}" target="_blank" rel="noopener"`:''}>♪ ${escapeHtml(contribution.song_title)}</a>`:''}</div></div>`;
+      else if(state.can_contribute)body=`<button type="button" class="shared-with-action" onclick="openSharedWithContributeModal('${escapeHtml(spotId)}')">あなたの写真を追加</button>`;
+      else body='<p class="shared-with-note">2人の思い出を作成中です。</p>';
+      mount.innerHTML=`<section class="shared-with-block"><div class="shared-with-head"><div><div class="shared-with-kicker">SHARED WITH</div><div class="shared-with-people">${avatar(owner)}<span class="shared-with-plus">＋</span>${avatar(invitee)}</div></div><span class="shared-with-note">2 PEOPLE · 1 MEMORY</span></div>${body}</section>`;
+    }
+
+    window.loadSharedWithStatuses=async function(spots){
+      const token=getToken(),ids=(spots||[]).map(s=>String(s.id||'')).filter(Boolean);if(!token||!ids.length)return;
+      try{const res=await fetch('/shared-with/statuses',{method:'POST',headers:sharedWithHeaders(true),body:JSON.stringify({spot_ids:ids})});if(!res.ok)return;const data=await res.json();Object.entries(data||{}).forEach(([spotId,state])=>renderSharedWithStatus(spotId,state));}catch(_){}
     };
 
     window.closeNotificationsModal = function() {
@@ -3713,6 +3908,10 @@ html.withlog-dark .daily-with-locked-overlay p,html.withlog-dark .daily-with-loc
                     </button>
                   ` : ''}
                   ${currentUser && currentUser.username === s.username ? `
+                    <button type="button" class="post-action-item is-share" onclick="openSharedWithInviteModal('${s.id}')">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 11a4 4 0 108 0 4 4 0 00-8 0ZM4 20c.7-3.2 3.3-5 8-5s7.3 1.8 8 5M6 8H3m1.5-1.5V9.5"/></svg>
+                      <span>SHARED WITH</span>
+                    </button>
                     <button type="button" class="post-action-item is-delete" onclick="deleteSpotFromMenu('${s.id}')">
                       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 7h16m-10 4v6m4-6v6m1-10V4H9v3m-2 0 1 14h8l1-14"/></svg>
                       <span>削除</span>
@@ -3749,6 +3948,7 @@ html.withlog-dark .daily-with-locked-overlay p,html.withlog-dark .daily-with-loc
               </div>
               ${musicCard}
               ${parsedMemo.memo ? `<p class="text-xs text-slate-600 leading-relaxed">${escapeHtml(parsedMemo.memo).replace(/\n/g, '<br>')}</p>` : ''}
+              <div data-shared-with-spot="${s.id}"></div>
               <div id="comments-${s.id}" class="withlog-comments-panel hidden" data-comments-loaded="false">
                 <div class="withlog-comments-list" data-comments-list="${s.id}">
                   <div class="withlog-comment-empty">コメントを読み込んでいます...</div>
@@ -3770,6 +3970,7 @@ html.withlog-dark .daily-with-locked-overlay p,html.withlog-dark .daily-with-loc
       wireHomeSongPlayers();
       // Populate comment counters without requiring users to open each comment panel.
       void loadVisibleCommentCounts(spots.filter(s => !parseDailyWithMemo(s.memo).locked));
+      void loadSharedWithStatuses(spots.filter(s => !parseDailyWithMemo(s.memo).locked));
 
       if (window.location.hash && window.location.hash.startsWith('#spot-')) {
         const target = document.getElementById(window.location.hash.slice(1));
@@ -5041,6 +5242,17 @@ html.withlog-dark .daily-with-locked-overlay p,html.withlog-dark .daily-with-loc
 
         if (payload.event === 'like_changed' && payload.spot_id) {
           setLikeCount(String(payload.spot_id), payload.count || 0, {animate:true});
+          return;
+        }
+
+        if (payload.event === 'shared_with_changed' && payload.spot_id) {
+          void loadSharedWithStatuses([{id:String(payload.spot_id)}]);
+          return;
+        }
+        if (payload.event === 'shared_with_invite') {
+          void refreshNotificationBadge();
+          const modal = document.getElementById('notificationsModal');
+          if (modal && !modal.classList.contains('hidden')) void openNotificationsModal({quiet:true});
           return;
         }
 

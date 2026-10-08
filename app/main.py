@@ -74,6 +74,18 @@ class CommentCountsRequest(BaseModel):
     spot_ids: List[uuid.UUID]
 
 
+class SharedWithInviteCreate(BaseModel):
+    username: str
+
+
+class SharedWithDecision(BaseModel):
+    action: str
+
+
+class SharedWithStatusRequest(BaseModel):
+    spot_ids: List[uuid.UUID]
+
+
 class AccountDeleteRequest(BaseModel):
     password: str
     confirm_username: str
@@ -197,6 +209,37 @@ def migrate_social_features():
             conn.execute(text("""
                 CREATE INDEX IF NOT EXISTS idx_spot_comments_user
                 ON spot_comments(user_id);
+            """))
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS shared_with_invites (
+                    id UUID PRIMARY KEY,
+                    spot_id UUID NOT NULL REFERENCES spots(id) ON DELETE CASCADE,
+                    owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    invitee_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    responded_at TIMESTAMPTZ,
+                    UNIQUE(spot_id)
+                );
+            """))
+            conn.execute(text("""
+                CREATE INDEX IF NOT EXISTS idx_shared_with_invitee_status
+                ON shared_with_invites(invitee_id, status, created_at DESC);
+            """))
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS shared_with_contributions (
+                    id UUID PRIMARY KEY,
+                    spot_id UUID NOT NULL REFERENCES spots(id) ON DELETE CASCADE,
+                    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    caption VARCHAR(500),
+                    song_title VARCHAR(255),
+                    song_url VARCHAR(1000),
+                    filename VARCHAR(255),
+                    content_type VARCHAR(120),
+                    data BYTEA NOT NULL,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(spot_id)
+                );
             """))
     except Exception as exc:
         print(f"[DB Migration Note] {exc}")
@@ -1669,6 +1712,165 @@ def delete_spot(
     db.delete(spot)
     db.commit()
     return {"message": "deleted successfully"}
+
+
+# --- SHARED WITH: one shared memory, two people ---
+
+def _shared_with_row_dict(row):
+    if not row:
+        return None
+    mapping = row._mapping if hasattr(row, "_mapping") else row
+    return {key: mapping[key] for key in mapping.keys()}
+
+
+def _shared_with_status_for_spot(db: Session, spot: Spot, current_user: Optional[User]):
+    if not current_user:
+        return {"spot_id": str(spot.id), "state": "none"}
+    invite_row = db.execute(text("""
+        SELECT i.id, i.status, i.owner_id, i.invitee_id,
+               owner.username AS owner_username, COALESCE(owner.display_name, owner.username) AS owner_display_name, owner.avatar_url AS owner_avatar_url,
+               invitee.username AS invitee_username, COALESCE(invitee.display_name, invitee.username) AS invitee_display_name, invitee.avatar_url AS invitee_avatar_url
+        FROM shared_with_invites i
+        JOIN users owner ON owner.id = i.owner_id
+        JOIN users invitee ON invitee.id = i.invitee_id
+        WHERE i.spot_id = :spot_id LIMIT 1
+    """), {"spot_id": spot.id}).first()
+    if not invite_row:
+        return {"spot_id": str(spot.id), "state": "available" if spot.user_id == current_user.id else "none", "is_owner": spot.user_id == current_user.id}
+    invite = _shared_with_row_dict(invite_row)
+    contribution_row = db.execute(text("""
+        SELECT c.id, c.caption, c.song_title, c.song_url, c.created_at, u.username, COALESCE(u.display_name, u.username) AS display_name, u.avatar_url
+        FROM shared_with_contributions c JOIN users u ON u.id = c.user_id
+        WHERE c.spot_id = :spot_id LIMIT 1
+    """), {"spot_id": spot.id}).first()
+    contribution = None
+    if contribution_row:
+        c = _shared_with_row_dict(contribution_row)
+        contribution = {"id": str(c["id"]), "username": c["username"], "display_name": c["display_name"], "avatar_url": c["avatar_url"],
+                        "caption": c["caption"] or "", "song_title": c["song_title"] or "", "song_url": c["song_url"] or "",
+                        "created_at": c["created_at"].isoformat() if c["created_at"] else None,
+                        "media_url": f"/shared-with/contributions/{c['id']}/media"}
+    is_owner = str(invite["owner_id"]) == str(current_user.id)
+    is_invitee = str(invite["invitee_id"]) == str(current_user.id)
+    return {
+        "spot_id": str(spot.id), "state": invite["status"], "invite_id": str(invite["id"]), "is_owner": is_owner, "is_invitee": is_invitee,
+        "owner": {"username": invite["owner_username"], "display_name": invite["owner_display_name"], "avatar_url": invite["owner_avatar_url"]},
+        "invitee": {"username": invite["invitee_username"], "display_name": invite["invitee_display_name"], "avatar_url": invite["invitee_avatar_url"]},
+        "contribution": contribution,
+        "can_contribute": bool(is_invitee and invite["status"] == "accepted" and not contribution),
+    }
+
+
+@app.post("/shared-with/{spot_id}/invite")
+def create_shared_with_invite(spot_id: uuid.UUID, payload: SharedWithInviteCreate, current_user: User = Depends(require_current_user), db: Session = Depends(get_db)):
+    spot = db.query(Spot).filter(Spot.id == spot_id).first()
+    if not spot or spot.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="投稿が見つかりません")
+    username = (payload.username or "").strip().lstrip("@")
+    invitee = find_user_by_username_exact_ci(db, username)
+    if not invitee:
+        raise HTTPException(status_code=404, detail="招待するユーザーが見つかりません")
+    if invitee.id == current_user.id:
+        raise HTTPException(status_code=400, detail="自分自身は招待できません")
+    if not can_view_spot(spot, invitee, db):
+        raise HTTPException(status_code=403, detail="このユーザーは現在この投稿を閲覧できません。非公開アカウントの場合は先にフォローを承認してください。")
+    if db.execute(text("SELECT id FROM shared_with_invites WHERE spot_id = :spot_id LIMIT 1"), {"spot_id": spot.id}).first():
+        raise HTTPException(status_code=409, detail="この投稿にはすでにSHARED WITHの招待があります")
+    invite_id = uuid.uuid4()
+    db.execute(text("""INSERT INTO shared_with_invites (id, spot_id, owner_id, invitee_id, status) VALUES (:id,:spot_id,:owner_id,:invitee_id,'pending')"""),
+               {"id":invite_id,"spot_id":spot.id,"owner_id":current_user.id,"invitee_id":invitee.id})
+    add_notification(db, invitee.id, current_user.id, "shared_with_invite", f"@{current_user.username} さんからSHARED WITHに招待されました！")
+    db.commit()
+    try:
+        asyncio.create_task(manager.send_personal_message({"event":"shared_with_invite","spot_id":str(spot.id),"invite_id":str(invite_id),"sender_username":current_user.username}, invitee.username))
+    except RuntimeError:
+        pass
+    return {"status":"pending","invite_id":str(invite_id)}
+
+
+@app.get("/shared-with/incoming")
+def get_shared_with_incoming(current_user: User = Depends(require_current_user), db: Session = Depends(get_db)):
+    rows = db.execute(text("""
+        SELECT i.id, i.spot_id, i.status, i.created_at, u.username AS owner_username, COALESCE(u.display_name,u.username) AS owner_display_name, u.avatar_url AS owner_avatar_url, s.name AS spot_name
+        FROM shared_with_invites i JOIN users u ON u.id=i.owner_id JOIN spots s ON s.id=i.spot_id
+        WHERE i.invitee_id=:user_id AND i.status IN ('pending','accepted') ORDER BY i.created_at DESC
+    """), {"user_id":current_user.id}).all()
+    result=[]
+    for row in rows:
+        item=_shared_with_row_dict(row)
+        result.append({"id":str(item["id"]),"spot_id":str(item["spot_id"]),"status":item["status"],
+                       "created_at":item["created_at"].isoformat() if item["created_at"] else None,
+                       "owner_username":item["owner_username"],"owner_display_name":item["owner_display_name"],"owner_avatar_url":item["owner_avatar_url"],
+                       "spot_name":item["spot_name"] or "思い出"})
+    return result
+
+
+@app.post("/shared-with/invites/{invite_id}/decision")
+def decide_shared_with_invite(invite_id: uuid.UUID, payload: SharedWithDecision, current_user: User = Depends(require_current_user), db: Session = Depends(get_db)):
+    action=(payload.action or "").strip().lower()
+    if action not in {"accept","decline"}: raise HTTPException(status_code=400,detail="操作が正しくありません")
+    row=db.execute(text("""SELECT i.id,i.spot_id,i.owner_id,i.invitee_id,i.status,u.username AS owner_username FROM shared_with_invites i JOIN users u ON u.id=i.owner_id WHERE i.id=:id LIMIT 1"""),{"id":invite_id}).first()
+    if not row: raise HTTPException(status_code=404,detail="招待が見つかりません")
+    item=_shared_with_row_dict(row)
+    if str(item["invitee_id"])!=str(current_user.id): raise HTTPException(status_code=403,detail="この招待は操作できません")
+    if item["status"]!="pending": return {"status":item["status"],"spot_id":str(item["spot_id"])}
+    new_status="accepted" if action=="accept" else "declined"
+    db.execute(text("UPDATE shared_with_invites SET status=:status, responded_at=CURRENT_TIMESTAMP WHERE id=:id"),{"status":new_status,"id":invite_id})
+    owner=db.query(User).filter(User.id==item["owner_id"]).first()
+    if owner:
+        add_notification(db, owner.id, current_user.id, "shared_with_accepted" if new_status=="accepted" else "shared_with_declined",
+                         f"@{current_user.username} さんがSHARED WITHに参加しました！" if new_status=="accepted" else f"@{current_user.username} さんがSHARED WITHの招待を辞退しました。")
+    db.commit()
+    if owner:
+        try: asyncio.create_task(manager.send_personal_message({"event":"shared_with_changed","spot_id":str(item["spot_id"]),"status":new_status},owner.username))
+        except RuntimeError: pass
+    return {"status":new_status,"spot_id":str(item["spot_id"])}
+
+
+@app.post("/shared-with/statuses")
+def get_shared_with_statuses(payload: SharedWithStatusRequest, current_user: User = Depends(require_current_user), db: Session = Depends(get_db)):
+    results={}
+    for spot_id in payload.spot_ids[:100]:
+        spot=db.query(Spot).filter(Spot.id==spot_id).first()
+        if not spot or not can_view_spot(spot,current_user,db): continue
+        results[str(spot.id)] = _shared_with_status_for_spot(db,spot,current_user)
+    return results
+
+
+@app.post("/shared-with/{spot_id}/contribute")
+async def contribute_shared_with(spot_id: uuid.UUID, caption: str = Form(""), song_title: str = Form(""), song_url: str = Form(""), file: UploadFile = File(...), current_user: User = Depends(require_current_user), db: Session = Depends(get_db)):
+    spot=db.query(Spot).filter(Spot.id==spot_id).first()
+    if not spot or not can_view_spot(spot,current_user,db): raise HTTPException(status_code=404,detail="投稿が見つかりません")
+    row=db.execute(text("SELECT id,invitee_id,owner_id,status FROM shared_with_invites WHERE spot_id=:spot_id LIMIT 1"),{"spot_id":spot.id}).first()
+    if not row: raise HTTPException(status_code=404,detail="SHARED WITHの招待が見つかりません")
+    invite=_shared_with_row_dict(row)
+    if str(invite["invitee_id"])!=str(current_user.id) or invite["status"]!="accepted": raise HTTPException(status_code=403,detail="この投稿には追加できません")
+    if db.execute(text("SELECT id FROM shared_with_contributions WHERE spot_id=:spot_id LIMIT 1"),{"spot_id":spot.id}).first(): raise HTTPException(status_code=409,detail="すでに思い出が追加されています")
+    media_bytes=await file.read()
+    if not media_bytes: raise HTTPException(status_code=400,detail="写真を選択してください")
+    content_type=(file.content_type or "application/octet-stream").split(";",1)[0].lower()
+    if not content_type.startswith("image/"): raise HTTPException(status_code=400,detail="SHARED WITHには画像を選択してください")
+    cid=uuid.uuid4()
+    db.execute(text("""INSERT INTO shared_with_contributions (id,spot_id,user_id,caption,song_title,song_url,filename,content_type,data) VALUES (:id,:spot_id,:user_id,:caption,:song_title,:song_url,:filename,:content_type,:data)"""),
+               {"id":cid,"spot_id":spot.id,"user_id":current_user.id,"caption":(caption or "").strip()[:500],"song_title":(song_title or "").strip()[:255],"song_url":(song_url or "").strip()[:1000],"filename":os.path.basename(file.filename or "shared-with.jpg"),"content_type":content_type,"data":media_bytes})
+    owner=db.query(User).filter(User.id==invite["owner_id"]).first()
+    if owner: add_notification(db,owner.id,current_user.id,"shared_with_contribution",f"@{current_user.username} さんがSHARED WITHに思い出を追加しました！")
+    db.commit()
+    try: await manager.send_spot_event({"event":"shared_with_changed","spot_id":str(spot.id),"status":"accepted"},spot,db)
+    except Exception: pass
+    return {"status":"created","id":str(cid)}
+
+
+@app.api_route("/shared-with/contributions/{contribution_id}/media", methods=["GET","HEAD"])
+def serve_shared_with_media(contribution_id: uuid.UUID, request: Request, db: Session = Depends(get_db)):
+    current_user = media_current_user(request, db)
+    row=db.execute(text("SELECT c.spot_id,c.content_type,c.data FROM shared_with_contributions c WHERE c.id=:id LIMIT 1"),{"id":contribution_id}).first()
+    if not row: raise HTTPException(status_code=404,detail="Media not found")
+    item=_shared_with_row_dict(row)
+    spot=db.query(Spot).filter(Spot.id==item["spot_id"]).first()
+    if not can_view_spot(spot,current_user,db): raise HTTPException(status_code=404,detail="Media not found")
+    data=bytes(item["data"]); ctype=(item["content_type"] or "image/jpeg").split(";",1)[0].lower()
+    return Response(content=b"" if request.method=="HEAD" else data, media_type=ctype, headers={"Cache-Control":NO_STORE,"Content-Disposition":"inline","X-Content-Type-Options":"nosniff"})
 
 
 # --- Notifications ---
