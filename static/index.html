@@ -4137,6 +4137,56 @@ html.withlog-dark .withlog-avatar-preview-image {
   -webkit-user-drag: none;
 }
 </style>
+<style id="withlog-header-brush-logo-style">
+/* Reuse the exact same blue-to-purple brush logo as the sign-in page. */
+#appView > header > .withlog-header-brand {
+  flex: 0 1 154px !important;
+  min-width: 0 !important;
+}
+#appView > header .withlog-header-brand-link {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+#appView > header .withlog-header-brand-link:focus-visible {
+  outline: 2px solid #8066c7 !important;
+  outline-offset: 4px;
+}
+#withlogHeaderBrushLogo {
+  display: block;
+  width: 154px;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+@media (max-width: 640px) {
+  /* On mobile the action buttons live in the bottom dock, so center the logo. */
+  #appView > header > div.withlog-header-brand:first-child {
+    flex: 0 0 auto !important;
+    flex-basis: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: auto !important;
+  }
+  #appView > header .withlog-header-brand-link {
+    justify-content: center !important;
+  }
+  #withlogHeaderBrushLogo {
+    width: min(196px, 55vw);
+  }
+}
+</style>
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -4205,9 +4255,10 @@ html.withlog-dark .withlog-avatar-preview-image {
 
     <!-- トップヘッダー -->
     <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md px-5 py-3.5 flex items-center justify-between border-b border-slate-900">
-      <div>
-        <h1 class="text-base font-bold tracking-[0.2em] text-slate-900 uppercase cursor-pointer" onclick="switchFeedTab('all')">WITHLOG</h1>
-        <p class="text-[9px] tracking-[0.25em] text-slate-500 uppercase font-medium">Everyday Moments</p>
+      <div class="withlog-header-brand">
+        <button type="button" class="withlog-header-brand-link" onclick="switchFeedTab('all')" aria-label="WITHLOG ホームへ">
+          <img id="withlogHeaderBrushLogo" alt="WITHLOG" draggable="false" decoding="async">
+        </button>
       </div>
 
       <div id="withlogPrimaryActions" class="flex items-center gap-2.5">
@@ -4238,6 +4289,13 @@ html.withlog-dark .withlog-avatar-preview-image {
         </button>
       </div>
     </header>
+    <script id="withlog-header-logo-init">
+      (() => {
+        const loginLogo = document.getElementById('withlogLoginBrushLogo');
+        const headerLogo = document.getElementById('withlogHeaderBrushLogo');
+        if (loginLogo && headerLogo) headerLogo.src = loginLogo.src;
+      })();
+    </script>
 
     <!-- フィード切り替えタブ -->
     <div class="px-4 pt-3 flex items-center gap-4 text-xs font-bold tracking-wider border-b border-slate-200">
