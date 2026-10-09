@@ -3932,6 +3932,29 @@ html.withlog-dark #withlogPrimaryActions button[title="メッセージ"].withlog
 }
 </style>
 
+
+<style id="withlog-realtime-count-badge-style">
+.withlog-conversation-unread{
+  min-width:20px;
+  height:20px;
+  padding:0 6px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:999px;
+  background:#e85f7d;
+  color:#fff!important;
+  font-size:9px;
+  font-weight:900;
+  line-height:1;
+  box-shadow:0 2px 8px rgba(181,67,94,.24);
+}
+html.withlog-dark .withlog-conversation-unread{
+  background:#ff7395;
+  color:#fff!important;
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -4023,7 +4046,7 @@ html.withlog-dark #withlogPrimaryActions button[title="メッセージ"].withlog
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 11-6 0m6 0H9" />
           </svg>
-          <span id="notifBadge" class="hidden absolute top-0 right-0 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white"></span>
+          <span id="notifBadge" class="withlog-alert-badge hidden" aria-label="未確認通知"></span>
         </button>
 
         <button onclick="openConversationsModal()" class="text-slate-700 hover:text-slate-950 p-1 transition relative" title="メッセージ">
@@ -5218,12 +5241,25 @@ html.withlog-dark #withlogPrimaryActions button[title="メッセージ"].withlog
     function startNotificationPolling() {
       if (notificationTimer) clearInterval(notificationTimer);
       refreshNotificationBadge();
+
+      let notificationPollTick = 0;
       notificationTimer = setInterval(async () => {
         if (document.hidden || !getToken()) return;
+
+        notificationPollTick += 1;
         await refreshNotificationBadge();
+
+        // Counts update every 4 seconds. If the bell panel is open, refresh
+        // its contents every 8 seconds as a quiet fallback.
         const modal = document.getElementById('notificationsModal');
-        if (modal && !modal.classList.contains('hidden')) await openNotificationsModal({quiet:true});
-      }, 20000);
+        if (
+          notificationPollTick % 2 === 0 &&
+          modal &&
+          !modal.classList.contains('hidden')
+        ) {
+          await openNotificationsModal({quiet:true});
+        }
+      }, 4000);
     }
 
     function setHeaderAlert(buttonTitle, badgeId, count) {
@@ -5232,110 +5268,67 @@ html.withlog-dark #withlogPrimaryActions button[title="メッセージ"].withlog
       const normalized = Math.max(0, Number(count) || 0);
 
       if (badge) {
-        badge.textContent = normalized > 9 ? '9+' : (normalized ? String(normalized) : '');
+        badge.textContent = normalized > 99 ? '99+' : (normalized ? String(normalized) : '');
         badge.classList.toggle('hidden', normalized === 0);
       }
+
       if (button) {
         button.classList.toggle('withlog-has-alert', normalized > 0);
-        button.setAttribute('aria-label', normalized > 0 ? `${buttonTitle}・未確認${normalized}件` : buttonTitle);
+        button.setAttribute(
+          'aria-label',
+          normalized > 0 ? `${buttonTitle}・未確認${normalized}件` : buttonTitle
+        );
       }
     }
 
-    function dmLastReadStorageKey() {
-      const username = String(currentUser?.username || '').toLowerCase();
-      return username ? `withlog:dm:last-read:${username}` : '';
-    }
+    async function fetchNotificationCounts() {
+      const token = getToken();
+      if (!token) return {
+        notification_count: 0,
+        dm_count: 0,
+        dm_by_sender: {}
+      };
 
-    function getDmLastReadMs() {
-      const key = dmLastReadStorageKey();
-      if (!key) return Date.now();
-
-      const stored = Number(localStorage.getItem(key) || 0);
-      if (stored > 0) return stored;
-
-      // First run of the new badge feature: do not mark the entire old DM history unread.
-      const now = Date.now();
-      localStorage.setItem(key, String(now));
-      return now;
-    }
-
-    function markDmNotificationsRead() {
-      const key = dmLastReadStorageKey();
-      if (key) localStorage.setItem(key, String(Date.now()));
-      setHeaderAlert('メッセージ', 'dmBadge', 0);
-    }
-
-    async function getDmUnreadCountFromExistingApi(headers) {
-      const lastReadMs = getDmLastReadMs();
-      const me = String(currentUser?.username || '').toLowerCase();
-      if (!me) return 0;
-
-      const conversationsRes = await fetch('/messages/conversations', {
-        headers,
-        cache:'no-store'
+      const res = await fetch('/notifications/counts', {
+        headers: { 'Authorization': `Bearer ${token}` },
+        cache: 'no-store'
       });
-      if (!conversationsRes.ok) return 0;
 
-      const conversations = await conversationsRes.json();
-      if (!Array.isArray(conversations) || conversations.length === 0) return 0;
+      if (!res.ok) throw new Error('通知件数の取得に失敗しました');
+      return await res.json();
+    }
 
-      const results = await Promise.all(
-        conversations.map(async user => {
-          const username = String(user?.username || '').trim();
-          if (!username) return 0;
+    async function markDmNotificationsRead(partnerUsername) {
+      const token = getToken();
+      const partner = String(partnerUsername || '').trim();
+      if (!token || !partner) return;
 
-          try {
-            const res = await fetch(`/messages/${encodeURIComponent(username)}`, {
-              headers,
-              cache:'no-store'
-            });
-            if (!res.ok) return 0;
+      try {
+        await fetch(`/messages/read/${encodeURIComponent(partner)}`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          cache: 'no-store'
+        });
+      } catch (_) {}
 
-            const messages = await res.json();
-            if (!Array.isArray(messages)) return 0;
-
-            return messages.filter(message => {
-              const sender = String(message?.sender_username || '').toLowerCase();
-              const createdMs = message?.created_at ? Date.parse(message.created_at) : 0;
-              return sender && sender !== me && createdMs > lastReadMs;
-            }).length;
-          } catch (_) {
-            return 0;
-          }
-        })
-      );
-
-      return results.reduce((sum, count) => sum + Number(count || 0), 0);
+      await refreshNotificationBadge();
     }
 
     async function refreshNotificationBadge() {
-      const token = getToken();
-      if (!token) return;
+      if (!getToken()) {
+        setHeaderAlert('通知', 'notifBadge', 0);
+        setHeaderAlert('メッセージ', 'dmBadge', 0);
+        return null;
+      }
 
       try {
-        const headers = { 'Authorization': `Bearer ${token}` };
-        const [notifRes, reqRes, sharedRes, dmUnreadCount] = await Promise.all([
-          fetch('/notifications', { headers, cache:'no-store' }),
-          fetch('/friends/incoming-requests', { headers, cache:'no-store' }),
-          fetch('/shared-with/incoming', { headers, cache:'no-store' }),
-          getDmUnreadCountFromExistingApi(headers)
-        ]);
-
-        const notifications = notifRes.ok ? await notifRes.json() : [];
-        const requests = reqRes.ok ? await reqRes.json() : [];
-        const sharedInvites = sharedRes.ok ? await sharedRes.json() : [];
-
-        const unreadNotificationCount = Array.isArray(notifications)
-          ? notifications.filter(n => !n.is_read).length
-          : 0;
-        const requestCount = Array.isArray(requests) ? requests.length : 0;
-        const sharedCount = Array.isArray(sharedInvites)
-          ? sharedInvites.filter(item => item.status === 'pending').length
-          : 0;
-
-        setHeaderAlert('通知', 'notifBadge', unreadNotificationCount + requestCount + sharedCount);
-        setHeaderAlert('メッセージ', 'dmBadge', Number(dmUnreadCount || 0));
-      } catch (_) {}
+        const counts = await fetchNotificationCounts();
+        setHeaderAlert('通知', 'notifBadge', counts.notification_count || 0);
+        setHeaderAlert('メッセージ', 'dmBadge', counts.dm_count || 0);
+        return counts;
+      } catch (_) {
+        return null;
+      }
     }
 
     window.openNotificationsModal = async function({quiet = false} = {}) {
@@ -5434,7 +5427,7 @@ html.withlog-dark #withlogPrimaryActions button[title="メッセージ"].withlog
         });
 
         await fetch('/notifications/read', { method: 'POST', headers });
-        refreshNotificationBadge();
+        await refreshNotificationBadge();
       } catch (err) {
         console.error(err);
         notifEl.innerHTML = '<p class="text-rose-500 py-2">通知の取得に失敗しました</p>';
@@ -6544,35 +6537,51 @@ html.withlog-dark #withlogPrimaryActions button[title="メッセージ"].withlog
     };
 
     // --- DM会話一覧モーダル ---
-    window.openConversationsModal = async function() {
+    window.openConversationsModal = async function({quiet = false} = {}) {
       const token = getToken();
-      markDmNotificationsRead();
-      const res = await fetch('/messages/conversations', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      if (!token) return;
+
+      const headers = { 'Authorization': `Bearer ${token}` };
+      const [res, counts] = await Promise.all([
+        fetch('/messages/conversations', { headers, cache:'no-store' }),
+        fetchNotificationCounts().catch(() => ({dm_by_sender:{}}))
+      ]);
+
       const listEl = document.getElementById('conversationsList');
+
       if (res.ok) {
         const users = await res.json();
+        const unreadBySender = counts?.dm_by_sender || {};
+
         if (users.length === 0) {
           listEl.innerHTML = '<p class="text-center text-slate-400 py-6">メッセージのやり取りはありません<br><span class="text-[10px]">ユーザー検索からDMを送ってみましょう！</span></p>';
         } else {
-          listEl.innerHTML = users.map(u => `
-            <div class="p-3 flex items-center justify-between hover:bg-slate-50 transition cursor-pointer" onclick="closeConversationsModal(); openDmChat('${u.username}');">
-              <div class="flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-lg bg-slate-200 bg-cover bg-center border border-slate-400 flex items-center justify-center font-bold text-xs" ${u.avatar_url ? `style="background-image: url('${u.avatar_url}')"` : ''}>
-                  ${!u.avatar_url ? (u.display_name || u.username).charAt(0).toUpperCase() : ''}
+          listEl.innerHTML = users.map(u => {
+            const unread = Number(unreadBySender[String(u.username || '').toLowerCase()] || 0);
+            return `
+              <div class="p-3 flex items-center justify-between hover:bg-slate-50 transition cursor-pointer" onclick="closeConversationsModal(); openDmChat('${u.username}');">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <div class="w-8 h-8 rounded-lg bg-slate-200 bg-cover bg-center border border-slate-400 flex items-center justify-center font-bold text-xs shrink-0" ${u.avatar_url ? `style="background-image: url('${u.avatar_url}')"` : ''}>
+                    ${!u.avatar_url ? (u.display_name || u.username).charAt(0).toUpperCase() : ''}
+                  </div>
+                  <div class="min-w-0">
+                    <p class="font-bold text-slate-900 leading-none truncate">${escapeHtml(u.display_name || u.username)}</p>
+                    <p class="text-[10px] text-slate-400 font-mono mt-0.5 truncate">@${u.username}</p>
+                  </div>
                 </div>
-                <div>
-                  <p class="font-bold text-slate-900 leading-none">${escapeHtml(u.display_name || u.username)}</p>
-                  <p class="text-[10px] text-slate-400 font-mono mt-0.5">@${u.username}</p>
+                <div class="flex items-center gap-2 shrink-0">
+                  ${unread > 0 ? `<span class="withlog-conversation-unread">${unread > 99 ? '99+' : unread}</span>` : ''}
+                  <span class="text-[10px] text-slate-800 font-bold">OPEN ↗</span>
                 </div>
               </div>
-              <span class="text-[10px] text-slate-800 font-bold">OPEN ↗</span>
-            </div>
-          `).join('');
+            `;
+          }).join('');
         }
       }
-      document.getElementById('conversationsModal').classList.remove('hidden');
+
+      if (!quiet) {
+        document.getElementById('conversationsModal').classList.remove('hidden');
+      }
     };
 
     window.closeConversationsModal = function() {
@@ -8309,6 +8318,7 @@ html.withlog-dark #withlogPrimaryActions button[title="メッセージ"].withlog
 
         if (payload.event === 'shared_with_changed' && payload.spot_id) {
           void loadSharedWithStatuses([{id:String(payload.spot_id)}]);
+          void refreshNotificationBadge();
           return;
         }
         if (payload.event === 'shared_with_invite') {
@@ -8319,6 +8329,7 @@ html.withlog-dark #withlogPrimaryActions button[title="メッセージ"].withlog
         }
 
         if ((payload.event === 'comment_created' || payload.event === 'comment_deleted') && payload.spot_id) {
+          void refreshNotificationBadge();
           const spotId = String(payload.spot_id);
           nextCommentGeneration(spotId);
           setCommentCount(spotId, payload.count || 0, {animate:true});
@@ -8351,13 +8362,28 @@ html.withlog-dark #withlogPrimaryActions button[title="メッセージ"].withlog
               !dmModal.classList.contains('hidden');
 
             if (sameOpenChat) {
-              markDmNotificationsRead();
-              void loadDmMessages({ preserveScroll: true, quiet: true });
+              void markDmNotificationsRead(sender).then(() => {
+                void loadDmMessages({ preserveScroll: true, quiet: true });
+              });
             } else {
               void refreshNotificationBadge();
+
+              const conversationsModal = document.getElementById('conversationsModal');
+              if (conversationsModal && !conversationsModal.classList.contains('hidden')) {
+                void openConversationsModal({quiet:true});
+              }
             }
             return;
           }
+        }
+
+        if (payload.event === 'dm_read') {
+          void refreshNotificationBadge();
+          const conversationsModal = document.getElementById('conversationsModal');
+          if (conversationsModal && !conversationsModal.classList.contains('hidden')) {
+            void openConversationsModal({quiet:true});
+          }
+          return;
         }
 
         if (!activeDmPartner) return;
@@ -8382,7 +8408,8 @@ html.withlog-dark #withlogPrimaryActions button[title="メッセージ"].withlog
     window.openDmChat = async function(username) {
       activeDmPartner = String(username || '').trim();
       if (!activeDmPartner) return;
-      markDmNotificationsRead();
+
+      await markDmNotificationsRead(activeDmPartner);
       closeProfileModal();
       document.getElementById('dmPartnerTitle').innerText = `@${activeDmPartner} とのDM`;
       document.getElementById('dmModal').classList.remove('hidden');

@@ -2080,8 +2080,67 @@ def get_notifications(
             "sender_avatar_url": item.sender.avatar_url if item.sender else None,
         }
         for item in notifications
-        if item.type != "new_post" or can_view_user_posts(item.sender, current_user, db)
+        if item.type != "dm"
+        and (item.type != "new_post" or can_view_user_posts(item.sender, current_user, db))
     ]
+
+
+@app.get("/notifications/counts")
+def get_notification_counts(
+    current_user: User = Depends(require_current_user),
+    db: Session = Depends(get_db),
+):
+    unread_rows = db.query(Notification).filter(
+        Notification.recipient_id == current_user.id,
+        Notification.is_read.is_(False),
+    ).all()
+
+    # Follow requests and SHARED WITH invites are counted from their live
+    # pending state below, so exclude their notification rows to avoid
+    # double-counting. DM also has its own badge.
+    general_unread = 0
+    dm_unread = 0
+    dm_by_sender = {}
+
+    for item in unread_rows:
+        if item.type == "dm":
+            dm_unread += 1
+            sender_username = item.sender.username if item.sender else "unknown"
+            key = sender_username.lower()
+            dm_by_sender[key] = dm_by_sender.get(key, 0) + 1
+            continue
+
+        if item.type in {"follow_request", "shared_with_invite"}:
+            continue
+
+        if item.type == "new_post" and not can_view_user_posts(item.sender, current_user, db):
+            continue
+
+        general_unread += 1
+
+    pending_follow_requests = db.query(Follow).filter(
+        Follow.following_id == current_user.id,
+        Follow.status == "pending",
+    ).count()
+
+    pending_shared_with = db.execute(
+        text("""
+            SELECT COUNT(*)
+            FROM shared_with_invites
+            WHERE invitee_id = :user_id
+              AND status = 'pending'
+        """),
+        {"user_id": current_user.id},
+    ).scalar() or 0
+
+    return {
+        "notification_count": int(general_unread + pending_follow_requests + pending_shared_with),
+        "general_unread": int(general_unread),
+        "pending_follow_requests": int(pending_follow_requests),
+        "pending_shared_with": int(pending_shared_with),
+        "dm_count": int(dm_unread),
+        "dm_by_sender": dm_by_sender,
+    }
 
 
 @app.post("/notifications/read")
@@ -2089,9 +2148,11 @@ def mark_notifications_read(
     current_user: User = Depends(require_current_user),
     db: Session = Depends(get_db),
 ):
+    # Opening the bell must not clear unread DMs.
     db.query(Notification).filter(
         Notification.recipient_id == current_user.id,
         Notification.is_read.is_(False),
+        Notification.type != "dm",
     ).update({"is_read": True}, synchronize_session=False)
     db.commit()
     return {"status": "ok"}
@@ -2170,6 +2231,38 @@ def get_conversations(
     return [build_user_profile(user, current_user, db) for user in users]
 
 
+@app.post("/messages/read/{partner_username}")
+async def mark_messages_read(
+    partner_username: str,
+    current_user: User = Depends(require_current_user),
+    db: Session = Depends(get_db),
+):
+    clean = partner_username.strip()
+    partner = find_user_by_username_exact_ci(db, clean)
+    if not partner:
+        raise HTTPException(status_code=404, detail="ユーザーが見つかりません")
+
+    updated = db.query(Notification).filter(
+        Notification.recipient_id == current_user.id,
+        Notification.sender_id == partner.id,
+        Notification.type == "dm",
+        Notification.is_read.is_(False),
+    ).update({"is_read": True}, synchronize_session=False)
+    db.commit()
+
+    # Sync every open tab/device for this account immediately.
+    await manager.send_personal_message(
+        {
+            "event": "dm_read",
+            "partner_username": partner.username,
+            "count": int(updated or 0),
+        },
+        current_user.username,
+    )
+
+    return {"status": "ok", "read_count": int(updated or 0)}
+
+
 @app.get("/messages/{partner_username}", response_model=List[DMResponse])
 def get_messages(
     partner_username: str,
@@ -2219,6 +2312,19 @@ async def send_message(
         content=msg_in.content.strip(),
     )
     db.add(msg)
+    db.flush()
+
+    # Keep unread DM state in PostgreSQL so the count is exact across
+    # refreshes, devices, deploys, and reconnects. Store the message id in the
+    # hidden notification payload so deletion can remove the matching unread row.
+    add_notification(
+        db,
+        recipient.id,
+        current_user.id,
+        "dm",
+        f"dm:{msg.id}",
+    )
+
     db.commit()
     db.refresh(msg)
 
@@ -2257,6 +2363,13 @@ async def delete_message(
 
     recipient = db.query(User).filter(User.id == msg.recipient_id).first()
     recipient_username = recipient.username if recipient else None
+
+    db.query(Notification).filter(
+        Notification.recipient_id == msg.recipient_id,
+        Notification.sender_id == msg.sender_id,
+        Notification.type == "dm",
+        Notification.message == f"dm:{msg.id}",
+    ).delete(synchronize_session=False)
 
     db.delete(msg)
     db.commit()
