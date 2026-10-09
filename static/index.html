@@ -3853,6 +3853,85 @@ html.withlog-dark .withlog-settings-logout-main small{
 }
 </style>
 
+
+<style id="withlog-notification-alert-ux">
+#withlogPrimaryActions button[title="通知"],
+#withlogPrimaryActions button[title="メッセージ"]{
+  position:relative!important;
+  transition:transform .18s ease,background-color .18s ease,box-shadow .22s ease,color .18s ease!important;
+}
+.withlog-alert-badge,
+#notifBadge{
+  position:absolute!important;
+  z-index:8!important;
+  top:-4px!important;
+  right:-5px!important;
+  min-width:18px!important;
+  height:18px!important;
+  padding:0 5px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border-radius:999px!important;
+  border:2px solid #fff!important;
+  background:#e85f7d!important;
+  color:#fff!important;
+  font-size:9px!important;
+  font-weight:900!important;
+  line-height:1!important;
+  box-sizing:border-box!important;
+  box-shadow:0 2px 8px rgba(181,67,94,.34)!important;
+}
+.withlog-alert-badge.hidden,
+#notifBadge.hidden{display:none!important;}
+
+#withlogPrimaryActions button[title="通知"].withlog-has-alert{
+  color:#7b6215!important;
+  background:rgba(255,226,121,.28)!important;
+  box-shadow:0 0 0 3px rgba(255,211,80,.18),0 0 18px rgba(255,205,55,.62)!important;
+  animation:withlogNotificationGlow 1.8s ease-in-out infinite;
+}
+#withlogPrimaryActions button[title="メッセージ"].withlog-has-alert{
+  color:#27739d!important;
+  background:rgba(157,220,255,.26)!important;
+  box-shadow:0 0 0 3px rgba(125,204,250,.18),0 0 18px rgba(82,189,249,.62)!important;
+  animation:withlogMessageGlow 1.8s ease-in-out infinite;
+}
+@keyframes withlogNotificationGlow{
+  0%,100%{box-shadow:0 0 0 3px rgba(255,211,80,.16),0 0 12px rgba(255,205,55,.40)}
+  50%{box-shadow:0 0 0 6px rgba(255,211,80,.08),0 0 24px rgba(255,205,55,.78)}
+}
+@keyframes withlogMessageGlow{
+  0%,100%{box-shadow:0 0 0 3px rgba(125,204,250,.16),0 0 12px rgba(82,189,249,.40)}
+  50%{box-shadow:0 0 0 6px rgba(125,204,250,.08),0 0 24px rgba(82,189,249,.78)}
+}
+html.withlog-dark .withlog-alert-badge,
+html.withlog-dark #notifBadge{
+  border-color:#202126!important;
+  background:#ff7395!important;
+}
+html.withlog-dark #withlogPrimaryActions button[title="通知"].withlog-has-alert{
+  color:#f3d66b!important;
+  background:rgba(106,83,25,.30)!important;
+}
+html.withlog-dark #withlogPrimaryActions button[title="メッセージ"].withlog-has-alert{
+  color:#95d9ff!important;
+  background:rgba(37,86,112,.32)!important;
+}
+@media(max-width:640px){
+  #withlogPrimaryActions.withlog-mobile-bottom-nav .withlog-alert-badge,
+  #withlogPrimaryActions.withlog-mobile-bottom-nav #notifBadge{
+    top:0!important;
+    right:0!important;
+    min-width:18px!important;
+    height:18px!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #withlogPrimaryActions button.withlog-has-alert{animation:none!important;}
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -3951,6 +4030,7 @@ html.withlog-dark .withlog-settings-logout-main small{
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
           </svg>
+          <span id="dmBadge" class="withlog-alert-badge hidden" aria-label="未読メッセージ"></span>
         </button>
 
         <div id="authStatusContainer"></div>
@@ -5146,25 +5226,62 @@ html.withlog-dark .withlog-settings-logout-main small{
       }, 20000);
     }
 
+    function setHeaderAlert(buttonTitle, badgeId, count) {
+      const button = document.querySelector(`#withlogPrimaryActions button[title="${buttonTitle}"]`);
+      const badge = document.getElementById(badgeId);
+      const normalized = Math.max(0, Number(count) || 0);
+
+      if (badge) {
+        badge.textContent = normalized > 9 ? '9+' : (normalized ? String(normalized) : '');
+        badge.classList.toggle('hidden', normalized === 0);
+      }
+      if (button) {
+        button.classList.toggle('withlog-has-alert', normalized > 0);
+        button.setAttribute('aria-label', normalized > 0 ? `${buttonTitle}・未確認${normalized}件` : buttonTitle);
+      }
+    }
+
+    async function markDmNotificationsRead() {
+      const token = getToken();
+      if (!token) return;
+      try {
+        await fetch('/messages/read', {
+          method:'POST',
+          headers:{'Authorization':`Bearer ${token}`},
+          cache:'no-store'
+        });
+      } catch (_) {}
+      setHeaderAlert('メッセージ', 'dmBadge', 0);
+    }
+
     async function refreshNotificationBadge() {
       const token = getToken();
-      const badge = document.getElementById('notifBadge');
-      if (!token || !badge) return;
+      if (!token) return;
 
       try {
         const headers = { 'Authorization': `Bearer ${token}` };
-        const [notifRes, reqRes, sharedRes] = await Promise.all([
-          fetch('/notifications', { headers }),
-          fetch('/friends/incoming-requests', { headers }),
-          fetch('/shared-with/incoming', { headers })
+        const [notifRes, reqRes, sharedRes, dmRes] = await Promise.all([
+          fetch('/notifications', { headers, cache:'no-store' }),
+          fetch('/friends/incoming-requests', { headers, cache:'no-store' }),
+          fetch('/shared-with/incoming', { headers, cache:'no-store' }),
+          fetch('/messages/unread', { headers, cache:'no-store' })
         ]);
+
         const notifications = notifRes.ok ? await notifRes.json() : [];
         const requests = reqRes.ok ? await reqRes.json() : [];
         const sharedInvites = sharedRes.ok ? await sharedRes.json() : [];
-        const hasUnread = Array.isArray(notifications) && notifications.some(n => !n.is_read);
-        const hasRequests = Array.isArray(requests) && requests.length > 0;
-        const hasShared = Array.isArray(sharedInvites) && sharedInvites.some(item => item.status === 'pending');
-        badge.classList.toggle('hidden', !(hasUnread || hasRequests || hasShared));
+        const dmUnread = dmRes.ok ? await dmRes.json() : {count:0};
+
+        const unreadNotificationCount = Array.isArray(notifications)
+          ? notifications.filter(n => !n.is_read && n.type !== 'dm').length
+          : 0;
+        const requestCount = Array.isArray(requests) ? requests.length : 0;
+        const sharedCount = Array.isArray(sharedInvites)
+          ? sharedInvites.filter(item => item.status === 'pending').length
+          : 0;
+
+        setHeaderAlert('通知', 'notifBadge', unreadNotificationCount + requestCount + sharedCount);
+        setHeaderAlert('メッセージ', 'dmBadge', Number(dmUnread?.count || 0));
       } catch (_) {}
     }
 
@@ -5237,7 +5354,8 @@ html.withlog-dark .withlog-settings-logout-main small{
           </div>
         `).join('') : '<p class="text-slate-400 py-2">SHARED WITHの招待はありません</p>';
 
-        notifEl.innerHTML = notifications.length ? notifications.map(n => {
+        const visibleNotifications = notifications.filter(n => n.type !== 'dm');
+        notifEl.innerHTML = visibleNotifications.length ? visibleNotifications.map(n => {
           const username = String(n.sender_username || '').trim();
           const message = String(n.message || '');
           const marker = username ? `@${username}` : '';
@@ -6376,6 +6494,7 @@ html.withlog-dark .withlog-settings-logout-main small{
     // --- DM会話一覧モーダル ---
     window.openConversationsModal = async function() {
       const token = getToken();
+      await markDmNotificationsRead();
       const res = await fetch('/messages/conversations', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -8166,6 +8285,29 @@ html.withlog-dark .withlog-settings-logout-main small{
           return;
         }
 
+        if (payload.event === 'dm_created') {
+          const me = String(currentUser?.username || '').toLowerCase();
+          const sender = String(payload.sender_username || '').toLowerCase();
+          const recipient = String(payload.recipient_username || '').toLowerCase();
+
+          if (recipient && me && recipient === me && sender !== me) {
+            const dmModal = document.getElementById('dmModal');
+            const sameOpenChat =
+              activeDmPartner &&
+              String(activeDmPartner).toLowerCase() === sender &&
+              dmModal &&
+              !dmModal.classList.contains('hidden');
+
+            if (sameOpenChat) {
+              void markDmNotificationsRead();
+              void loadDmMessages({ preserveScroll: true, quiet: true });
+            } else {
+              void refreshNotificationBadge();
+            }
+            return;
+          }
+        }
+
         if (!activeDmPartner) return;
         const partner = String(activeDmPartner).toLowerCase();
         const sender = String(payload.sender_username || '').toLowerCase();
@@ -8188,6 +8330,7 @@ html.withlog-dark .withlog-settings-logout-main small{
     window.openDmChat = async function(username) {
       activeDmPartner = String(username || '').trim();
       if (!activeDmPartner) return;
+      await markDmNotificationsRead();
       closeProfileModal();
       document.getElementById('dmPartnerTitle').innerText = `@${activeDmPartner} とのDM`;
       document.getElementById('dmModal').classList.remove('hidden');
