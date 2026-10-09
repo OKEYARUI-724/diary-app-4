@@ -4052,6 +4052,64 @@ html.withlog-dark .withlog-follower-id{color:#aaa4b2;}
 }
 </style>
 
+<style id="withlog-profile-avatar-preview-style">
+/* Show the profile icon full-size without changing its circular crop. */
+#profileAvatar {
+  cursor: zoom-in;
+  -webkit-tap-highlight-color: transparent;
+  padding: 0 !important;
+  appearance: none;
+}
+#profileAvatar:focus-visible {
+  outline: 3px solid #9c83d5 !important;
+  outline-offset: 4px;
+}
+.withlog-avatar-preview-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300 !important; /* Above mobile bottom navigation and profile modal. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(18, 16, 26, .85) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: zoom-out;
+}
+.withlog-avatar-preview-overlay.hidden { display: none !important; }
+.withlog-avatar-preview-image {
+  width: min(82vw, 420px, calc(100dvh - 64px));
+  aspect-ratio: 1 / 1;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 4px solid rgba(255, 255, 255, .93);
+  border-radius: 50%;
+  background-color: #e9ddff;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  color: #44375f;
+  font-size: clamp(4rem, 18vw, 8rem);
+  font-weight: 800;
+  line-height: 1;
+  user-select: none;
+  cursor: default;
+  animation: withlog-avatar-preview-in .18s ease-out both;
+}
+html.withlog-dark .withlog-avatar-preview-image {
+  background-color: #45424d;
+  color: #f5f2f7;
+}
+@keyframes withlog-avatar-preview-in {
+  from { opacity: .65; transform: scale(.94); }
+  to { opacity: 1; transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .withlog-avatar-preview-image { animation: none; }
+}
+</style>
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -4300,7 +4358,7 @@ html.withlog-dark .withlog-follower-id{color:#aaa4b2;}
           <!-- アイコン & 基本情報 -->
           <div class="flex items-start gap-3.5">
             <!-- 四角いソリッドなアイコンフレーム -->
-            <div id="profileAvatar" class="w-16 h-16 rounded-xl border-2 border-slate-900 bg-slate-100 bg-cover bg-center shrink-0 flex items-center justify-center font-bold text-lg text-slate-800 "></div>
+            <button type="button" id="profileAvatar" onclick="openProfileAvatarPreview()" title="アイコンを拡大表示" aria-label="アイコンを拡大表示" aria-haspopup="dialog" class="w-16 h-16 rounded-xl border-2 border-slate-900 bg-slate-100 bg-cover bg-center shrink-0 flex items-center justify-center font-bold text-lg text-slate-800"></button>
             
             <div class="flex-1 min-w-0">
               <h2 id="profileDisplayName" class="text-base font-extrabold text-slate-900 leading-tight truncate"></h2>
@@ -4375,6 +4433,11 @@ html.withlog-dark .withlog-follower-id{color:#aaa4b2;}
       </div>
     </div>
 
+
+    <!-- Full-screen profile icon preview: tap the backdrop to return to the profile. -->
+    <div id="profileAvatarPreview" class="withlog-avatar-preview-overlay hidden" role="dialog" aria-modal="true" aria-label="アイコンの拡大表示" aria-hidden="true" tabindex="-1">
+      <div id="profileAvatarPreviewImage" class="withlog-avatar-preview-image" role="img" aria-label="プロフィールアイコン"></div>
+    </div>
 
     <!-- Privacy settings; header stays outside the scrolling body. -->
     <div id="advancedSettingsModal" class="withlog-settings-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="advancedSettingsTitle" tabindex="-1">
@@ -7640,6 +7703,7 @@ html.withlog-dark .withlog-follower-id{color:#aaa4b2;}
     };
 
     window.closeProfileModal = function() {
+      window.closeProfileAvatarPreview?.();
       document.getElementById('profileModal').classList.add('hidden');
     };
 
@@ -9234,6 +9298,50 @@ document.addEventListener("DOMContentLoaded", function () {
       close();
     });
   });
+})();
+</script>
+<script id="withlog-profile-avatar-preview-script">
+(() => {
+  const overlay = document.getElementById('profileAvatarPreview');
+  const enlarged = document.getElementById('profileAvatarPreviewImage');
+  const avatar = document.getElementById('profileAvatar');
+  const profile = document.getElementById('profileModal');
+  if (!overlay || !enlarged || !avatar || !profile) return;
+
+  window.openProfileAvatarPreview = function () {
+    if (profile.classList.contains('hidden')) return;
+    const photo = avatar.style.backgroundImage;
+    const hasPhoto = !!photo && photo !== 'none';
+    enlarged.style.backgroundImage = hasPhoto ? photo : 'none';
+    enlarged.textContent = hasPhoto ? '' : (avatar.textContent.trim() || '?');
+    const displayName = document.getElementById('profileDisplayName')?.textContent.trim() || 'ユーザー';
+    enlarged.setAttribute('aria-label', `${displayName}のプロフィールアイコン`);
+    overlay.classList.remove('hidden');
+    overlay.setAttribute('aria-hidden', 'false');
+    overlay.focus({ preventScroll: true });
+  };
+
+  window.closeProfileAvatarPreview = function () {
+    if (overlay.classList.contains('hidden')) return;
+    overlay.classList.add('hidden');
+    overlay.setAttribute('aria-hidden', 'true');
+    enlarged.style.backgroundImage = 'none';
+    enlarged.textContent = '';
+    if (!profile.classList.contains('hidden')) avatar.focus({ preventScroll: true });
+  };
+
+  overlay.addEventListener('click', (event) => {
+    if (event.target === overlay) window.closeProfileAvatarPreview();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (overlay.classList.contains('hidden')) return;
+    if (event.key === 'Escape' || event.key === 'Tab') {
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.key === 'Escape') window.closeProfileAvatarPreview();
+      else overlay.focus({ preventScroll: true });
+    }
+  }, true);
 })();
 </script>
 </body>
