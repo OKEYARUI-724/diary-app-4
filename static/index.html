@@ -4643,6 +4643,25 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
 @media(prefers-reduced-motion:reduce) { #newsPage .news-card { transition:none !important; } }
 </style>
 
+<style id="withlog-unified-desktop-page-width">
+/* Desktop: match ALL and FOLLOWING to the existing 760px ISS/WEATHER/NEWS canvas.
+   Phone layout (< 641px) is intentionally unchanged. */
+@media (min-width: 641px) {
+  #appView {
+    max-width: 760px !important;
+  }
+  /* Align the feed and story panel edges with the dedicated pages. */
+  #appView > main {
+    padding: 20px 24px 54px !important;
+    min-width: 0;
+  }
+  #appView > #storiesSection {
+    padding: 20px 24px 0 !important;
+    min-width: 0;
+  }
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
