@@ -4355,7 +4355,9 @@ html.withlog-dark #appView #withlogPrimaryActions :is(
 #issTrackerPage .iss-map-foot p { color: #867c92; font-size: 10px; line-height: 1.8; }
 #issTrackerPage .iss-map-foot a { color: #7962af; text-decoration: underline; text-underline-offset: 2px; }
 #issTrackerPage .leaflet-container { font-family: 'Plus Jakarta Sans','Noto Sans JP',sans-serif; }
+/* Keep regular map labels readable; tone down only the ISS tiles in dark mode. */
 #issTrackerPage .leaflet-tile { filter: none !important; }
+html.withlog-dark #issTrackerPage .leaflet-tile { filter: brightness(.74) saturate(.78) !important; }
 #issTrackerPage .leaflet-control-attribution { font-size: 9px !important; }
 #issTrackerPage .iss-error { color: #be607d; font-weight: 800; }
 html.withlog-dark #appView #tabISS { background: #373443 !important; color: #b8abcf !important; }
@@ -9697,9 +9699,12 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
     map = L.map('issMap', {zoomControl: true, worldCopyJump: true, minZoom: 1, maxZoom: 11}).setView([15, 0], 2);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap contributors &copy; CARTO', maxZoom: 11,
-      subdomains: 'abcd', detectRetina: false
+    // CARTO tiles now require a separate API key. Use the official OSM
+    // standard raster tiles instead, keeping visible attribution and browser caching.
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
+      maxZoom: 11,
+      detectRetina: false
     }).addTo(map);
     tracks = L.layerGroup().addTo(map);
     const icon = L.divIcon({
