@@ -409,19 +409,6 @@ html, body {
   border-radius: 9999px !important;
   background-color: #e8dcff !important;
 }
-#dateFilter {
-  border: 0 !important;
-  border-radius: 9999px !important;
-  background: #fff !important;
-  color: var(--pop-ink) !important;
-}
-#clearDate {
-  border-radius: 9999px !important;
-  background: #fff0bb !important;
-  color: #7b6626 !important;
-  padding: 7px 12px !important;
-}
-
 /* Posts: no dark outline or lifted shadow, just rounded pastel blocks. */
 .navy-card,
 .tl-post-card {
@@ -590,8 +577,6 @@ html.withlog-dark #tabAll.border-b-2,
 html.withlog-dark #tabFollowing.border-b-2 { background: #7766a8 !important; color: #fff !important; }
 html.withlog-dark .tl-filter-card { background: #2d3331 !important; color: #f4f1f5 !important; }
 html.withlog-dark #storiesSection .tl-filter-card { background: #303137 !important; }
-html.withlog-dark #dateFilter { background: #3a3b42 !important; color: #f4f1f5 !important; }
-html.withlog-dark #clearDate { background: #4a4131 !important; color: #f0d995 !important; }
 html.withlog-dark .navy-card,
 html.withlog-dark .tl-post-card { background: #2b2c31 !important; color: #f4f1f5 !important; }
 html.withlog-dark .tl-post-card > div:first-child { background: #36343a !important; }
@@ -4814,16 +4799,6 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
 
     <!-- メインコンテンツ -->
     <main class="p-4 flex-1">
-      <div class="tl-filter-card bg-white rounded-xl p-3 mb-5 flex items-center justify-between border border-slate-200 ">
-        <div class="flex items-center gap-2">
-          <span class="text-[11px] font-bold tracking-wider text-slate-500 uppercase">DATE</span>
-          <input type="date" id="dateFilter" class="navy-input rounded-lg px-2.5 py-1 text-xs text-slate-800">
-        </div>
-        <button id="clearDate" class="text-[11px] font-semibold tracking-wider text-slate-500 hover:text-slate-900 px-2 py-1 transition">
-          RESET
-        </button>
-      </div>
-
       <div id="profileFeedBanner" class="withlog-profile-privacy hidden"></div>
       <div id="feed" class="space-y-7">
         <p class="text-center text-xs text-slate-400 py-12 tracking-widest uppercase font-medium">Loading...</p>
@@ -5546,8 +5521,6 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
     const appView = document.getElementById('appView');
     const feedEl = document.getElementById('feed');
     const formEl = document.getElementById('postForm');
-    const dateFilterEl = document.getElementById('dateFilter');
-    const clearDateEl = document.getElementById('clearDate');
     const postModal = document.getElementById('postModal');
 
     function getToken() { return localStorage.getItem('access_token'); }
@@ -7462,7 +7435,7 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
         tabAll.className = "pb-2 text-slate-400 hover:text-slate-700 font-medium";
         tabFollowing.className = "pb-2 text-slate-900 border-b-2 border-slate-900 font-bold";
       }
-      loadSpots(dateFilterEl.value);
+      loadSpots();
     };
 
 
@@ -7668,13 +7641,12 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
     }
 
     // --- フィード取得 ---
-    async function loadSpots(date = '') {
+    async function loadSpots() {
       const requestSerial = ++feedRequestSerial;
       feedEl.innerHTML = '<p class="text-center text-xs text-slate-400 py-12 tracking-widest uppercase font-medium">Loading...</p>';
       const token = getToken();
       let url = `/spots?feed_type=${encodeURIComponent(currentFeedTab)}`;
       if (currentFeedTab === 'user' && currentFeedUsername) url += `&target_username=${encodeURIComponent(currentFeedUsername)}`;
-      if (date) url += `&target_date=${encodeURIComponent(date)}`;
       let spots;
       try {
         const res = await fetch(url, { cache:'no-store', headers:token ? {'Authorization':`Bearer ${token}`} : {} });
@@ -7689,7 +7661,7 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
 
       const dailyDay = getLocalDayKey();
       const dailyPrompt = getDailyWithPrompt(dailyDay);
-      const dailyCard = date || currentFeedTab === 'user' ? '' : renderDailyWithCard(dailyPrompt, dailyDay);
+      const dailyCard = currentFeedTab === 'user' ? '' : renderDailyWithCard(dailyPrompt, dailyDay);
 
       if (spots.length === 0) {
         feedEl.innerHTML = `${dailyCard}
@@ -8588,7 +8560,6 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
       closeProfileModal();
       currentFeedTab = 'user';
       currentFeedUsername = name;
-      dateFilterEl.value = '';
       const banner = document.getElementById('profileFeedBanner');
       banner.replaceChildren();
       const label = document.createElement('span');
@@ -8633,7 +8604,7 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
     window.addEventListener('focus', () => {
       if (!getToken() || !currentUser) return;
       privacyApi('/auth/media-session', {method:'POST'})
-        .then(() => Promise.allSettled([loadSpots(dateFilterEl.value), loadStories(), refreshNotificationBadge()]))
+        .then(() => Promise.allSettled([loadSpots(), loadStories(), refreshNotificationBadge()]))
         .catch(() => {});
     });
 
@@ -8729,7 +8700,6 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
 
     window.jumpToLikedSpot = function(spotId) {
       closeLikedPostsModal();
-      if (dateFilterEl) dateFilterEl.value = '';
       window.location.hash = `spot-${spotId}`;
       switchFeedTab('all');
     };
@@ -8741,7 +8711,7 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
       try {
         await privacyApi(`/users/${encodeURIComponent(username)}/follow`, {method:'POST'});
         await openProfile(username);
-        await Promise.allSettled([loadStories(), loadSpots(dateFilterEl.value), refreshNotificationBadge()]);
+        await Promise.allSettled([loadStories(), loadSpots(), refreshNotificationBadge()]);
       } catch (error) {
         window.alert(error.message);
       } finally {
@@ -9537,7 +9507,7 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
         method: 'DELETE',
         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
       });
-      if (res.ok) loadSpots(dateFilterEl.value);
+      if (res.ok) loadSpots();
     };
 
     // --- 投稿 & 地図 ---
@@ -9653,11 +9623,8 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
       formEl.reset();
       searchSuggestions.classList.add('hidden');
       postModal.classList.add('hidden');
-      loadSpots(dateFilterEl.value);
+      loadSpots();
     });
-
-    dateFilterEl.addEventListener('change', (e) => loadSpots(e.target.value));
-    clearDateEl.addEventListener('click', () => { dateFilterEl.value = ''; loadSpots(); });
 
     // 初期化チェック
     checkAuth();
