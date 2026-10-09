@@ -4464,6 +4464,9 @@ html.withlog-dark #appView.withlog-weather-active #tabWeather {
 #weatherPage .wx-header { display:flex; align-items:center; flex-wrap:wrap; justify-content:space-between; gap:10px; }
 #weatherPage .wx-title { font-weight: 900; font-size: clamp(22px, 5vw, 29px); letter-spacing:-.04em; margin-top: 8px; }
 #weatherPage .wx-where { font-size:11px; color:#776887; margin-top:3px; line-height:1.6; overflow-wrap: anywhere; }
+#weatherPage .wx-where { display:flex; align-items:baseline; flex-wrap:wrap; column-gap:7px; row-gap:2px; }
+#weatherPage .wx-location-address { color:#57426e; font-weight:800; }
+#weatherPage .wx-location-separator { opacity:.65; }
 #weatherPage .wx-btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; border:0 !important;
   border-radius:9999px !important; padding:9px 15px; min-height:39px;
   background:rgba(255,255,255,.78) !important; color:#69538a !important; font-size:11px; font-weight:850; }
@@ -4518,6 +4521,7 @@ html.withlog-dark #weatherPage .wx-hero {
 html.withlog-dark #weatherPage .wx-eyebrow { color:#b9a2d7; }
 html.withlog-dark #weatherPage .wx-where,html.withlog-dark #weatherPage .wx-summary { color:#c5b5d0; }
 html.withlog-dark #weatherPage .wx-condition { color:#f2e9f5; }
+html.withlog-dark #weatherPage .wx-location-address { color:#f1d9f1; }
 html.withlog-dark #weatherPage .wx-btn { background:#55435f !important; color:#eee4fb !important; }
 html.withlog-dark #weatherPage .wx-status { background:#51445b; color:#e2d5ed; }
 html.withlog-dark #weatherPage .wx-status.is-error { background:#623e50; color:#ffd0de; }
@@ -4764,7 +4768,7 @@ html.withlog-dark #weatherPage .wx-footnote a { color:#cdb4ef; }
           <button class="wx-btn" type="submit" id="wxCitySearchBtn">検索</button>
         </form>
       </section>
-      <p class="wx-footnote">データ提供：<a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>。天気は観測値・予測モデルに基づく参考情報です。現在地の座標は天気取得時のみ送信し、WITHLOGには保存しません。</p>
+      <p class="wx-footnote">データ提供：<a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>。住所の推定：<a href="https://www.bigdatacloud.com/" target="_blank" rel="noopener noreferrer">BigDataCloud</a>。表示される住所は現在地の座標から推定した地域名です（番地などは表示できない場合があります）。現在地を取得すると、天気・住所照会サービスへ座標が送信されます。WITHLOGには保存しません。</p>
     </section>
 
     <!-- ユーザーID検索モーダル -->
@@ -10198,8 +10202,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const isOpen = () => app.classList.contains('withlog-weather-active') && !app.classList.contains('hidden');
   const WEATHER_API = 'https://api.open-meteo.com/v1/forecast';
   const CITY_API = 'https://geocoding-api.open-meteo.com/v1/search';
+  const ADDRESS_API = 'https://api.bigdatacloud.net/data/reverse-geocode-client';
   let generation = 0;
   let abortController = null;
+  let addressController = null;
+  const addressCache = new Map();
   let timer = null;
   let currentPlace = null;
   let lastFetched = 0;
@@ -10226,6 +10233,77 @@ document.addEventListener("DOMContentLoaded", function () {
     const item = WX_ICONS[Number(code)] || ['天気情報なし','🌤️'];
     return Number(code) === 0 && !daytime ? [item[0], '🌙'] : item;
   };
+  // GPS位置を地名に変換。元の「現在地付近」の隣に地域名を表示する。
+  function displayWeatherLocation(place) {
+    const target = el('wxLocation');
+    if (!place) { target.textContent = '位置情報を確認しています…'; return; }
+    if (place.source !== 'gps') { target.textContent = place.label; return; }
+    const label = document.createElement('span');
+    label.textContent = place.label;
+    const divider = document.createElement('span');
+    divider.className = 'wx-location-separator';
+    divider.textContent = '・';
+    divider.setAttribute('aria-hidden','true');
+    const address = document.createElement('span');
+    address.className = 'wx-location-address';
+    address.textContent = place.address || (place.addressFailed ? '住所を取得できませんでした' : '住所を確認中…');
+    target.replaceChildren(label,divider,address);
+  }
+  function formatWeatherAddress(data) {
+    if (!data || typeof data !== 'object') return '';
+    const countryCode = String(data.countryCode || '').toUpperCase();
+    const items = [data.principalSubdivision, data.city, data.locality]
+      .map(value => typeof value === 'string' ? value.trim() : '')
+      .filter(Boolean);
+    const unique = [];
+    for (const item of items) {
+      if (!unique.some(value => value === item || value.endsWith(item) || item.endsWith(value))) {
+        unique.push(item);
+      }
+    }
+    if (!unique.length) return '';
+    if (countryCode === 'JP') return unique.join('');
+    return [...unique, data.countryName].filter(Boolean).join(' / ');
+  }
+  async function lookupWeatherAddress(place) {
+    if (!isOpen() || place !== currentPlace || place.source !== 'gps') return;
+    if (addressController) addressController.abort();
+    const key = `${place.lat.toFixed(4)},${place.lon.toFixed(4)}`;
+    const remembered = addressCache.get(key);
+    if (remembered) {
+      place.address = remembered;
+      place.addressFailed = false;
+      displayWeatherLocation(place);
+      return;
+    }
+    const controller = new AbortController();
+    addressController = controller;
+    place.addressFailed = false;
+    displayWeatherLocation(place);
+    const params = new URLSearchParams({
+      latitude:String(place.lat), longitude:String(place.lon), localityLanguage:'ja'
+    });
+    const timeout = window.setTimeout(() => controller.abort(), 10000);
+    try {
+      const response = await fetch(`${ADDRESS_API}?${params}`, {signal:controller.signal, cache:'no-store'});
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const json = await response.json();
+      const formatted = formatWeatherAddress(json);
+      if (!formatted) throw new Error('地域情報がありません');
+      addressCache.set(key, formatted);
+      if (!isOpen() || currentPlace !== place || controller.signal.aborted) return;
+      place.address = formatted;
+      place.addressFailed = false;
+      displayWeatherLocation(place);
+    } catch (_) {
+      if (!isOpen() || currentPlace !== place || controller.signal.aborted) return;
+      place.addressFailed = true;
+      displayWeatherLocation(place);
+    } finally {
+      window.clearTimeout(timeout);
+      if (addressController === controller) addressController = null;
+    }
+  }
   function setStatus(message, error = false) {
     el('wxStatus').textContent = message;
     el('wxStatus').classList.toggle('is-error', error);
@@ -10234,6 +10312,8 @@ document.addEventListener("DOMContentLoaded", function () {
     ++generation;
     if (abortController) abortController.abort();
     abortController = null;
+    if (addressController) addressController.abort();
+    addressController = null;
     if (timer) window.clearInterval(timer);
     timer = null;
     el('wxLocateBtn').disabled = false;
@@ -10277,7 +10357,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const today = data.daily;
     const daytime = Number(now.is_day) === 1;
     const [condition, icon] = weather(now.weather_code, daytime);
-    el('wxLocation').textContent = place.label;
+    displayWeatherLocation(place);
     el('wxIcon').textContent = icon;
     el('wxTemperature').textContent = `${val(now.temperature_2m)}°`;
     el('wxCondition').textContent = condition;
@@ -10313,7 +10393,12 @@ document.addEventListener("DOMContentLoaded", function () {
   function usePlace(place) {
     if (!isOpen()) return;
     const gen = ++generation;
+    if (currentPlace !== place && addressController) {
+      addressController.abort();
+      addressController = null;
+    }
     currentPlace = place;
+    displayWeatherLocation(place);
     requestWeather(place,gen);
   }
   function getLocation() {
@@ -10334,7 +10419,9 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
         setStatus('位置情報が正しくありません。都市名から検索してください。',true); return;
       }
-      usePlace({lat,lon,label:'📍 現在地付近'});
+      const place = {lat,lon,label:'📍 現在地付近',source:'gps'};
+      usePlace(place);
+      void lookupWeatherAddress(place);
     }, error => {
       if (!isOpen() || gen !== generation || requestId !== lastLocationRequest) return;
       el('wxLocateBtn').disabled = false;
@@ -10392,6 +10479,7 @@ document.addEventListener("DOMContentLoaded", function () {
         usePlace(currentPlace);
       }
     },60*1000);
+    if (currentPlace?.source === 'gps' && !currentPlace.address) void lookupWeatherAddress(currentPlace);
     if (currentPlace && lastFetched && Date.now()-lastFetched < 10*60*1000) {
       setStatus('表示中の天気は10分以内に取得したものです。');
     } else if (currentPlace) usePlace(currentPlace);
