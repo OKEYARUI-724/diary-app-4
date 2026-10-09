@@ -4187,32 +4187,32 @@ html.withlog-dark .withlog-avatar-preview-image {
   }
 }
 </style>
-<style id="withlog-primary-action-unique-gradients">
-/* Five distinct gradients for the signed-in header actions and mobile bottom dock.
-   Search = violet, Notifications = amber, Messages = sky, Profile = rose,
-   New post = green. Other buttons and the WITHLOG logo are untouched. */
+<style id="withlog-primary-action-harmonized-gradients">
+/* One family of softly blended tones drawn from WITHLOG's violet/rose logo.
+   Each action has its own shade, but all share the same softness, direction,
+   shape, icon weight and interaction feedback. Desktop + mobile dock. */
 #withlogPrimaryActions button[title="ユーザーを探す"] {
-  --withlog-action-fill: linear-gradient(135deg, #e4d8ff 0%, #c5b2fa 48%, #a99aef 100%);
-  --withlog-action-ink: #4c397f;
+  --withlog-action-fill: linear-gradient(135deg, #e8e0fb 0%, #cec0ef 100%);
+  --withlog-action-ink: #675480;
 }
 #withlogPrimaryActions button[title="通知"] {
-  --withlog-action-fill: linear-gradient(135deg, #fff2bf 0%, #ffda91 52%, #ffbb7f 100%);
-  --withlog-action-ink: #795019;
+  --withlog-action-fill: linear-gradient(135deg, #fae9df 0%, #efcbd0 100%);
+  --withlog-action-ink: #77566c;
 }
 #withlogPrimaryActions button[title="メッセージ"] {
-  --withlog-action-fill: linear-gradient(135deg, #d5f5ff 0%, #a7e6f8 48%, #85c3f5 100%);
-  --withlog-action-ink: #255b82;
+  --withlog-action-fill: linear-gradient(135deg, #e7f0f8 0%, #cbd9f0 100%);
+  --withlog-action-ink: #566b88;
 }
 #withlogPrimaryActions button.withlog-account-icon {
-  --withlog-action-fill: linear-gradient(135deg, #ffe1e8 0%, #fac5d8 48%, #ec9dbf 100%);
-  --withlog-action-ink: #7c4165;
+  --withlog-action-fill: linear-gradient(135deg, #f7e6ef 0%, #e6cae6 100%);
+  --withlog-action-ink: #795a7b;
 }
 #withlogPrimaryActions #openModalBtn {
-  --withlog-action-fill: linear-gradient(135deg, #a7e6bd 0%, #6ecda3 52%, #37ac8d 100%);
+  /* The only vivid button: a clear call to create a new memory. */
+  --withlog-action-fill: linear-gradient(135deg, #8c70da 0%, #b77dca 47%, #d981ac 100%);
   --withlog-action-ink: #ffffff;
 }
-/* The :is() group also includes #openModalBtn, giving this rule enough
-   specificity to override old mobile icon-only and dark-mode backgrounds. */
+
 html #appView #withlogPrimaryActions :is(
   button[title="ユーザーを探す"],
   button[title="通知"],
@@ -4223,61 +4223,82 @@ html #appView #withlogPrimaryActions :is(
   background: var(--withlog-action-fill) !important;
   background-image: var(--withlog-action-fill) !important;
   color: var(--withlog-action-ink) !important;
-  border: 0 !important;
-  border-radius: 9999px !important;
+  border: 1px solid rgba(255,255,255,.55) !important;
+  border-radius: 50% !important;
   box-shadow: none !important;
   filter: none !important;
-  transition: transform .16s ease, filter .16s ease !important;
+  transition: transform .18s ease, filter .18s ease !important;
 }
-/* Preserve the existing alert badges and mobile click behavior. */
+/* Consistent pictograms, including those in the phone navigation. */
+html #appView #withlogPrimaryActions :is(
+  button[title="ユーザーを探す"],
+  button[title="通知"],
+  button[title="メッセージ"],
+  button.withlog-account-icon
+) svg {
+  color: var(--withlog-action-ink) !important;
+  stroke: currentColor !important;
+  stroke-width: 1.9 !important;
+}
+html #appView #withlogPrimaryActions #openModalBtn > span {
+  color: #ffffff !important;
+}
+/* Keep notification / unread badges above the gradient. */
+html #appView #withlogPrimaryActions .withlog-alert-badge {
+  z-index: 2;
+}
+@media (hover: hover) and (pointer: fine) {
+  html #appView #withlogPrimaryActions :is(
+    button[title="ユーザーを探す"],
+    button[title="通知"],
+    button[title="メッセージ"],
+    button.withlog-account-icon,
+    button#openModalBtn
+  ):hover {
+    filter: brightness(1.04) !important;
+  }
+}
 html #appView #withlogPrimaryActions :is(
   button[title="ユーザーを探す"],
   button[title="通知"],
   button[title="メッセージ"],
   button.withlog-account-icon,
   button#openModalBtn
-) :is(svg,span:not(.withlog-alert-badge)) {
-  color: inherit;
+):focus-visible {
+  outline: 2px solid #896aca !important;
+  outline-offset: 3px !important;
 }
-@media (hover: hover) and (pointer: fine) {
-  html #appView #withlogPrimaryActions :is(
-    button[title="ユーザーを探す"], button[title="通知"],
-    button[title="メッセージ"], button.withlog-account-icon,
-    button#openModalBtn
-  ):hover { filter: brightness(1.04) saturate(1.06) !important; }
-}
-/* The same five color families, a touch richer against the dark dock. */
+
+/* Same palette in dark mode, slightly richer without neon saturation. */
 html.withlog-dark #withlogPrimaryActions button[title="ユーザーを探す"] {
-  --withlog-action-fill: linear-gradient(135deg, #bbabed, #9680d9 100%);
-  --withlog-action-ink: #2d214e;
+  --withlog-action-fill: linear-gradient(135deg, #bca9df 0%, #9984c6 100%);
+  --withlog-action-ink: #302442;
 }
 html.withlog-dark #withlogPrimaryActions button[title="通知"] {
-  --withlog-action-fill: linear-gradient(135deg, #ffde95, #eeb567 100%);
-  --withlog-action-ink: #4f360e;
+  --withlog-action-fill: linear-gradient(135deg, #ecc8b9 0%, #d9a1b1 100%);
+  --withlog-action-ink: #4d3041;
 }
 html.withlog-dark #withlogPrimaryActions button[title="メッセージ"] {
-  --withlog-action-fill: linear-gradient(135deg, #b9eaf8, #79b7e7 100%);
-  --withlog-action-ink: #24435c;
+  --withlog-action-fill: linear-gradient(135deg, #b3cedf 0%, #93a9d0 100%);
+  --withlog-action-ink: #283850;
 }
 html.withlog-dark #withlogPrimaryActions button.withlog-account-icon {
-  --withlog-action-fill: linear-gradient(135deg, #f7c4d9, #e59abd 100%);
-  --withlog-action-ink: #61304b;
+  --withlog-action-fill: linear-gradient(135deg, #e1b9d3 0%, #c595bd 100%);
+  --withlog-action-ink: #472d49;
 }
 html.withlog-dark #withlogPrimaryActions #openModalBtn {
-  --withlog-action-fill: linear-gradient(135deg, #84d7ac, #329c7d 100%);
+  --withlog-action-fill: linear-gradient(135deg, #8265cb 0%, #b16cba 50%, #cd779c 100%);
   --withlog-action-ink: #ffffff;
 }
-/* Earlier dark nav code makes icon strokes blue-grey; retain their correct
-   contrast when the colored circles are enabled. Badges keep white text. */
-html #appView #withlogPrimaryActions :is(
+html.withlog-dark #appView #withlogPrimaryActions :is(
   button[title="ユーザーを探す"], button[title="通知"],
-  button[title="メッセージ"], button.withlog-account-icon
-) svg {
-  color: var(--withlog-action-ink) !important;
-  stroke: currentColor !important;
+  button[title="メッセージ"], button.withlog-account-icon,
+  button#openModalBtn
+) {
+  border-color: rgba(255,255,255,.13) !important;
 }
-html #appView #withlogPrimaryActions #openModalBtn > span {
-  color: var(--withlog-action-ink) !important;
+@media (prefers-reduced-motion: reduce) {
+  html #appView #withlogPrimaryActions button { transition: none !important; }
 }
 </style>
 </head>
