@@ -3955,6 +3955,103 @@ html.withlog-dark .withlog-conversation-unread{
 }
 </style>
 
+
+<style id="withlog-follower-avatar-list-style">
+.withlog-follower-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:7px 0!important;
+}
+.withlog-follower-view{
+  flex:1;
+  min-width:0;
+  display:flex!important;
+  align-items:center!important;
+  gap:12px!important;
+  text-align:left;
+  border:0!important;
+  border-radius:18px!important;
+  background:transparent!important;
+  padding:8px 10px!important;
+  transition:background .18s ease, transform .18s ease!important;
+}
+.withlog-follower-view:hover{background:#f7f3fb!important;}
+.withlog-follower-view:active{transform:scale(.985);}
+.withlog-follower-avatar{
+  width:44px;
+  height:44px;
+  min-width:44px;
+  min-height:44px;
+  display:grid;
+  place-items:center;
+  flex:0 0 44px;
+  border-radius:50%;
+  background-color:#e9ddff;
+  background-position:center;
+  background-size:cover;
+  background-repeat:no-repeat;
+  border:2px solid rgba(255,255,255,.95);
+  outline:1px solid rgba(108,83,170,.14);
+  color:#69558d;
+  font-size:13px;
+  font-weight:900;
+  line-height:1;
+  box-shadow:0 3px 10px rgba(92,72,115,.10);
+}
+.withlog-follower-copy{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+.withlog-follower-name{
+  display:block;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#332d39;
+  font-size:12px;
+  font-weight:900;
+  line-height:1.25;
+}
+.withlog-follower-id{
+  display:block;
+  max-width:100%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:#91879a;
+  font-size:10px;
+  font-weight:600;
+  line-height:1.25;
+}
+html.withlog-dark .withlog-follower-view:hover{background:#383940!important;}
+html.withlog-dark .withlog-follower-avatar{
+  background-color:#45424d;
+  border-color:#5a5862;
+  outline-color:rgba(216,199,255,.15);
+  color:#e3d9ef;
+  box-shadow:none;
+}
+html.withlog-dark .withlog-follower-name{color:#f4f1f5;}
+html.withlog-dark .withlog-follower-id{color:#aaa4b2;}
+@media(max-width:560px){
+  .withlog-follower-avatar{
+    width:46px;
+    height:46px;
+    min-width:46px;
+    min-height:46px;
+    flex-basis:46px;
+  }
+  .withlog-follower-view{
+    min-height:58px;
+    padding:8px!important;
+  }
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -6501,7 +6598,21 @@ html.withlog-dark .withlog-conversation-unread{
           const view = document.createElement('button');
           view.type = 'button';
           view.className = 'withlog-follower-view';
-          view.textContent = `${user.display_name || user.username}  @${user.username}`;
+
+          const displayName = user.display_name || user.username;
+          const initial = String(displayName || user.username || '?').trim().charAt(0).toUpperCase() || '?';
+          const avatarUrl = String(user.avatar_url || '').trim();
+
+          view.innerHTML = `
+            <span class="withlog-follower-avatar"${avatarUrl ? ` style="background-image:url('${avatarUrl.replace(/'/g, "%27")}')"` : ''}>
+              ${avatarUrl ? '' : escapeHtml(initial)}
+            </span>
+            <span class="withlog-follower-copy">
+              <span class="withlog-follower-name">${escapeHtml(displayName)}</span>
+              <span class="withlog-follower-id">@${escapeHtml(user.username)}</span>
+            </span>
+          `;
+
           view.addEventListener('click', () => {
             closeUserListModal(); closeProfileModal(); openProfile(user.username);
           });
