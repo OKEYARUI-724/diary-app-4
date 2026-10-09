@@ -4806,11 +4806,11 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
     </main>
 
     <!-- 国内ニュース＋海外の主要ニュース：報道機関の配信元へリンク -->
-    <section id="newsPage" class="hidden" aria-label="日本・海外の最新ニュース" aria-hidden="true">
+    <section id="newsPage" class="hidden" aria-label="日本・世界の最新ニュース" aria-hidden="true">
       <div class="news-hero">
         <p class="news-kicker">WITHLOG / NEWS</p>
         <h2 class="news-title">今日のニュース <span aria-hidden="true">📰</span></h2>
-        <p class="news-subtitle">日本のニュースを中心に、海外の主要なニュースも少しだけ。気になる記事は配信元のサイトで読めます。</p>
+        <p class="news-subtitle">日本のニュースを中心に、世界の主要なニュースも少しだけ。気になる記事は配信元のサイトで読めます。</p>
         <div class="news-hero-bottom">
           <span id="newsUpdated" class="news-update">最新情報を準備しています</span>
           <button id="newsRefreshBtn" type="button" class="news-refresh">↻ ニュースを更新</button>
@@ -4818,12 +4818,12 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
       </div>
       <nav class="news-filters" aria-label="ニュースの地域で絞り込み">
         <button type="button" class="news-filter" data-news-filter="all" aria-pressed="true">すべて</button>
-        <button type="button" class="news-filter" data-news-filter="jp" aria-pressed="false">🇯🇵 日本</button>
-        <button type="button" class="news-filter" data-news-filter="world" aria-pressed="false">🌍 海外</button>
+        <button type="button" class="news-filter" data-news-filter="jp" aria-pressed="false">日本</button>
+        <button type="button" class="news-filter" data-news-filter="world" aria-pressed="false">世界</button>
       </nav>
       <p id="newsStatus" class="news-info" role="status" aria-live="polite">NEWSタブを開くと最新の見出しを取得します。</p>
       <div id="newsContent" aria-live="off"></div>
-      <p class="news-footnote">ニュース提供：NHK NEWS・BBC News の公開RSS。見出し・掲載日時を表示し、記事は配信元サイトで開きます。海外の記事の一部は英語です。配信元の更新や接続状況により、表示が遅れたり一部の記事を取得できない場合があります。</p>
+      <p class="news-footnote">ニュース提供：NHK NEWS・BBC News の公開RSS。見出し・掲載日時を表示し、記事は配信元サイトで開きます。世界のニュースの一部は英語です。配信元の更新や接続状況により、表示が遅れたり一部の記事を取得できない場合があります。</p>
     </section>
 
     <!-- 独立したISS追跡ページ：フィードと切り替えて表示 -->
@@ -10656,8 +10656,8 @@ document.addEventListener("DOMContentLoaded", function () {
   let timer = null;
   const NEWS_RELOAD_MS = 10 * 60 * 1000;
   const SECTIONS = [
-    {region:'jp',title:'🇯🇵 日本のニュース',label:'国内・主要ニュース'},
-    {region:'world',title:'🌍 海外の主要ニュース',label:'世界の動き'}
+    {region:'jp',title:'日本のニュース',label:'国内・主要ニュース'},
+    {region:'world',title:'世界の主要ニュース',label:'世界の動き'}
   ];
 
   function setStatus(message, error = false) {
@@ -10753,7 +10753,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const controller = new AbortController();
     request = controller;
     el('newsRefreshBtn').disabled = true;
-    setStatus(newsItems.length ? 'ニュースを更新しています…' : '国内・海外の見出しを読み込んでいます…');
+    setStatus(newsItems.length ? 'ニュースを更新しています…' : '国内・世界の見出しを読み込んでいます…');
     const timeout = window.setTimeout(() => controller.abort(), 16000);
     try {
       const response = await fetch('/api/news', {method:'GET',credentials:'same-origin',cache:'no-store',signal:controller.signal});
