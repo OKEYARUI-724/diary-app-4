@@ -4390,6 +4390,42 @@ html.withlog-dark #issTrackerPage .iss-error { color: #ffb1bf !important; }
 #issTrackerPage .iss-trail-line.is-live { border-top:3px dashed #e783b5; }
 html.withlog-dark #issTrackerPage .iss-trail-legend { color:#d2c5dd; }
 </style>
+
+<style id="withlog-unified-feed-tabs">
+/* ALL / FOLLOWING / ISS: same quiet idle color and the same brand gradient when selected. */
+#appView :is(#tabAll, #tabFollowing, #tabISS) {
+  min-height: 38px !important;
+  border: 0 !important;
+  border-radius: 9999px !important;
+  background: #f1ecf7 !important;
+  color: #998da8 !important;
+  font-size: 11px !important;
+  font-weight: 750 !important;
+  transition: transform .16s ease !important;
+}
+#appView :is(#tabAll, #tabFollowing).border-b-2,
+#appView.withlog-iss-active #tabISS {
+  background: linear-gradient(135deg, #8569d3, #cf7ea8) !important;
+  color: #fff !important;
+  font-weight: 800 !important;
+}
+#appView :is(#tabAll, #tabFollowing, #tabISS):focus-visible {
+  outline: 2px solid #8569d3 !important;
+  outline-offset: 3px;
+}
+html.withlog-dark #appView :is(#tabAll, #tabFollowing, #tabISS) {
+  background: #303138 !important;
+  color: #aaa5b3 !important;
+}
+html.withlog-dark #appView :is(#tabAll, #tabFollowing).border-b-2,
+html.withlog-dark #appView.withlog-iss-active #tabISS {
+  background: linear-gradient(135deg, #6655a5, #a05b80) !important;
+  color: #fff !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  #appView :is(#tabAll, #tabFollowing, #tabISS) { transition: none !important; }
+}
+</style>
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
