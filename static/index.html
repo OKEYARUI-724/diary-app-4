@@ -9723,7 +9723,7 @@ document.addEventListener("DOMContentLoaded", function () {
       text += ' 過去90分の軌跡を取得中…';
     } else if (historySamples.length > 1) {
       text += historyFailed
-        ? ' 過去90分の軌跡は一部のみ取得できました。「更新」で再試行できます。'
+        ? ' 前回取得した軌跡を表示しています。「更新」で最新の経路を再取得できます。'
         : ' 過去90分の位置を約3分間隔で表示しています。';
     } else if (historyFailed) {
       text += ' 過去の軌跡の取得に失敗しました。「更新」で再試行できます。';
@@ -9774,13 +9774,17 @@ document.addEventListener("DOMContentLoaded", function () {
     const segments = [];
     for (const p of points) {
       // Crossing the antimeridian should not draw a huge line over the world map.
-      if (segment.length && Math.abs(p.lng - segment[segment.length - 1][1]) > 180) {
-        if (segment.length > 1) segments.push(segment);
+      // Never connect points separated by a missing history batch or a large
+      // time gap. Such a join looks like a straight line across the map.
+      const previous = segment.length ? segment[segment.length - 1] : null;
+      if (previous && (Math.abs(p.lng - previous.lng) > 180 ||
+          p.t <= previous.t || p.t - previous.t > HISTORY_STEP_SECONDS * 2 + 30)) {
+        if (segment.length > 1) segments.push(segment.map(q => [q.lat, q.lng]));
         segment = [];
       }
-      segment.push([p.lat, p.lng]);
+      segment.push(p);
     }
-    if (segment.length > 1) segments.push(segment);
+    if (segment.length > 1) segments.push(segment.map(q => [q.lat, q.lng]));
     segments.forEach(pts => L.polyline(pts, options).addTo(tracks));
   }
 
@@ -9792,9 +9796,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const cutoff = reference - HISTORY_MINUTES * 60;
     const older = historySamples.filter(p => p.t >= cutoff && p.t <= reference).sort((a,b) => a.t - b.t);
     const current = samples.filter(p => p.t >= cutoff && p.t <= reference).sort((a,b) => a.t - b.t);
-    // Join the fetched historical path to the first live point so there is no gap.
-    if (older.length && current.length && current[0].t > older[older.length - 1].t) {
-      older.push(current[0]);
+    // Join historical and live routes only if their timestamps really meet.
+    // While the history API loads, the newest sample may still be an hour old.
+    // Bridging that gap would create the momentary straight line users saw.
+    if (older.length && current.length) {
+      const gap = current[0].t - older[older.length - 1].t;
+      if (gap > 0 && gap <= HISTORY_STEP_SECONDS * 2 + 30) older.push(current[0]);
     }
     renderPath(older, {color:'#916fce', weight:3, opacity:.88, lineCap:'round', lineJoin:'round'});
     renderPath(current, {color:'#e783b5', weight:3, opacity:.94, dashArray:'6 7', lineCap:'round'});
@@ -9839,15 +9846,21 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!positions.length) throw new Error('過去の位置を取得できませんでした。');
         fetched.push(...positions);
         if (signal.aborted || !visible()) return;
-        historySamples = Array.from(new Map(fetched.map(p=>[p.t,p])).values()).sort((a,b)=>a.t-b.t);
-        drawTrail();
-        updateMapMessage();
+        // Keep partial API batches off the map. Displaying them right away
+        // creates an incomplete route, often with a misleading straight line
+        // connecting the earliest batch to the current ISS marker.
       }
+      if (signal.aborted || !visible()) return;
+      // Swap the complete route in a single draw. If a refresh was requested,
+      // the previous complete route remains visible until this one is ready.
+      historySamples = Array.from(new Map(fetched.map(p=>[p.t,p])).values()).sort((a,b)=>a.t-b.t);
       historyLoadedAt = Date.now();
+      drawTrail();
     } catch (error) {
       if (!signal.aborted && visible()) {
         historyFailed = true;
-        // Do not remove a partially loaded history or interrupt live tracking.
+        // Keep the last complete route (if any); never show a broken partial
+        // route when an API batch fails. Live tracking continues normally.
         console.warn('ISS previous positions unavailable:', error);
       }
     } finally {
