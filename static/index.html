@@ -4392,8 +4392,8 @@ html.withlog-dark #issTrackerPage .iss-trail-legend { color:#d2c5dd; }
 </style>
 
 <style id="withlog-unified-feed-tabs">
-/* ALL / FOLLOWING / ISS: same quiet idle color and the same brand gradient when selected. */
-#appView :is(#tabAll, #tabFollowing, #tabISS) {
+/* ALL / FOLLOWING / ISS / WEATHER: same quiet idle color and the same brand gradient when selected. */
+#appView :is(#tabAll, #tabFollowing, #tabISS, #tabWeather) {
   min-height: 38px !important;
   border: 0 !important;
   border-radius: 9999px !important;
@@ -4404,27 +4404,132 @@ html.withlog-dark #issTrackerPage .iss-trail-legend { color:#d2c5dd; }
   transition: transform .16s ease !important;
 }
 #appView :is(#tabAll, #tabFollowing).border-b-2,
-#appView.withlog-iss-active #tabISS {
+#appView.withlog-iss-active #tabISS,
+#appView.withlog-weather-active #tabWeather {
   background: linear-gradient(135deg, #8569d3, #cf7ea8) !important;
   color: #fff !important;
   font-weight: 800 !important;
 }
-#appView :is(#tabAll, #tabFollowing, #tabISS):focus-visible {
+#appView :is(#tabAll, #tabFollowing, #tabISS, #tabWeather):focus-visible {
   outline: 2px solid #8569d3 !important;
   outline-offset: 3px;
 }
-html.withlog-dark #appView :is(#tabAll, #tabFollowing, #tabISS) {
+html.withlog-dark #appView :is(#tabAll, #tabFollowing, #tabISS, #tabWeather) {
   background: #303138 !important;
   color: #aaa5b3 !important;
 }
 html.withlog-dark #appView :is(#tabAll, #tabFollowing).border-b-2,
-html.withlog-dark #appView.withlog-iss-active #tabISS {
+html.withlog-dark #appView.withlog-iss-active #tabISS,
+html.withlog-dark #appView.withlog-weather-active #tabWeather {
   background: linear-gradient(135deg, #6655a5, #a05b80) !important;
   color: #fff !important;
 }
 @media (prefers-reduced-motion: reduce) {
-  #appView :is(#tabAll, #tabFollowing, #tabISS) { transition: none !important; }
+  #appView :is(#tabAll, #tabFollowing, #tabISS, #tabWeather) { transition: none !important; }
 }
+</style>
+
+<style id="withlog-local-weather-styles">
+/* This page is part of WITHLOG, but its data is only loaded on explicit tab open. */
+#appView.withlog-weather-active > main,
+#appView.withlog-weather-active > #storiesSection { display: none !important; }
+#appView #withlogFeedTabBar {
+  display: flex; align-items: center; gap: clamp(7px,2.5vw,16px);
+  overflow-x: auto; overflow-y: hidden; white-space: nowrap; min-width: 0;
+  scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;
+  padding-bottom: 11px; padding-top: 12px;
+}
+#withlogFeedTabBar::-webkit-scrollbar { display: none; }
+#appView #withlogFeedTabBar > button { flex: 0 0 auto; white-space: nowrap; }
+#appView #tabWeather { display: inline-flex; align-items: center; gap: 6px; padding: 8px 15px !important; }
+#appView #tabWeather svg { width: 16px; height: 16px; flex: 0 0 auto; }
+#appView.withlog-weather-active :is(#tabAll,#tabFollowing,#tabISS) {
+  background: #f1ecf7 !important; color: #998da8 !important;
+}
+#appView.withlog-weather-active #tabWeather {
+  background: linear-gradient(135deg,#8569d3,#cf7ea8) !important; color: white !important;
+}
+html.withlog-dark #appView.withlog-weather-active :is(#tabAll,#tabFollowing,#tabISS) {
+  background: #303138 !important; color: #aaa5b3 !important;
+}
+html.withlog-dark #appView.withlog-weather-active #tabWeather {
+  background: linear-gradient(135deg,#6655a5,#a05b80) !important; color: white !important;
+}
+#weatherPage.hidden { display: none !important; }
+#weatherPage { min-width: 0; flex: 1 0 auto; padding: 16px 14px 42px; color:#483a5c; }
+#weatherPage .wx-hero { border-radius: 30px; padding: 22px 20px 23px; overflow: hidden; position: relative;
+  background: radial-gradient(circle at 85% 16%,rgba(255,255,255,.65),transparent 34%),
+  linear-gradient(130deg,#e9e0fd 0%,#f6e2ed 51%,#ffeaca 100%); }
+#weatherPage .wx-eyebrow { font-size: 10px; font-weight: 900; letter-spacing: .13em; color:#79618f; }
+#weatherPage .wx-header { display:flex; align-items:center; flex-wrap:wrap; justify-content:space-between; gap:10px; }
+#weatherPage .wx-title { font-weight: 900; font-size: clamp(22px, 5vw, 29px); letter-spacing:-.04em; margin-top: 8px; }
+#weatherPage .wx-where { font-size:11px; color:#776887; margin-top:3px; line-height:1.6; overflow-wrap: anywhere; }
+#weatherPage .wx-btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; border:0 !important;
+  border-radius:9999px !important; padding:9px 15px; min-height:39px;
+  background:rgba(255,255,255,.78) !important; color:#69538a !important; font-size:11px; font-weight:850; }
+#weatherPage .wx-btn:hover { filter: brightness(.97); }
+#weatherPage .wx-btn:focus-visible, #weatherPage input:focus-visible { outline: 2px solid #8066c7 !important; outline-offset:3px; }
+#weatherPage .wx-btn:disabled { opacity:.55; cursor:wait; }
+#weatherPage .wx-current { display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin:18px 0 12px; }
+#weatherPage .wx-icon { font-size:65px; line-height:1; filter:none !important; }
+#weatherPage .wx-temp { font-variant-numeric:tabular-nums; font-size: clamp(49px, 11vw, 72px); font-weight:900; letter-spacing:-.09em; line-height:1.06; }
+#weatherPage .wx-condition { color:#604e7b; font-weight:850; font-size:14px; margin-top:5px; }
+#weatherPage .wx-summary { color:#786989; font-size:11px; margin-top:4px; }
+#weatherPage .wx-status { font-size:11px; line-height:1.7; padding:11px 13px; margin-top:10px;
+  border-radius:15px; color:#695780; background:rgba(255,255,255,.55); }
+#weatherPage .wx-status.is-error { background:rgba(255,236,240,.85); color:#a33c67; }
+#weatherPage .wx-panel { background:rgba(255,253,251,.91); border:1px solid rgba(155,127,181,.13);
+  border-radius:25px; padding:19px 17px; margin-top:14px; }
+#weatherPage .wx-panel-heading { color:#594769; font-size:13px; font-weight:900; letter-spacing:.03em; margin:0 0 14px; }
+#weatherPage .wx-stats { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+#weatherPage .wx-stat { padding:14px 12px; border-radius:17px; background:#f6f1fa; }
+#weatherPage .wx-stat-label { font-size:10px; color:#8d7c99; font-weight:750; }
+#weatherPage .wx-stat-value { display:block; font-size:21px; font-weight:900; letter-spacing:-.035em; margin-top:6px; color:#4d3c64; }
+#weatherPage .wx-hours { display:flex; gap:9px; overflow-x:auto; padding:2px 0 8px; scrollbar-width: thin; }
+#weatherPage .wx-hour { flex:0 0 74px; padding:13px 6px; text-align:center; border-radius:19px;
+  background:#f6f2fb; font-size:11px; color:#6b597f; }
+#weatherPage .wx-hour-time { font-size:10px; font-weight:800; }
+#weatherPage .wx-hour-icon { display:block; font-size:25px; margin:10px auto; }
+#weatherPage .wx-hour-temp { color:#4f3d66; font-weight:900; font-size:16px; }
+#weatherPage .wx-hour-rain { font-weight:750; margin-top:6px; font-size:10px; color:#786a9e; }
+#weatherPage .wx-city-form { display:flex; align-items:stretch; gap:8px; margin-top:12px; }
+#weatherPage .wx-city-form input { background:#f6f2fa !important; border:1px solid #e6dcf2 !important;
+  min-width:0; flex:1 1 auto; width:100%; min-height:42px; border-radius:999px !important;
+  padding:9px 15px; color:#514368 !important; font-size:16px; }
+#weatherPage .wx-city-form button { flex:0 0 auto; }
+#weatherPage .wx-footnote { margin:13px 5px 0; line-height:1.8; color:#8a7c94; font-size:10px; }
+#weatherPage .wx-footnote a { text-decoration:underline; text-underline-offset:2px; color:#775eaa; }
+@media (min-width:641px) {
+  #appView:has(#weatherPage:not(.hidden)) { max-width:760px !important; }
+  #weatherPage { padding:20px 24px 50px; }
+  #weatherPage .wx-stats { grid-template-columns:repeat(4,minmax(0,1fr)); }
+}
+@media (max-width: 410px) {
+  #appView #withlogFeedTabBar { gap:7px; }
+  #appView #withlogFeedTabBar > button { padding-left:11px !important; padding-right:11px !important; font-size:10px !important; }
+  #weatherPage { padding:12px 10px 30px; }
+  #weatherPage .wx-hero { padding:19px 16px; }
+  #weatherPage .wx-icon { font-size:56px; }
+}
+html.withlog-dark #weatherPage { color:#e8dff0; }
+html.withlog-dark #weatherPage .wx-hero {
+  background:radial-gradient(circle at 85% 10%,rgba(167,121,193,.16),transparent 38%),
+  linear-gradient(125deg,#373146,#413247 57%,#4a3943) !important; }
+html.withlog-dark #weatherPage .wx-eyebrow { color:#b9a2d7; }
+html.withlog-dark #weatherPage .wx-where,html.withlog-dark #weatherPage .wx-summary { color:#c5b5d0; }
+html.withlog-dark #weatherPage .wx-condition { color:#f2e9f5; }
+html.withlog-dark #weatherPage .wx-btn { background:#55435f !important; color:#eee4fb !important; }
+html.withlog-dark #weatherPage .wx-status { background:#51445b; color:#e2d5ed; }
+html.withlog-dark #weatherPage .wx-status.is-error { background:#623e50; color:#ffd0de; }
+html.withlog-dark #weatherPage .wx-panel { background:#2c2c33 !important; border-color:#4c4358 !important; }
+html.withlog-dark #weatherPage .wx-panel-heading { color:#f0e6f6; }
+html.withlog-dark #weatherPage .wx-stat,html.withlog-dark #weatherPage .wx-hour { background:#393540; }
+html.withlog-dark #weatherPage .wx-stat-label,html.withlog-dark #weatherPage .wx-hour { color:#b9b0c5; }
+html.withlog-dark #weatherPage .wx-stat-value,html.withlog-dark #weatherPage .wx-hour-temp { color:#f6eef7; }
+html.withlog-dark #weatherPage .wx-hour-rain { color:#c6b3eb; }
+html.withlog-dark #weatherPage .wx-city-form input { background:#3d3845 !important; border-color:#5a5266 !important; color:#f4edf8 !important; }
+html.withlog-dark #weatherPage .wx-footnote { color:#aca3b5; }
+html.withlog-dark #weatherPage .wx-footnote a { color:#cdb4ef; }
 </style>
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
@@ -4537,11 +4642,14 @@ html.withlog-dark #appView.withlog-iss-active #tabISS {
     </script>
 
     <!-- フィード切り替えタブ -->
-    <div class="px-4 pt-3 flex items-center gap-4 text-xs font-bold tracking-wider border-b border-slate-200">
+    <div id="withlogFeedTabBar" class="px-4 flex items-center gap-4 text-xs font-bold tracking-wider border-b border-slate-200" aria-label="ページ切り替え">
       <button id="tabAll" onclick="switchFeedTab('all')" class="pb-2 text-slate-900 border-b-2 border-slate-900">ALL</button>
       <button id="tabFollowing" onclick="switchFeedTab('following')" class="pb-2 text-slate-400 hover:text-slate-700">FOLLOWING</button>
       <button id="tabISS" type="button" onclick="openIssTracker()" aria-label="ISS TRACKER ページを開く">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M8 10l6 6M5 14l5 5M14 5l5 5M10 3l11 11-7 7L3 10l7-7z" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg> ISS
+      </button>
+      <button id="tabWeather" type="button" onclick="openWeatherPage()" aria-label="現在地の天気ページを開く">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="8" cy="8" r="3" stroke-width="1.6"/><path d="M13 11a5 5 0 0 1 1.5-.2c3.3 0 5.5 2.2 5.5 4.9 0 2.1-1.6 3.8-3.8 3.8H8.8C6.6 19.5 5 18 5 16c0-1.9 1.5-3.4 3.3-3.6M8 1.5v1.5m-6 5h1.5m9-4 1.1-1.1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> WEATHER
       </button>
     </div>
 
@@ -4613,6 +4721,50 @@ html.withlog-dark #appView.withlog-iss-active #tabISS {
           <p>Position data: <a href="https://wheretheiss.at/w/developer" target="_blank" rel="noopener noreferrer">Where the ISS at?</a></p>
         </div>
       </div>
+    </section>
+
+    <!-- 現在地の天気：ブラウザー位置情報に同意した場合のみAPI呼び出し -->
+    <section id="weatherPage" class="hidden" aria-label="現在地の天気" aria-hidden="true">
+      <div class="wx-hero" id="wxHero">
+        <div class="wx-header">
+          <span class="wx-eyebrow">WITHLOG / LOCAL WEATHER</span>
+          <button id="wxLocateBtn" class="wx-btn" type="button" title="現在地を使って天気を取得">⌖ 現在地を取得</button>
+        </div>
+        <h2 class="wx-title">今日の空模様 <span aria-hidden="true">🌤️</span></h2>
+        <p id="wxLocation" class="wx-where">位置情報を確認しています…</p>
+        <div class="wx-current">
+          <span class="wx-icon" id="wxIcon" aria-hidden="true">🌤️</span>
+          <div>
+            <div id="wxTemperature" class="wx-temp">--°</div>
+            <div id="wxCondition" class="wx-condition">天気情報を準備中</div>
+            <div id="wxTempRange" class="wx-summary">最高 --° / 最低 --°</div>
+          </div>
+        </div>
+        <p id="wxUpdated" class="wx-summary">現在地の天気を表示します</p>
+        <p id="wxStatus" class="wx-status" role="status" aria-live="polite">位置情報を許可すると、お近くの天気を確認できます。</p>
+      </div>
+      <section class="wx-panel" aria-label="天気の詳細">
+        <h3 class="wx-panel-heading">TODAY'S WEATHER ｜ 現在の状況</h3>
+        <div class="wx-stats">
+          <div class="wx-stat"><span class="wx-stat-label">🌡 体感温度</span><strong id="wxFeelsLike" class="wx-stat-value">--°</strong></div>
+          <div class="wx-stat"><span class="wx-stat-label">💧 湿度</span><strong id="wxHumidity" class="wx-stat-value">--%</strong></div>
+          <div class="wx-stat"><span class="wx-stat-label">🍃 風速</span><strong id="wxWind" class="wx-stat-value">-- km/h</strong></div>
+          <div class="wx-stat"><span class="wx-stat-label">☂ 現在の降水量</span><strong id="wxPrecip" class="wx-stat-value">-- mm</strong></div>
+        </div>
+      </section>
+      <section class="wx-panel" aria-label="これからの天気">
+        <h3 class="wx-panel-heading">HOURLY FORECAST ｜ この先の天気</h3>
+        <div id="wxHourly" class="wx-hours" aria-live="polite"><span class="wx-summary">天気を取得すると表示されます。</span></div>
+      </section>
+      <section class="wx-panel" aria-label="都市名から天気を検索">
+        <h3 class="wx-panel-heading">OTHER LOCATIONS ｜ 都市名から検索</h3>
+        <p class="wx-summary">位置情報を許可できない場合も、都市を入力して天気を見られます。</p>
+        <form id="wxCityForm" class="wx-city-form">
+          <input id="wxCityInput" type="search" maxlength="60" placeholder="例：東京、札幌、ソウル" autocomplete="off" aria-label="天気を調べる都市名">
+          <button class="wx-btn" type="submit" id="wxCitySearchBtn">検索</button>
+        </form>
+      </section>
+      <p class="wx-footnote">データ提供：<a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>。天気は観測値・予測モデルに基づく参考情報です。現在地の座標は天気取得時のみ送信し、WITHLOGには保存しません。</p>
     </section>
 
     <!-- ユーザーID検索モーダル -->
@@ -5327,6 +5479,7 @@ html.withlog-dark #appView.withlog-iss-active #tabISS {
     }
 
     function clearSignedInState() {
+      window.closeWeatherPage?.();
       window.closeIssTracker?.();
       ++feedRequestSerial;
       ++privacyRequestSerial;
@@ -7123,6 +7276,7 @@ html.withlog-dark #appView.withlog-iss-active #tabISS {
 
     // --- フィード切り替え ---
     window.switchFeedTab = function(tab) {
+      window.closeWeatherPage?.();
       window.closeIssTracker?.();
       currentFeedTab = tab;
       currentFeedUsername = '';
@@ -9980,6 +10134,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   window.openIssTracker = function() {
     if (app.classList.contains('hidden')) return;
+    window.closeWeatherPage?.();
     if (!app.classList.contains('withlog-iss-active')) {
       previousSelectedTab = el('tabFollowing').classList.contains('border-b-2') ? 'following' : 'all';
     }
@@ -10028,6 +10183,234 @@ document.addEventListener("DOMContentLoaded", function () {
       poll(true);
       if (!historyLoadedAt) loadHistory();
     }
+  });
+})();
+</script>
+
+<script id="withlog-weather-page-script">
+(() => {
+  'use strict';
+  const app = document.getElementById('appView');
+  const page = document.getElementById('weatherPage');
+  const tab = document.getElementById('tabWeather');
+  if (!app || !page || !tab) return;
+  const el = id => document.getElementById(id);
+  const isOpen = () => app.classList.contains('withlog-weather-active') && !app.classList.contains('hidden');
+  const WEATHER_API = 'https://api.open-meteo.com/v1/forecast';
+  const CITY_API = 'https://geocoding-api.open-meteo.com/v1/search';
+  let generation = 0;
+  let abortController = null;
+  let timer = null;
+  let currentPlace = null;
+  let lastFetched = 0;
+  let lastLocationRequest = 0;
+  let previousWeatherFeed = 'all';
+
+  const val = (number, digits = 0) => {
+    const n = Number(number);
+    return number !== null && number !== undefined && number !== '' && Number.isFinite(n)
+      ? n.toFixed(digits) : '--';
+  };
+  const WX_ICONS = {
+    0:['快晴','☀️'],1:['晴れ','🌤️'],2:['晴れ時々くもり','⛅'],3:['くもり','☁️'],
+    45:['霧','🌫️'],48:['着氷性の霧','🌫️'],51:['弱い霧雨','🌦️'],53:['霧雨','🌦️'],55:['強い霧雨','🌧️'],
+    56:['着氷性の霧雨','🌨️'],57:['強い着氷性の霧雨','🌨️'],
+    61:['弱い雨','🌦️'],63:['雨','🌧️'],65:['強い雨','🌧️'],
+    66:['弱い着氷性の雨','🌨️'],67:['強い着氷性の雨','🌨️'],
+    71:['小雪','🌨️'],73:['雪','❄️'],75:['大雪','❄️'],77:['雪粒','❄️'],
+    80:['にわか雨','🌦️'],81:['にわか雨','🌧️'],82:['激しいにわか雨','⛈️'],
+    85:['にわか雪','🌨️'],86:['激しいにわか雪','❄️'],
+    95:['雷雨','⛈️'],96:['ひょうを伴う雷雨','⛈️'],99:['強いひょうを伴う雷雨','⛈️']
+  };
+  const weather = (code, daytime = true) => {
+    const item = WX_ICONS[Number(code)] || ['天気情報なし','🌤️'];
+    return Number(code) === 0 && !daytime ? [item[0], '🌙'] : item;
+  };
+  function setStatus(message, error = false) {
+    el('wxStatus').textContent = message;
+    el('wxStatus').classList.toggle('is-error', error);
+  }
+  function stop() {
+    ++generation;
+    if (abortController) abortController.abort();
+    abortController = null;
+    if (timer) window.clearInterval(timer);
+    timer = null;
+    el('wxLocateBtn').disabled = false;
+    el('wxCitySearchBtn').disabled = false;
+  }
+  async function requestWeather(place, gen) {
+    if (!isOpen() || gen !== generation) return;
+    if (abortController) abortController.abort();
+    const controller = new AbortController();
+    abortController = controller;
+    setStatus(`${place.label}の天気を取得しています…`);
+    const params = new URLSearchParams({
+      latitude: String(place.lat), longitude: String(place.lon),
+      current: 'temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,is_day',
+      hourly: 'temperature_2m,precipitation_probability,weather_code',
+      daily: 'temperature_2m_max,temperature_2m_min',
+      forecast_days: '2', timezone: 'auto', temperature_unit: 'celsius', wind_speed_unit: 'kmh'
+    });
+    const timeout = window.setTimeout(() => controller.abort(), 13000);
+    try {
+      const response = await fetch(`${WEATHER_API}?${params.toString()}`, {signal:controller.signal, cache:'no-store'});
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      if (!isOpen() || gen !== generation) return;
+      if (!data?.current || !data?.hourly || !data?.daily) throw new Error('天気データがありません');
+      render(data, place);
+      lastFetched = Date.now();
+      setStatus('最新の気象データを表示中 · この画面では10分ごとに更新します。');
+    } catch (err) {
+      if (!isOpen() || gen !== generation) return;
+      const cancelled = controller.signal.aborted;
+      setStatus(cancelled ? '通信がタイムアウトしました。再度「現在地を取得」または「検索」をお試しください。'
+        : '天気情報を取得できませんでした。通信を確認してもう一度お試しください。', true);
+    } finally {
+      window.clearTimeout(timeout);
+      if (abortController === controller) abortController = null;
+    }
+  }
+  function render(data, place) {
+    const now = data.current;
+    const today = data.daily;
+    const daytime = Number(now.is_day) === 1;
+    const [condition, icon] = weather(now.weather_code, daytime);
+    el('wxLocation').textContent = place.label;
+    el('wxIcon').textContent = icon;
+    el('wxTemperature').textContent = `${val(now.temperature_2m)}°`;
+    el('wxCondition').textContent = condition;
+    el('wxTempRange').textContent = `最高 ${val(today.temperature_2m_max?.[0])}° / 最低 ${val(today.temperature_2m_min?.[0])}°`;
+    el('wxFeelsLike').textContent = `${val(now.apparent_temperature)}°`;
+    el('wxHumidity').textContent = `${val(now.relative_humidity_2m)}%`;
+    el('wxWind').textContent = `${val(now.wind_speed_10m)} km/h`;
+    el('wxPrecip').textContent = `${val(now.precipitation,1)} mm`;
+    el('wxUpdated').textContent = `現地時刻 ${String(now.time || '').replace('T',' ').slice(0,16)} 更新`;
+    const hours = el('wxHourly');
+    hours.replaceChildren();
+    const times = data.hourly.time || [];
+    const temps = data.hourly.temperature_2m || [];
+    const rain = data.hourly.precipitation_probability || [];
+    const codes = data.hourly.weather_code || [];
+    const currentTime = String(now.time || '').slice(0,13);
+    let index = times.findIndex(t => String(t).slice(0,13) >= currentTime);
+    if (index < 0) index = 0;
+    for (let i=index; i<Math.min(times.length,index+10); i++) {
+      const card = document.createElement('div');
+      card.className = 'wx-hour';
+      const time = document.createElement('div'); time.className='wx-hour-time';
+      time.textContent = i === index ? 'いま' : String(times[i]).slice(11,16);
+      const emoji = document.createElement('span'); emoji.className='wx-hour-icon';
+      const hour = Number(String(times[i]).slice(11,13));
+      emoji.textContent = weather(codes[i], hour >= 6 && hour <= 18)[1];
+      const temp = document.createElement('div'); temp.className='wx-hour-temp'; temp.textContent = `${val(temps[i])}°`;
+      const rainfall = document.createElement('div'); rainfall.className='wx-hour-rain'; rainfall.textContent = `☂ ${val(rain[i])}%`;
+      card.append(time,emoji,temp,rainfall); hours.append(card);
+    }
+    if (!hours.children.length) hours.textContent = '時間別の予報を取得できませんでした。';
+  }
+  function usePlace(place) {
+    if (!isOpen()) return;
+    const gen = ++generation;
+    currentPlace = place;
+    requestWeather(place,gen);
+  }
+  function getLocation() {
+    if (!isOpen()) return;
+    if (!navigator.geolocation || !window.isSecureContext) {
+      setStatus('現在地の取得にはHTTPS対応ブラウザが必要です。都市名で検索してください。', true);
+      return;
+    }
+    const gen = ++generation;
+    const requestId = ++lastLocationRequest;
+    if (abortController) abortController.abort();
+    el('wxLocateBtn').disabled = true;
+    setStatus('現在地を確認しています。ブラウザに位置情報の許可が表示されたら選択してください。');
+    navigator.geolocation.getCurrentPosition(position => {
+      if (!isOpen() || gen !== generation || requestId !== lastLocationRequest) return;
+      el('wxLocateBtn').disabled = false;
+      const lat = position.coords.latitude, lon = position.coords.longitude;
+      if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+        setStatus('位置情報が正しくありません。都市名から検索してください。',true); return;
+      }
+      usePlace({lat,lon,label:'📍 現在地付近'});
+    }, error => {
+      if (!isOpen() || gen !== generation || requestId !== lastLocationRequest) return;
+      el('wxLocateBtn').disabled = false;
+      let message = '現在地を取得できませんでした。都市名から検索することもできます。';
+      if (error.code === 1) message = '位置情報が許可されていません。ブラウザの権限を確認するか、都市名から検索してください。';
+      if (error.code === 3) message = '現在地の取得がタイムアウトしました。再試行するか都市名で検索してください。';
+      setStatus(message,true);
+    }, {enableHighAccuracy:false,timeout:13000,maximumAge:5*60*1000});
+  }
+  async function searchCity(event) {
+    event.preventDefault();
+    const query = el('wxCityInput').value.trim();
+    if (query.length < 2 || query.length > 60) {
+      setStatus('都市名を2～60文字で入力してください。', true); return;
+    }
+    const gen = ++generation;
+    if (abortController) abortController.abort();
+    const controller = new AbortController();
+    abortController = controller;
+    el('wxLocateBtn').disabled = false;
+    el('wxCitySearchBtn').disabled = true;
+    setStatus(`「${query}」を検索中…`);
+    const timeout = window.setTimeout(() => controller.abort(), 12000);
+    try {
+      const params = new URLSearchParams({name:query,count:'5',language:'ja',format:'json'});
+      const response = await fetch(`${CITY_API}?${params}`, {signal:controller.signal});
+      if (!response.ok) throw new Error('検索エラー');
+      const json = await response.json();
+      if (!isOpen() || gen !== generation) return;
+      const found = (json.results || []).find(p => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
+      if (!found) { setStatus('該当する都市がありませんでした。別の名前で検索してください。',true); return; }
+      usePlace({lat: found.latitude, lon: found.longitude, label:`📍 ${found.name}${found.admin1 ? '・'+found.admin1 : ''}${found.country ? '（'+found.country+'）' : ''}`});
+    } catch (err) {
+      if (!isOpen() || gen !== generation) return;
+      setStatus('都市検索に失敗しました。通信を確認して再試行してください。',true);
+    } finally {
+      window.clearTimeout(timeout);
+      if (abortController === controller) abortController = null;
+      el('wxCitySearchBtn').disabled = false;
+    }
+  }
+  window.openWeatherPage = () => {
+    if (app.classList.contains('hidden')) return;
+    window.closeIssTracker?.();
+    if (isOpen()) return;
+    previousWeatherFeed = el('tabFollowing').classList.contains('border-b-2') ? 'following' : 'all';
+    stop();
+    page.classList.remove('hidden'); page.setAttribute('aria-hidden','false');
+    app.classList.add('withlog-weather-active');
+    tab.setAttribute('aria-current','page');
+    el('tabAll').classList.remove('border-b-2');
+    el('tabFollowing').classList.remove('border-b-2');
+    timer = window.setInterval(() => {
+      if (isOpen() && !document.hidden && currentPlace && Date.now()-lastFetched > 10*60*1000 && !abortController) {
+        usePlace(currentPlace);
+      }
+    },60*1000);
+    if (currentPlace && lastFetched && Date.now()-lastFetched < 10*60*1000) {
+      setStatus('表示中の天気は10分以内に取得したものです。');
+    } else if (currentPlace) usePlace(currentPlace);
+    else getLocation();
+    window.scrollTo({top:0,behavior:'auto'});
+  };
+  window.closeWeatherPage = () => {
+    if (!isOpen() && page.classList.contains('hidden')) return;
+    stop();
+    app.classList.remove('withlog-weather-active');
+    page.classList.add('hidden'); page.setAttribute('aria-hidden','true');
+    tab.removeAttribute('aria-current');
+    (previousWeatherFeed === 'following' ? el('tabFollowing') : el('tabAll')).classList.add('border-b-2');
+  };
+  el('wxLocateBtn').addEventListener('click',getLocation);
+  el('wxCityForm').addEventListener('submit',searchCity);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && abortController) abortController.abort();
+    if (!document.hidden && isOpen() && currentPlace && Date.now()-lastFetched > 10*60*1000) usePlace(currentPlace);
   });
 })();
 </script>
