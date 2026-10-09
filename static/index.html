@@ -4586,7 +4586,21 @@ html.withlog-dark #appView.withlog-news-active :is(#tabAll,#tabFollowing,#tabISS
 #newsPage .news-refresh { border:0 !important; padding:10px 15px; min-height:38px; border-radius:999px;
   background:#fffafc !important; color:#6c5793 !important; font-size:11px; font-weight:900; }
 #newsPage .news-refresh:disabled { opacity:.62; cursor:wait; }
-#newsPage .news-filters { display:flex; gap:8px; flex-wrap:wrap; padding:18px 1px 16px; }
+/* Keep NEWS category controls visually on the page background.
+   The generic `header, nav` theme otherwise paints an unrelated cream rectangle. */
+#newsPage nav.news-filters {
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  align-items:center;
+  padding:18px 1px 16px;
+  margin:0;
+  background:transparent !important;
+  border:0 !important;
+  backdrop-filter:none !important;
+  -webkit-backdrop-filter:none !important;
+  box-shadow:none !important;
+}
 #newsPage .news-filter { min-height:38px; border:0 !important; padding:8px 16px; border-radius:999px !important;
   color:#756883 !important; background:#ede8f5 !important; font-size:11px; font-weight:850; }
 #newsPage .news-filter[aria-pressed="true"] { color:white !important; background:linear-gradient(135deg,#8569d3,#cf7ea8) !important; }
