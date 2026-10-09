@@ -4112,6 +4112,13 @@ html.withlog-dark .withlog-avatar-preview-image {
 </style>
 <style id="withlog-login-brush-logo-style">
 /* Login / sign-up brand only; the signed-in app header remains unchanged. */
+/* Position the artwork between the top of the page and the sign-in form. */
+#landingView > .pt-8 {
+  transform: translateY(24px);
+}
+@media (max-height: 720px) {
+  #landingView > .pt-8 { transform: translateY(12px); }
+}
 #landingView .withlog-login-brand-title {
   margin: 0;
   width: 100%;
