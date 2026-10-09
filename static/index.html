@@ -5241,17 +5241,71 @@ html.withlog-dark #withlogPrimaryActions button[title="メッセージ"].withlog
       }
     }
 
-    async function markDmNotificationsRead() {
-      const token = getToken();
-      if (!token) return;
-      try {
-        await fetch('/messages/read', {
-          method:'POST',
-          headers:{'Authorization':`Bearer ${token}`},
-          cache:'no-store'
-        });
-      } catch (_) {}
+    function dmLastReadStorageKey() {
+      const username = String(currentUser?.username || '').toLowerCase();
+      return username ? `withlog:dm:last-read:${username}` : '';
+    }
+
+    function getDmLastReadMs() {
+      const key = dmLastReadStorageKey();
+      if (!key) return Date.now();
+
+      const stored = Number(localStorage.getItem(key) || 0);
+      if (stored > 0) return stored;
+
+      // First run of the new badge feature: do not mark the entire old DM history unread.
+      const now = Date.now();
+      localStorage.setItem(key, String(now));
+      return now;
+    }
+
+    function markDmNotificationsRead() {
+      const key = dmLastReadStorageKey();
+      if (key) localStorage.setItem(key, String(Date.now()));
       setHeaderAlert('メッセージ', 'dmBadge', 0);
+    }
+
+    async function getDmUnreadCountFromExistingApi(headers) {
+      const lastReadMs = getDmLastReadMs();
+      const me = String(currentUser?.username || '').toLowerCase();
+      if (!me) return 0;
+
+      const conversationsRes = await fetch('/messages/conversations', {
+        headers,
+        cache:'no-store'
+      });
+      if (!conversationsRes.ok) return 0;
+
+      const conversations = await conversationsRes.json();
+      if (!Array.isArray(conversations) || conversations.length === 0) return 0;
+
+      const results = await Promise.all(
+        conversations.map(async user => {
+          const username = String(user?.username || '').trim();
+          if (!username) return 0;
+
+          try {
+            const res = await fetch(`/messages/${encodeURIComponent(username)}`, {
+              headers,
+              cache:'no-store'
+            });
+            if (!res.ok) return 0;
+
+            const messages = await res.json();
+            if (!Array.isArray(messages)) return 0;
+
+            return messages.filter(message => {
+              const sender = String(message?.sender_username || '').toLowerCase();
+              const createdMs = message?.created_at ? Date.parse(message.created_at) : 0;
+              return sender && sender !== me && createdMs > lastReadMs;
+            }).length;
+          } catch (_) {
+            return 0;
+          }
+        })
+      );
+
+      return results.reduce((sum, count) => sum + Number(count || 0), 0);
     }
 
     async function refreshNotificationBadge() {
@@ -5260,20 +5314,19 @@ html.withlog-dark #withlogPrimaryActions button[title="メッセージ"].withlog
 
       try {
         const headers = { 'Authorization': `Bearer ${token}` };
-        const [notifRes, reqRes, sharedRes, dmRes] = await Promise.all([
+        const [notifRes, reqRes, sharedRes, dmUnreadCount] = await Promise.all([
           fetch('/notifications', { headers, cache:'no-store' }),
           fetch('/friends/incoming-requests', { headers, cache:'no-store' }),
           fetch('/shared-with/incoming', { headers, cache:'no-store' }),
-          fetch('/messages/unread', { headers, cache:'no-store' })
+          getDmUnreadCountFromExistingApi(headers)
         ]);
 
         const notifications = notifRes.ok ? await notifRes.json() : [];
         const requests = reqRes.ok ? await reqRes.json() : [];
         const sharedInvites = sharedRes.ok ? await sharedRes.json() : [];
-        const dmUnread = dmRes.ok ? await dmRes.json() : {count:0};
 
         const unreadNotificationCount = Array.isArray(notifications)
-          ? notifications.filter(n => !n.is_read && n.type !== 'dm').length
+          ? notifications.filter(n => !n.is_read).length
           : 0;
         const requestCount = Array.isArray(requests) ? requests.length : 0;
         const sharedCount = Array.isArray(sharedInvites)
@@ -5281,7 +5334,7 @@ html.withlog-dark #withlogPrimaryActions button[title="メッセージ"].withlog
           : 0;
 
         setHeaderAlert('通知', 'notifBadge', unreadNotificationCount + requestCount + sharedCount);
-        setHeaderAlert('メッセージ', 'dmBadge', Number(dmUnread?.count || 0));
+        setHeaderAlert('メッセージ', 'dmBadge', Number(dmUnreadCount || 0));
       } catch (_) {}
     }
 
@@ -5354,8 +5407,7 @@ html.withlog-dark #withlogPrimaryActions button[title="メッセージ"].withlog
           </div>
         `).join('') : '<p class="text-slate-400 py-2">SHARED WITHの招待はありません</p>';
 
-        const visibleNotifications = notifications.filter(n => n.type !== 'dm');
-        notifEl.innerHTML = visibleNotifications.length ? visibleNotifications.map(n => {
+        notifEl.innerHTML = notifications.length ? notifications.map(n => {
           const username = String(n.sender_username || '').trim();
           const message = String(n.message || '');
           const marker = username ? `@${username}` : '';
@@ -6494,7 +6546,7 @@ html.withlog-dark #withlogPrimaryActions button[title="メッセージ"].withlog
     // --- DM会話一覧モーダル ---
     window.openConversationsModal = async function() {
       const token = getToken();
-      await markDmNotificationsRead();
+      markDmNotificationsRead();
       const res = await fetch('/messages/conversations', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -8299,7 +8351,7 @@ html.withlog-dark #withlogPrimaryActions button[title="メッセージ"].withlog
               !dmModal.classList.contains('hidden');
 
             if (sameOpenChat) {
-              void markDmNotificationsRead();
+              markDmNotificationsRead();
               void loadDmMessages({ preserveScroll: true, quiet: true });
             } else {
               void refreshNotificationBadge();
@@ -8330,7 +8382,7 @@ html.withlog-dark #withlogPrimaryActions button[title="メッセージ"].withlog
     window.openDmChat = async function(username) {
       activeDmPartner = String(username || '').trim();
       if (!activeDmPartner) return;
-      await markDmNotificationsRead();
+      markDmNotificationsRead();
       closeProfileModal();
       document.getElementById('dmPartnerTitle').innerText = `@${activeDmPartner} とのDM`;
       document.getElementById('dmModal').classList.remove('hidden');

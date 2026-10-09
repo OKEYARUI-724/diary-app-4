@@ -1705,45 +1705,6 @@ def mark_notifications_read(
     db.query(Notification).filter(
         Notification.recipient_id == current_user.id,
         Notification.is_read.is_(False),
-        Notification.type != "dm",
-    ).update({"is_read": True}, synchronize_session=False)
-    db.commit()
-    return {"status": "ok"}
-
-
-@app.get("/messages/unread")
-def get_unread_message_count(
-    current_user: User = Depends(require_current_user),
-    db: Session = Depends(get_db),
-):
-    count = db.query(Notification).filter(
-        Notification.recipient_id == current_user.id,
-        Notification.type == "dm",
-        Notification.is_read.is_(False),
-    ).count()
-    latest = db.query(Notification).filter(
-        Notification.recipient_id == current_user.id,
-        Notification.type == "dm",
-        Notification.is_read.is_(False),
-    ).order_by(desc(Notification.created_at)).first()
-
-    return {
-        "count": count,
-        "latest_sender_username": (
-            latest.sender.username if latest and latest.sender else None
-        ),
-    }
-
-
-@app.post("/messages/read")
-def mark_messages_read(
-    current_user: User = Depends(require_current_user),
-    db: Session = Depends(get_db),
-):
-    db.query(Notification).filter(
-        Notification.recipient_id == current_user.id,
-        Notification.type == "dm",
-        Notification.is_read.is_(False),
     ).update({"is_read": True}, synchronize_session=False)
     db.commit()
     return {"status": "ok"}
@@ -1871,16 +1832,6 @@ async def send_message(
         content=msg_in.content.strip(),
     )
     db.add(msg)
-    db.flush()
-
-    add_notification(
-        db,
-        recipient.id,
-        current_user.id,
-        "dm",
-        f"@{current_user.username} さんから新しいメッセージが届きました",
-    )
-
     db.commit()
     db.refresh(msg)
 
