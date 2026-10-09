@@ -4383,6 +4383,12 @@ html.withlog-dark #issTrackerPage .iss-error { color: #ffb1bf !important; }
   #appView #tabISS { padding-left: 10px !important; padding-right: 10px !important; }
 }
 @media (prefers-reduced-motion: reduce) { #issTrackerPage * { scroll-behavior: auto !important; } }
+
+#issTrackerPage .iss-trail-legend { display:flex; flex-wrap:wrap; gap:9px 17px; align-items:center; margin-bottom:9px; color:#665b7b; font-size:10px; font-weight:800; }
+#issTrackerPage .iss-trail-legend > span { display:inline-flex; align-items:center; gap:7px; }
+#issTrackerPage .iss-trail-line { display:inline-block; width:25px; height:0; border-top:3px solid #916fce; border-radius:3px; }
+#issTrackerPage .iss-trail-line.is-live { border-top:3px dashed #e783b5; }
+html.withlog-dark #issTrackerPage .iss-trail-legend { color:#d2c5dd; }
 </style>
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
@@ -4562,7 +4568,11 @@ html.withlog-dark #issTrackerPage .iss-error { color: #ffb1bf !important; }
         </div>
         <div id="issMap" role="region" aria-label="ISSの現在位置を示す世界地図"></div>
         <div class="iss-map-foot">
-          <p id="issMapMessage">15秒ごとに自動更新します。点線はこの画面を開いてからの移動履歴です。</p>
+          <div class="iss-trail-legend" aria-label="ISSの軌跡の凡例">
+            <span><i class="iss-trail-line is-history" aria-hidden="true"></i>過去90分の経路</span>
+            <span><i class="iss-trail-line is-live" aria-hidden="true"></i>ページを開いてからの軌跡</span>
+          </div>
+          <p id="issMapMessage" aria-live="polite">過去90分の位置情報を読み込みます。現在位置は15秒ごとに更新します。</p>
           <p>※「日照状況」はISSが日光を浴びているかどうかです。地上から肉眼で見えるかの予報ではありません。</p>
           <p>Position data: <a href="https://wheretheiss.at/w/developer" target="_blank" rel="noopener noreferrer">Where the ISS at?</a></p>
         </div>
@@ -9663,7 +9673,13 @@ document.addEventListener("DOMContentLoaded", function () {
 <script id="withlog-iss-tracker-script">
 (() => {
   'use strict';
+  // The current endpoint supplies live data; /positions supplies the actual
+  // API-provided coordinates for earlier timestamps (not a hand-drawn route).
   const apiUrl = 'https://api.wheretheiss.at/v1/satellites/25544';
+  const historyUrl = `${apiUrl}/positions`;
+  const HISTORY_MINUTES = 90;
+  const HISTORY_STEP_SECONDS = 180;
+  const API_GAP_MS = 1250; // WTIA documents a limit of about one request/second.
   const page = document.getElementById('issTrackerPage');
   const app = document.getElementById('appView');
   const tabISS = document.getElementById('tabISS');
@@ -9674,11 +9690,18 @@ document.addEventListener("DOMContentLoaded", function () {
   let map = null;
   let marker = null;
   let tracks = null;
-  let samples = [];
+  let samples = [];        // Positions observed since opening the tracker.
+  let historySamples = []; // Real previous positions returned by /positions.
   let follow = true;
   let timer = null;
   let controller = null;
+  let historyController = null;
   let loading = false;
+  let historyLoading = false;
+  let historyLoadedAt = 0;
+  let historyFailed = false;
+  let liveFailed = false;
+  let nextApiAllowed = 0;
   let lastFetchTime = 0;
   let latestPosition = null;
   let previousSelectedTab = 'all';
@@ -9692,6 +9715,26 @@ document.addEventListener("DOMContentLoaded", function () {
     el('issLiveStatus').classList.toggle('is-live', online);
   }
 
+  function updateMapMessage() {
+    const message = el('issMapMessage');
+    if (!message) return;
+    let text = '現在位置は15秒ごとに更新します。';
+    if (historyLoading) {
+      text += ' 過去90分の軌跡を取得中…';
+    } else if (historySamples.length > 1) {
+      text += historyFailed
+        ? ' 過去90分の軌跡は一部のみ取得できました。「更新」で再試行できます。'
+        : ' 過去90分の位置を約3分間隔で表示しています。';
+    } else if (historyFailed) {
+      text += ' 過去の軌跡の取得に失敗しました。「更新」で再試行できます。';
+    } else {
+      text += ' 過去90分の経路も読み込みます。';
+    }
+    if (liveFailed) text = '現在位置を取得できませんでした。通信状況を確認して「更新」を押してください。 ' + text;
+    message.textContent = text;
+    message.classList.toggle('iss-error', liveFailed || (historyFailed && historySamples.length < 2));
+  }
+
   function initializeMap() {
     if (map) { window.setTimeout(() => map.invalidateSize(), 80); return; }
     if (typeof L === 'undefined') {
@@ -9699,8 +9742,6 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
     map = L.map('issMap', {zoomControl: true, worldCopyJump: true, minZoom: 1, maxZoom: 11}).setView([15, 0], 2);
-    // CARTO tiles now require a separate API key. Use the official OSM
-    // standard raster tiles instead, keeping visible attribution and browser caching.
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
       maxZoom: 11,
@@ -9713,7 +9754,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     marker = L.marker([0, 0], {icon, zIndexOffset: 900, keyboard: false}).addTo(map);
     marker.setOpacity(0);
-    map.on('dragstart zoomstart', () => { follow = false; syncFollow(); });
+    // User dragging disables tracking. A programmatic setView must not disable it.
+    map.on('dragstart', () => { follow = false; syncFollow(); });
   }
 
   function syncFollow() {
@@ -9721,47 +9763,125 @@ document.addEventListener("DOMContentLoaded", function () {
     followBtn.setAttribute('aria-pressed', String(follow));
   }
 
-  function drawTrail() {
-    if (!tracks || typeof L === 'undefined') return;
-    tracks.clearLayers();
+  function validPoint(p) {
+    const lat = Number(p.latitude), lng = Number(p.longitude), t = Number(p.timestamp);
+    if (![lat, lng, t].every(Number.isFinite) || Math.abs(lat) > 90 || Math.abs(lng) > 180 || t <= 0) return null;
+    return {lat, lng, t};
+  }
+
+  function renderPath(points, options) {
     let segment = [];
     const segments = [];
-    for (const p of samples) {
-      if (segment.length && Math.abs(p[1] - segment[segment.length - 1][1]) > 180) {
+    for (const p of points) {
+      // Crossing the antimeridian should not draw a huge line over the world map.
+      if (segment.length && Math.abs(p.lng - segment[segment.length - 1][1]) > 180) {
         if (segment.length > 1) segments.push(segment);
         segment = [];
       }
-      segment.push(p);
+      segment.push([p.lat, p.lng]);
     }
     if (segment.length > 1) segments.push(segment);
-    segments.forEach(points => L.polyline(points, {color:'#d7a5fa', weight:2.5, opacity:.80, dashArray:'5 8'}).addTo(tracks));
+    segments.forEach(pts => L.polyline(pts, options).addTo(tracks));
+  }
+
+  function drawTrail() {
+    if (!tracks || typeof L === 'undefined') return;
+    tracks.clearLayers();
+    // Display a rolling 90-minute window, including samples acquired just now.
+    const reference = latestPosition?.timestamp || Math.floor(Date.now() / 1000);
+    const cutoff = reference - HISTORY_MINUTES * 60;
+    const older = historySamples.filter(p => p.t >= cutoff && p.t <= reference).sort((a,b) => a.t - b.t);
+    const current = samples.filter(p => p.t >= cutoff && p.t <= reference).sort((a,b) => a.t - b.t);
+    // Join the fetched historical path to the first live point so there is no gap.
+    if (older.length && current.length && current[0].t > older[older.length - 1].t) {
+      older.push(current[0]);
+    }
+    renderPath(older, {color:'#916fce', weight:3, opacity:.88, lineCap:'round', lineJoin:'round'});
+    renderPath(current, {color:'#e783b5', weight:3, opacity:.94, dashArray:'6 7', lineCap:'round'});
+  }
+
+  // Reservations ensure live-position requests and history batches do not exceed
+  // the public API's approximate one-request-per-second rate limit.
+  async function fetchIssJson(url, signal) {
+    const delay = Math.max(0, nextApiAllowed - Date.now());
+    nextApiAllowed = Date.now() + delay + API_GAP_MS;
+    if (delay) await new Promise((resolve, reject) => {
+      const t = window.setTimeout(() => { signal?.removeEventListener('abort', cancel); resolve(); }, delay);
+      function cancel() { window.clearTimeout(t); reject(new DOMException('Aborted','AbortError')); }
+      if (signal?.aborted) cancel();
+      else signal?.addEventListener('abort', cancel, {once:true});
+    });
+    if (signal?.aborted) throw new DOMException('Aborted','AbortError');
+    const response = await fetch(url, {signal, cache:'no-store'});
+    if (!response.ok) throw new Error(`API HTTP ${response.status}`);
+    return response.json();
+  }
+
+  async function loadHistory() {
+    if (!visible() || historyLoading || (historyLoadedAt && Date.now() - historyLoadedAt < 5 * 60 * 1000)) return;
+    historyLoading = true;
+    historyFailed = false;
+    historyController = new AbortController();
+    const signal = historyController.signal;
+    // Minute-aligned timestamps provide an evenly spaced 90-minute route.
+    const endTime = Math.floor(Date.now() / 1000 / HISTORY_STEP_SECONDS) * HISTORY_STEP_SECONDS;
+    const stamps = Array.from({length: HISTORY_MINUTES * 60 / HISTORY_STEP_SECONDS + 1},
+      (_,i) => endTime - HISTORY_MINUTES * 60 + i * HISTORY_STEP_SECONDS);
+    let fetched = [];
+    updateMapMessage();
+    try {
+      // The API allows at most ten timestamps in each request.
+      for (let i = 0; i < stamps.length; i += 10) {
+        const group = stamps.slice(i, i + 10);
+        const rows = await fetchIssJson(`${historyUrl}?timestamps=${group.join(',')}`, signal);
+        if (!Array.isArray(rows)) throw new Error('履歴APIの応答が正しくありません。');
+        const positions = rows.map(validPoint).filter(Boolean);
+        if (!positions.length) throw new Error('過去の位置を取得できませんでした。');
+        fetched.push(...positions);
+        if (signal.aborted || !visible()) return;
+        historySamples = Array.from(new Map(fetched.map(p=>[p.t,p])).values()).sort((a,b)=>a.t-b.t);
+        drawTrail();
+        updateMapMessage();
+      }
+      historyLoadedAt = Date.now();
+    } catch (error) {
+      if (!signal.aborted && visible()) {
+        historyFailed = true;
+        // Do not remove a partially loaded history or interrupt live tracking.
+        console.warn('ISS previous positions unavailable:', error);
+      }
+    } finally {
+      // An older aborted run must not clear the state of a newer run.
+      if (historyController?.signal === signal) {
+        historyController = null;
+        historyLoading = false;
+        if (!signal.aborted && visible()) updateMapMessage();
+      }
+    }
   }
 
   function updateDisplay(payload) {
-    const lat = Number(payload.latitude);
-    const lng = Number(payload.longitude);
+    const point = validPoint(payload);
     const alt = Number(payload.altitude);
     const speed = Number(payload.velocity);
-    const t = Number(payload.timestamp);
-    if (![lat,lng,alt,speed,t].every(Number.isFinite) || lat < -90 || lat > 90 || lng < -180 || lng > 180 || t <= 0) {
-      throw new Error('ISS位置データが正しくありません。');
-    }
+    if (!point || ![alt,speed].every(Number.isFinite)) throw new Error('ISS位置データが正しくありません。');
+    const {lat, lng, t} = point;
     el('issAltitude').innerHTML = `${formatter.format(alt)} <small>km</small>`;
     el('issSpeed').innerHTML = `${formatter.format(speed)} <small>km/h</small>`;
     el('issLatitude').textContent = `${Math.abs(lat).toFixed(2)}° ${lat >= 0 ? 'N' : 'S'}`;
     el('issLongitude').textContent = `${Math.abs(lng).toFixed(2)}° ${lng >= 0 ? 'E' : 'W'}`;
     const time = new Date(t * 1000);
     el('issUpdatedAt').textContent = `データ時刻：${time.toLocaleString('ja-JP',{timeZone:'Asia/Tokyo',hour12:false})} (JST)`;
-    const sunlight = payload.visibility === 'daylight' ? '☀️ ISSは日光を浴びています'
+    el('issSunlight').textContent = payload.visibility === 'daylight' ? '☀️ ISSは日光を浴びています'
       : payload.visibility === 'eclipsed' ? '🌙 ISSは地球の影に入っています' : '日照状況：取得できません';
-    el('issSunlight').textContent = sunlight;
     const unique = !latestPosition || latestPosition.timestamp !== t;
     latestPosition = {lat, lng, timestamp:t};
     if (!map) return;
     marker.setLatLng([lat, lng]).setOpacity(1).bindPopup('🛰 ISS 現在の地表直下点');
     if (unique) {
-      samples.push([lat,lng]);
-      if (samples.length > 90) samples.shift();
+      samples.push(point);
+      // Keep this visit's live points bounded and within the history window.
+      if (samples.length > 400) samples = samples.slice(-400);
       drawTrail();
     }
     if (follow) {
@@ -9778,29 +9898,24 @@ document.addEventListener("DOMContentLoaded", function () {
     lastFetchTime = Date.now();
     controller = new AbortController();
     const signal = controller.signal;
-    const timeoutId = window.setTimeout(() => controller.abort(), 12000);
+    const timeoutId = window.setTimeout(() => controller?.signal === signal && controller.abort(), 12000);
     status(latestPosition ? '位置を更新中…' : 'ISSに接続中…');
     try {
-      const response = await fetch(apiUrl, {signal,cache:'no-store'});
-      if (!response.ok) throw new Error(`API HTTP ${response.status}`);
-      const data = await response.json();
+      const data = await fetchIssJson(apiUrl, signal);
       if (signal.aborted || !visible()) return;
       updateDisplay(data);
+      liveFailed = false;
       status('LIVE · 15秒ごとに更新', true);
-      el('issMapMessage').textContent = '位置データを15秒ごとに自動更新中。点線はこの画面を開いてからの履歴です。';
+      updateMapMessage();
     } catch (error) {
       if (signal.aborted || !visible()) return;
+      liveFailed = true;
       status('接続を確認してください');
-      const message = el('issMapMessage');
-      message.replaceChildren();
-      const span = document.createElement('span');
-      span.className = 'iss-error';
-      span.textContent = 'ISSの位置情報を取得できませんでした。通信状況を確認し「更新」を押してください。';
-      message.append(span);
+      updateMapMessage();
     } finally {
       window.clearTimeout(timeoutId);
       loading = false;
-      if (controller && controller.signal === signal) controller = null;
+      if (controller?.signal === signal) controller = null;
     }
   }
 
@@ -9809,6 +9924,9 @@ document.addEventListener("DOMContentLoaded", function () {
     timer = null;
     if (controller) controller.abort();
     controller = null;
+    if (historyController) historyController.abort();
+    historyController = null;
+    historyLoading = false;
   }
 
   window.openIssTracker = function() {
@@ -9825,7 +9943,11 @@ document.addEventListener("DOMContentLoaded", function () {
     initializeMap();
     syncFollow();
     stop();
-    if (visible()) poll(true);
+    updateMapMessage();
+    if (visible()) {
+      poll(true);
+      loadHistory();
+    }
     timer = window.setInterval(() => { if (visible()) poll(); }, 15000);
     window.scrollTo({top:0,behavior:'auto'});
   };
@@ -9836,22 +9958,26 @@ document.addEventListener("DOMContentLoaded", function () {
     page.classList.add('hidden');
     page.setAttribute('aria-hidden','true');
     tabISS.removeAttribute('aria-current');
-    // Rebuild the highlighted home tab when returning to the feed.
     (previousSelectedTab === 'following' ? el('tabFollowing') : el('tabAll')).classList.add('border-b-2');
   };
 
   followBtn.addEventListener('click', () => {
     follow = !follow;
     syncFollow();
-    if (follow && map && latestPosition) map.setView([latestPosition.lat, latestPosition.lng], Math.max(3, map.getZoom()));
+    if (follow && map && latestPosition) map.setView([latestPosition.lat,latestPosition.lng],Math.max(3,map.getZoom()));
   });
-  refreshBtn.addEventListener('click', () => poll(true));
+  refreshBtn.addEventListener('click', () => {
+    poll(true);
+    if (historyFailed || (!historyLoading && !historyLoadedAt)) loadHistory();
+  });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
       if (controller) controller.abort();
+      if (historyController) historyController.abort();
     } else if (app.classList.contains('withlog-iss-active')) {
       initializeMap();
       poll(true);
+      if (!historyLoadedAt) loadHistory();
     }
   });
 })();
