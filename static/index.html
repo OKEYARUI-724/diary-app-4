@@ -4535,6 +4535,114 @@ html.withlog-dark #weatherPage .wx-city-form input { background:#3d3845 !importa
 html.withlog-dark #weatherPage .wx-footnote { color:#aca3b5; }
 html.withlog-dark #weatherPage .wx-footnote a { color:#cdb4ef; }
 </style>
+
+<style id="withlog-news-page-styles">
+/* News uses the same tab palette as ALL / FOLLOWING / ISS / WEATHER. */
+#appView :is(#tabAll,#tabFollowing,#tabISS,#tabWeather,#tabNews) {
+  min-height: 38px !important; border: 0 !important; border-radius: 9999px !important;
+  background: #f1ecf7 !important; color: #998da8 !important;
+  font-size: 11px !important; font-weight: 750 !important;
+  transition: transform .16s ease !important;
+}
+#appView :is(#tabAll,#tabFollowing).border-b-2,
+#appView.withlog-iss-active #tabISS,
+#appView.withlog-weather-active #tabWeather,
+#appView.withlog-news-active #tabNews {
+  background: linear-gradient(135deg,#8569d3,#cf7ea8) !important;
+  color: #fff !important; font-weight: 800 !important;
+}
+html.withlog-dark #appView :is(#tabAll,#tabFollowing,#tabISS,#tabWeather,#tabNews) {
+  background: #303138 !important; color: #aaa5b3 !important;
+}
+html.withlog-dark #appView :is(#tabAll,#tabFollowing).border-b-2,
+html.withlog-dark #appView.withlog-iss-active #tabISS,
+html.withlog-dark #appView.withlog-weather-active #tabWeather,
+html.withlog-dark #appView.withlog-news-active #tabNews {
+  background: linear-gradient(135deg,#6655a5,#a05b80) !important; color: #fff !important;
+}
+#appView #tabNews { display:inline-flex; align-items:center; gap:6px; padding:8px 15px !important; }
+#appView #tabNews svg { width:16px; height:16px; flex:0 0 auto; }
+#appView :is(#tabAll,#tabFollowing,#tabISS,#tabWeather,#tabNews):focus-visible {
+  outline: 2px solid #8569d3 !important; outline-offset: 3px;
+}
+#appView.withlog-news-active > main,
+#appView.withlog-news-active > #storiesSection { display:none !important; }
+#appView.withlog-news-active :is(#tabAll,#tabFollowing,#tabISS,#tabWeather) {
+  background:#f1ecf7 !important; color:#998da8 !important;
+}
+html.withlog-dark #appView.withlog-news-active :is(#tabAll,#tabFollowing,#tabISS,#tabWeather) {
+  background:#303138 !important; color:#aaa5b3 !important;
+}
+#newsPage.hidden { display:none !important; }
+#newsPage { flex:1 0 auto; min-width:0; padding:15px 14px 44px; color:#413751; }
+#newsPage .news-hero { position:relative; overflow:hidden; border-radius:30px; padding:24px 21px;
+  background: radial-gradient(circle at 92% 8%,rgba(255,255,255,.74),transparent 33%),
+  linear-gradient(125deg,#ebe2fc 0%,#f5e5f0 56%,#fbeddf 100%); }
+#newsPage .news-kicker { margin:0; font-size:10px; font-weight:900; letter-spacing:.16em; color:#836896; }
+#newsPage .news-title { font-size:clamp(23px,5vw,30px); font-weight:900; line-height:1.3; margin:9px 0 7px; color:#443753; }
+#newsPage .news-subtitle { font-size:11px; line-height:1.85; color:#736782; max-width:39em; }
+#newsPage .news-hero-bottom { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-top:17px; }
+#newsPage .news-update { color:#7a6b86; font-size:10px; font-weight:650; }
+#newsPage .news-refresh { border:0 !important; padding:10px 15px; min-height:38px; border-radius:999px;
+  background:#fffafc !important; color:#6c5793 !important; font-size:11px; font-weight:900; }
+#newsPage .news-refresh:disabled { opacity:.62; cursor:wait; }
+#newsPage .news-filters { display:flex; gap:8px; flex-wrap:wrap; padding:18px 1px 16px; }
+#newsPage .news-filter { min-height:38px; border:0 !important; padding:8px 16px; border-radius:999px !important;
+  color:#756883 !important; background:#ede8f5 !important; font-size:11px; font-weight:850; }
+#newsPage .news-filter[aria-pressed="true"] { color:white !important; background:linear-gradient(135deg,#8569d3,#cf7ea8) !important; }
+#newsPage .news-info { min-height:0; margin:0 0 14px; font-size:11px; line-height:1.8; color:#746a83; }
+#newsPage .news-info.is-error { color:#b25172; }
+#newsPage .news-section { margin:0 0 25px; }
+#newsPage .news-section-heading { display:flex; gap:9px; align-items:center; justify-content:space-between; margin:0 2px 12px; }
+#newsPage .news-section-heading h3 { margin:0; font-size:13px; font-weight:900; color:#493e5d; }
+#newsPage .news-section-heading span { font-size:10px; color:#9b8fa7; }
+#newsPage .news-grid { display:grid; gap:11px; grid-template-columns:minmax(0,1fr); }
+#newsPage .news-card { min-width:0; display:block; text-decoration:none !important; color:inherit !important;
+  border-radius:23px; background:#fffdfd !important; border:1px solid rgba(121,102,153,.13) !important;
+  padding:16px 17px; transition:transform .15s ease !important; }
+#newsPage .news-card:hover { transform:translateY(-2px); }
+#newsPage .news-card:focus-visible { outline:2px solid #8066c7; outline-offset:2px; }
+#newsPage .news-card-meta { display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin-bottom:9px; }
+#newsPage .news-card-source { display:inline-flex; align-items:center; padding:4px 8px; font-size:9px; font-weight:900;
+  border-radius:999px; background:#f0eafa; color:#7962a1; }
+#newsPage .news-card.is-world .news-card-source { background:#e7f2f6; color:#4f7c91; }
+#newsPage .news-card-time { font-size:10px; color:#9a90a7; }
+#newsPage .news-card-title { font-size:13px; line-height:1.65; font-weight:850; color:#43394e; overflow-wrap:anywhere; }
+#newsPage .news-card-read { display:block; margin-top:10px; font-size:10px; font-weight:900; color:#886fbb; }
+#newsPage .news-empty { padding:22px 18px; background:rgba(255,255,255,.73); border-radius:20px; text-align:center;
+  font-size:11px; color:#85788f; line-height:1.8; }
+#newsPage .news-footnote { font-size:10px; line-height:1.8; color:#847989; padding:5px 4px 0; }
+@media(min-width:641px) {
+  #appView:has(#newsPage:not(.hidden)) { max-width:760px !important; }
+  #newsPage { padding:20px 24px 54px; }
+  #newsPage .news-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  #newsPage .news-hero { padding:30px 28px; }
+}
+@media(max-width:360px) { #newsPage { padding:10px 9px 30px; } #newsPage .news-hero { padding:20px 16px; } }
+html.withlog-dark #newsPage { color:#f2eaf7; }
+html.withlog-dark #newsPage .news-hero { background:linear-gradient(135deg,#393349,#413545 55%,#443a39); }
+html.withlog-dark #newsPage .news-kicker { color:#bfa6dd; }
+html.withlog-dark #newsPage .news-title { color:#f7edfd; }
+html.withlog-dark #newsPage .news-subtitle,
+html.withlog-dark #newsPage .news-update,
+html.withlog-dark #newsPage .news-info,
+html.withlog-dark #newsPage .news-footnote { color:#c4b7cb; }
+html.withlog-dark #newsPage .news-info.is-error { color:#ffc2ce; }
+html.withlog-dark #newsPage .news-refresh { background:#554462 !important; color:#f7e9ff !important; }
+html.withlog-dark #newsPage .news-filter { background:#36343e !important; color:#b3a9bd !important; }
+html.withlog-dark #newsPage .news-filter[aria-pressed="true"] { background:linear-gradient(135deg,#6655a5,#a05b80) !important; color:#fff !important; }
+html.withlog-dark #newsPage .news-section-heading h3 { color:#f4eafa; }
+html.withlog-dark #newsPage .news-section-heading span,
+html.withlog-dark #newsPage .news-card-time { color:#aea2ba; }
+html.withlog-dark #newsPage .news-card { background:#303038 !important; border-color:#494350 !important; }
+html.withlog-dark #newsPage .news-card-title { color:#f4eef8; }
+html.withlog-dark #newsPage .news-card-source { background:#483d59; color:#dfc8fa; }
+html.withlog-dark #newsPage .news-card.is-world .news-card-source { background:#364853; color:#b5d8ed; }
+html.withlog-dark #newsPage .news-card-read { color:#ceb4f2; }
+html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
+@media(prefers-reduced-motion:reduce) { #newsPage .news-card { transition:none !important; } }
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -4655,6 +4763,9 @@ html.withlog-dark #weatherPage .wx-footnote a { color:#cdb4ef; }
       <button id="tabWeather" type="button" onclick="openWeatherPage()" aria-label="現在地の天気ページを開く">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="8" cy="8" r="3" stroke-width="1.6"/><path d="M13 11a5 5 0 0 1 1.5-.2c3.3 0 5.5 2.2 5.5 4.9 0 2.1-1.6 3.8-3.8 3.8H8.8C6.6 19.5 5 18 5 16c0-1.9 1.5-3.4 3.3-3.6M8 1.5v1.5m-6 5h1.5m9-4 1.1-1.1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> WEATHER
       </button>
+      <button id="tabNews" type="button" onclick="openNewsPage()" aria-label="NEWS 最新ニュースを開く">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2" stroke-width="1.7"/><path d="M8 8h8M8 12h8M8 16h5" stroke-width="1.7" stroke-linecap="round"/></svg> NEWS
+      </button>
     </div>
 
     <!-- フォロー中ストーリーバー -->
@@ -4685,6 +4796,27 @@ html.withlog-dark #weatherPage .wx-footnote a { color:#cdb4ef; }
         <p class="text-center text-xs text-slate-400 py-12 tracking-widest uppercase font-medium">Loading...</p>
       </div>
     </main>
+
+    <!-- 国内ニュース＋海外の主要ニュース：報道機関の配信元へリンク -->
+    <section id="newsPage" class="hidden" aria-label="日本・海外の最新ニュース" aria-hidden="true">
+      <div class="news-hero">
+        <p class="news-kicker">WITHLOG / NEWS</p>
+        <h2 class="news-title">今日のニュース <span aria-hidden="true">📰</span></h2>
+        <p class="news-subtitle">日本のニュースを中心に、海外の主要なニュースも少しだけ。気になる記事は配信元のサイトで読めます。</p>
+        <div class="news-hero-bottom">
+          <span id="newsUpdated" class="news-update">最新情報を準備しています</span>
+          <button id="newsRefreshBtn" type="button" class="news-refresh">↻ ニュースを更新</button>
+        </div>
+      </div>
+      <nav class="news-filters" aria-label="ニュースの地域で絞り込み">
+        <button type="button" class="news-filter" data-news-filter="all" aria-pressed="true">すべて</button>
+        <button type="button" class="news-filter" data-news-filter="jp" aria-pressed="false">🇯🇵 日本</button>
+        <button type="button" class="news-filter" data-news-filter="world" aria-pressed="false">🌍 海外</button>
+      </nav>
+      <p id="newsStatus" class="news-info" role="status" aria-live="polite">NEWSタブを開くと最新の見出しを取得します。</p>
+      <div id="newsContent" aria-live="off"></div>
+      <p class="news-footnote">ニュース提供：NHK NEWS・BBC News の公開RSS。見出し・掲載日時を表示し、記事は配信元サイトで開きます。海外の記事の一部は英語です。配信元の更新や接続状況により、表示が遅れたり一部の記事を取得できない場合があります。</p>
+    </section>
 
     <!-- 独立したISS追跡ページ：フィードと切り替えて表示 -->
     <section id="issTrackerPage" class="hidden" aria-label="ISS TRACKER 国際宇宙ステーション追跡" aria-hidden="true">
@@ -5511,6 +5643,7 @@ html.withlog-dark #weatherPage .wx-footnote a { color:#cdb4ef; }
         clearInterval(notificationTimer);
         notificationTimer = null;
       }
+      window.closeNewsPage?.();
       renderAuthUI(null);
       updateViewState(false);
     }
@@ -7280,6 +7413,7 @@ html.withlog-dark #weatherPage .wx-footnote a { color:#cdb4ef; }
 
     // --- フィード切り替え ---
     window.switchFeedTab = function(tab) {
+      window.closeNewsPage?.();
       window.closeWeatherPage?.();
       window.closeIssTracker?.();
       currentFeedTab = tab;
@@ -10139,6 +10273,7 @@ document.addEventListener("DOMContentLoaded", function () {
   window.openIssTracker = function() {
     if (app.classList.contains('hidden')) return;
     window.closeWeatherPage?.();
+    window.closeNewsPage?.();
     if (!app.classList.contains('withlog-iss-active')) {
       previousSelectedTab = el('tabFollowing').classList.contains('border-b-2') ? 'following' : 'all';
     }
@@ -10466,6 +10601,7 @@ document.addEventListener("DOMContentLoaded", function () {
   window.openWeatherPage = () => {
     if (app.classList.contains('hidden')) return;
     window.closeIssTracker?.();
+    window.closeNewsPage?.();
     if (isOpen()) return;
     previousWeatherFeed = el('tabFollowing').classList.contains('border-b-2') ? 'following' : 'all';
     stop();
@@ -10502,5 +10638,200 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 })();
 </script>
+
+<script id="withlog-news-page-script">
+(() => {
+  'use strict';
+  const app = document.getElementById('appView');
+  const page = document.getElementById('newsPage');
+  const tab = document.getElementById('tabNews');
+  if (!app || !page || !tab) return;
+  const el = id => document.getElementById(id);
+  const isOpen = () => app.classList.contains('withlog-news-active') && !app.classList.contains('hidden');
+  let previousNewsFeed = 'all';
+  let selectedFilter = 'all';
+  let newsItems = [];
+  let fetchedAt = 0;
+  let request = null;
+  let timer = null;
+  const NEWS_RELOAD_MS = 10 * 60 * 1000;
+  const SECTIONS = [
+    {region:'jp',title:'🇯🇵 日本のニュース',label:'国内・主要ニュース'},
+    {region:'world',title:'🌍 海外の主要ニュース',label:'世界の動き'}
+  ];
+
+  function setStatus(message, error = false) {
+    const node = el('newsStatus');
+    node.textContent = message;
+    node.classList.toggle('is-error', error);
+  }
+
+  function timestamp(value) {
+    const d = new Date(value);
+    return Number.isFinite(d.getTime()) ? new Intl.DateTimeFormat('ja-JP', {
+      month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit', timeZone:'Asia/Tokyo'
+    }).format(d) : '日時不明';
+  }
+
+  function validArticleLink(value) {
+    try { const u = new URL(value); return u.protocol === 'https:' ? u.href : ''; }
+    catch (_) { return ''; }
+  }
+
+  function makeCard(item) {
+    const href = validArticleLink(item.url);
+    if (!href) return null;
+    const a = document.createElement('a');
+    a.className = 'news-card' + (item.region === 'world' ? ' is-world' : '');
+    a.href = href;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.setAttribute('aria-label', `${item.title}（${item.source || 'ニュース記事'}で読む）`);
+    const meta = document.createElement('div');
+    meta.className = 'news-card-meta';
+    const source = document.createElement('span');
+    source.className = 'news-card-source';
+    source.textContent = item.source || 'NEWS';
+    const time = document.createElement('time');
+    time.className = 'news-card-time';
+    if (item.published_at) time.dateTime = item.published_at;
+    time.textContent = timestamp(item.published_at);
+    meta.append(source,time);
+    const title = document.createElement('h4');
+    title.className = 'news-card-title';
+    title.textContent = item.title;
+    const read = document.createElement('span');
+    read.className = 'news-card-read';
+    read.textContent = '元の記事を読む  ↗';
+    a.append(meta,title,read);
+    return a;
+  }
+
+  function render() {
+    const root = el('newsContent');
+    root.replaceChildren();
+    const sections = SECTIONS.filter(group => selectedFilter === 'all' || group.region === selectedFilter);
+    let displayed = 0;
+    for (const group of sections) {
+      const section = document.createElement('section');
+      section.className = 'news-section';
+      const heading = document.createElement('div');
+      heading.className = 'news-section-heading';
+      const h3 = document.createElement('h3');
+      h3.textContent = group.title;
+      const label = document.createElement('span');
+      label.textContent = group.label;
+      heading.append(h3,label);
+      const list = document.createElement('div');
+      list.className = 'news-grid';
+      let count = 0;
+      for (const item of newsItems) {
+        if (item.region !== group.region) continue;
+        const card = makeCard(item);
+        if (!card) continue;
+        list.append(card);
+        count++;
+      }
+      if (count === 0) {
+        const empty = document.createElement('p');
+        empty.className = 'news-empty';
+        empty.textContent = '現在この地域のニュースを取得できません。時間をおいてもう一度お試しください。';
+        list.append(empty);
+      }
+      displayed += count;
+      section.append(heading,list);
+      root.append(section);
+    }
+    return displayed;
+  }
+
+  async function loadNews(force=false) {
+    if (!isOpen() || request) return;
+    if (!force && fetchedAt && Date.now() - fetchedAt < NEWS_RELOAD_MS) {
+      render(); return;
+    }
+    const controller = new AbortController();
+    request = controller;
+    el('newsRefreshBtn').disabled = true;
+    setStatus(newsItems.length ? 'ニュースを更新しています…' : '国内・海外の見出しを読み込んでいます…');
+    const timeout = window.setTimeout(() => controller.abort(), 16000);
+    try {
+      const response = await fetch('/api/news', {method:'GET',credentials:'same-origin',cache:'no-store',signal:controller.signal});
+      if (!response.ok) throw new Error('http:' + response.status);
+      const data = await response.json();
+      if (!isOpen() || controller.signal.aborted) return;
+      newsItems = Array.isArray(data.items) ? data.items.filter(i =>
+        (i.region === 'jp' || i.region === 'world') && typeof i.title === 'string' && typeof i.url === 'string'
+      ) : [];
+      fetchedAt = newsItems.length ? Date.now() : 0;
+      render();
+      const stamp = data.updated_at ? timestamp(data.updated_at) : timestamp(new Date().toISOString());
+      el('newsUpdated').textContent = `最終取得：${stamp}（日本時間）`;
+      const errors = (data.warnings || []).filter(Boolean);
+      const partial = errors.length > 0 || data.stale;
+      if (!newsItems.length) {
+        setStatus('現在ニュースを取得できません。少し時間をおいて更新してください。', true);
+      } else if (partial) {
+        setStatus('一部の配信元から取得できませんでした。取得済みの記事を表示しています。', false);
+      } else {
+        setStatus('最新の見出しを表示中 · 約10分ごとに更新します。');
+      }
+    } catch (err) {
+      if (!isOpen() || controller.signal.aborted && err.name === 'AbortError' && !isOpen()) return;
+      setStatus('ニュースの取得に失敗しました。通信を確認して更新してください。',true);
+      if (!newsItems.length) render();
+    } finally {
+      window.clearTimeout(timeout);
+      if (request === controller) request = null;
+      el('newsRefreshBtn').disabled = false;
+    }
+  }
+
+  window.openNewsPage = () => {
+    if (app.classList.contains('hidden')) return;
+    window.closeIssTracker?.();
+    window.closeWeatherPage?.();
+    if (isOpen()) return;
+    previousNewsFeed = el('tabFollowing').classList.contains('border-b-2') ? 'following' : 'all';
+    page.classList.remove('hidden');
+    page.setAttribute('aria-hidden','false');
+    app.classList.add('withlog-news-active');
+    tab.setAttribute('aria-current','page');
+    el('tabAll').classList.remove('border-b-2');
+    el('tabFollowing').classList.remove('border-b-2');
+    window.clearInterval(timer);
+    timer = window.setInterval(() => {
+      if (isOpen() && !document.hidden && Date.now() - fetchedAt >= NEWS_RELOAD_MS) loadNews();
+    }, 60 * 1000);
+    void loadNews();
+    tab.scrollIntoView({behavior:'smooth',inline:'nearest',block:'nearest'});
+  };
+  window.closeNewsPage = () => {
+    if (!isOpen() && page.classList.contains('hidden')) return;
+    if (request) request.abort();
+    request = null;
+    window.clearInterval(timer);
+    timer = null;
+    app.classList.remove('withlog-news-active');
+    page.classList.add('hidden');
+    page.setAttribute('aria-hidden','true');
+    tab.removeAttribute('aria-current');
+    (previousNewsFeed === 'following' ? el('tabFollowing') : el('tabAll')).classList.add('border-b-2');
+  };
+  el('newsRefreshBtn').addEventListener('click', () => void loadNews(true));
+  for (const button of page.querySelectorAll('[data-news-filter]')) {
+    button.addEventListener('click', () => {
+      selectedFilter = button.dataset.newsFilter;
+      for (const b of page.querySelectorAll('[data-news-filter]'))
+        b.setAttribute('aria-pressed', String(b === button));
+      render();
+    });
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && isOpen() && Date.now()-fetchedAt >= NEWS_RELOAD_MS) void loadNews();
+  });
+})();
+</script>
+
 </body>
 </html>

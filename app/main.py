@@ -2494,3 +2494,141 @@ async def youtube_music_search(q: str, limit: int = 10):
         )
 
     return {"items": items}
+
+
+# --- WITHLOG NEWS: read-only RSS headline aggregator (no API key required). ---
+# Always fetch fixed provider endpoints on the server: browsers cannot fetch RSS
+# directly across origins. No arbitrary URL or personal information is sent.
+import hashlib as _news_hashlib
+import urllib.request as _news_urlrequest
+import xml.etree.ElementTree as _news_etree
+from concurrent.futures import ThreadPoolExecutor as _NewsExecutor, as_completed as _news_completed
+from email.utils import parsedate_to_datetime as _news_parse_date
+from urllib.parse import urlsplit as _news_urlsplit
+
+_NEWS_FEEDS = {
+    "japan": ("https://news.web.nhk/n-data/conf/na/rss/cat0.xml", "NHK NEWS", "jp"),
+    "world_ja": ("https://news.web.nhk/n-data/conf/na/rss/cat6.xml", "NHK 国際", "world"),
+    "world_en": ("https://feeds.bbci.co.uk/news/world/rss.xml", "BBC News", "world"),
+}
+_NEWS_HOSTS = ("nhk.or.jp", "news.web.nhk", "bbc.co.uk", "bbc.com")
+_news_cache_lock = threading.Lock()
+_news_cache = {"payload": None, "expires": 0.0}
+
+
+def _news_safe_url(value: str) -> bool:
+    try:
+        parsed = _news_urlsplit(value.strip())
+        hostname = (parsed.hostname or "").lower()
+        return (parsed.scheme == "https" and
+                any(hostname == domain or hostname.endswith("." + domain)
+                    for domain in _NEWS_HOSTS))
+    except (ValueError, AttributeError):
+        return False
+
+
+def _news_feed_items(feed_key):
+    url, source, region = _NEWS_FEEDS[feed_key]
+    req = _news_urlrequest.Request(url, headers={
+        "User-Agent": "WITHLOG/1.0 (+RSS headline reader)",
+        "Accept": "application/rss+xml, application/xml, text/xml;q=0.9",
+    })
+    try:
+        with _news_urlrequest.urlopen(req, timeout=6) as response:
+            # Enforce a strict payload size: external RSS is untrusted data.
+            body = response.read(1500001)
+    except (OSError, ValueError):
+        # NHK operates both the newer NHK ONE feed and a legacy RSS endpoint.
+        # Try the latter only when the new feed cannot be reached.
+        if not url.startswith("https://news.web.nhk/n-data/conf/na/rss/"):
+            raise
+        legacy_url = url.replace("https://news.web.nhk/n-data/conf/na/rss/",
+                                 "https://www.nhk.or.jp/rss/news/", 1)
+        legacy_req = _news_urlrequest.Request(legacy_url, headers={
+            "User-Agent": "Mozilla/5.0 (compatible; WITHLOG RSS reader)",
+            "Accept": "application/rss+xml, application/xml, text/xml;q=0.9",
+        })
+        with _news_urlrequest.urlopen(legacy_req, timeout=6) as response:
+            body = response.read(1500001)
+    if len(body) > 1500000:
+        raise ValueError("RSS payload too large")
+    root = _news_etree.fromstring(body)
+    result = []
+    for item in root.findall("./channel/item")[:35]:
+        title = (item.findtext("title") or "").strip()[:250]
+        link = (item.findtext("link") or "").strip()
+        if not title or not _news_safe_url(link):
+            continue
+        published_at = None
+        try:
+            value = item.findtext("pubDate") or item.findtext("{http://purl.org/dc/elements/1.1/}date")
+            if value:
+                dt = _news_parse_date(value)
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                published_at = dt.astimezone(timezone.utc).isoformat()
+        except (ValueError, TypeError, OverflowError):
+            pass
+        result.append({
+            "id": _news_hashlib.sha256(link.encode("utf-8")).hexdigest()[:18],
+            "title": title,
+            "url": link,
+            "source": source,
+            "region": region,
+            "published_at": published_at,
+        })
+    return result
+
+
+@app.get("/api/news")
+def get_withlog_news():
+    """Recent Japanese headlines plus a small international digest. Cache 10m."""
+    now = time.monotonic()
+    with _news_cache_lock:
+        if _news_cache["payload"] is not None and now < _news_cache["expires"]:
+            return _news_cache["payload"]
+
+        found = {}
+        warnings = []
+        with _NewsExecutor(max_workers=3) as pool:
+            submitted = {pool.submit(_news_feed_items, key): key for key in _NEWS_FEEDS}
+            for future in _news_completed(submitted):
+                key = submitted[future]
+                try:
+                    found[key] = future.result()
+                    if not found[key]:
+                        warnings.append(key)
+                except Exception as exc:
+                    # Do not expose upstream HTML/error messages to the user.
+                    print(f"[News feed unavailable] {key}: {type(exc).__name__}", flush=True)
+                    found[key] = []
+                    warnings.append(key)
+
+        japanese = found.get("japan", [])
+        international_ja = found.get("world_ja", [])
+        international_en = found.get("world_en", [])
+        international_ids = {entry["id"] for entry in international_ja}
+        # NHK main headlines may overlap with its international feed.
+        japanese = [item for item in japanese if item["id"] not in international_ids]
+        japanese.sort(key=lambda item: item["published_at"] or "", reverse=True)
+        international_ja.sort(key=lambda item: item["published_at"] or "", reverse=True)
+        international_en.sort(key=lambda item: item["published_at"] or "", reverse=True)
+        # Prioritise Japanese-language international coverage; BBC adds viewpoint.
+        overseas = international_ja[:4] + international_en[:2]
+        items = japanese[:12] + overseas[:6]
+        payload = {
+            "items": items,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "warnings": warnings,
+            "stale": False,
+        }
+        # On provider downtime keep previously fetched real news rather than
+        # inventing headlines. Mark that response clearly as stale.
+        previous = _news_cache["payload"]
+        if not items and previous and previous.get("items"):
+            payload = dict(previous)
+            payload["stale"] = True
+            payload["warnings"] = list(set(warnings + previous.get("warnings", [])))
+        _news_cache["payload"] = payload
+        _news_cache["expires"] = time.monotonic() + (600 if items else 60)
+        return payload
