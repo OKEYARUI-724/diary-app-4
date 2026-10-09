@@ -4301,6 +4301,87 @@ html.withlog-dark #appView #withlogPrimaryActions :is(
   html #appView #withlogPrimaryActions button { transition: none !important; }
 }
 </style>
+
+<style id="withlog-iss-tracker-styles">
+/* ISS TRACKER - self-contained view, existing feed & nav remain untouched. */
+#appView.withlog-iss-active > main,
+#appView.withlog-iss-active > #storiesSection { display: none !important; }
+#issTrackerPage.hidden { display: none !important; }
+#issTrackerPage { flex: 1 0 auto; min-width: 0; padding: 14px 14px 42px; }
+#appView #tabISS { display: inline-flex; align-items: center; gap: 6px; min-height: 38px;
+  padding: 8px 15px !important; border: 0 !important; border-radius: 9999px !important;
+  background: #eee9f8 !important; color: #776889 !important; font-size: 11px; font-weight: 800; }
+#appView #tabISS svg { width: 15px; height: 15px; }
+#appView.withlog-iss-active #tabISS { background: linear-gradient(135deg,#8569d3,#cf7ea8) !important; color: #fff !important; }
+#appView.withlog-iss-active :is(#tabAll,#tabFollowing) { background: #f1ecf7 !important; color: #998da8 !important; }
+#issTrackerPage .iss-stage { overflow: hidden; position: relative; isolation: isolate; border-radius: 30px;
+  background: radial-gradient(circle at 84% 14%, rgba(133,115,205,.36), transparent 35%),
+    radial-gradient(circle at 2% 96%, rgba(81,138,185,.23), transparent 50%), #151a30;
+  color: #fff; border: 1px solid rgba(255,255,255,.14); }
+#issTrackerPage .iss-stage::before { content: ''; position: absolute; inset: 0; opacity: .45;
+  background-image: radial-gradient(1px 1px at 7% 14%,#fff 95%,transparent),radial-gradient(1px 1px at 71% 33%,#fff 95%,transparent),radial-gradient(1px 1px at 48% 15%,#fff 95%,transparent),radial-gradient(2px 2px at 87% 63%,#fff 95%,transparent),radial-gradient(1px 1px at 25% 70%,#fff 95%,transparent); pointer-events: none; }
+#issTrackerPage .iss-content { position: relative; z-index: 1; padding: 22px 20px 20px; }
+#issTrackerPage .iss-kicker { color: #c3b8fb; font-size: 10px; font-weight: 900; letter-spacing: .17em; }
+#issTrackerPage .iss-title { margin: 6px 0 5px; font-size: clamp(23px, 6vw, 31px); line-height: 1.2; font-weight: 900; letter-spacing: -.045em; }
+#issTrackerPage .iss-subtitle { color: #bec6d9; font-size: 11px; line-height: 1.7; }
+#issTrackerPage .iss-status { display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 11px; background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 999px; color: #e8ebfb; font-size: 10px; font-weight: 800; }
+#issTrackerPage .iss-dot { width: 7px; height: 7px; background: #f7ca8d; border-radius: 100%; }
+#issTrackerPage .iss-status.is-live .iss-dot { background: #76e1b6; box-shadow: 0 0 0 4px rgba(118,225,182,.13) !important; }
+#issTrackerPage .iss-metrics { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; margin-top: 19px; }
+#issTrackerPage .iss-metric { min-width: 0; padding: 13px 14px 12px; border-radius: 19px;
+  background: rgba(255,255,255,.075); border: 1px solid rgba(255,255,255,.11); }
+#issTrackerPage .iss-metric-label { display: block; font-size: 9px; color: #b9bdd6; letter-spacing: .1em; font-weight: 850; }
+#issTrackerPage .iss-metric-value { display: block; margin-top: 5px; font-size: clamp(15px,4vw,20px); font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; white-space: nowrap; }
+#issTrackerPage .iss-metric-value small { font-size: 10px; font-weight: 700; color: #bdc3db; }
+#issTrackerPage .iss-updated { margin: 13px 0 0; color: #a9b0ca; font-size: 10px; }
+#issTrackerPage .iss-map-card { overflow: hidden; margin-top: 15px; background: #fffdfc;
+  border: 1px solid #e7e0ee; border-radius: 26px; }
+#issTrackerPage .iss-map-head { display: flex; justify-content: space-between; align-items: center; gap: 9px;
+  padding: 17px 16px 13px; }
+#issTrackerPage .iss-map-title { font-size: 12px; font-weight: 900; color: #44375f; letter-spacing: .04em; }
+#issTrackerPage .iss-map-desc { margin-top: 2px; font-size: 10px; line-height: 1.5; color: #9389a5; }
+#issTrackerPage .iss-map-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+#issTrackerPage .iss-tool { flex: 0 0 auto; border: 0 !important; padding: 8px 11px;
+  border-radius: 999px !important; background: #ede6fc !important; color: #675291 !important;
+  font-size: 10px; font-weight: 900; }
+#issTrackerPage .iss-tool[aria-pressed="true"] { background: #7e65bb !important; color: #fff !important; }
+#issTrackerPage #issMap { width: 100%; height: 310px; background: #17233a; z-index: 0; }
+#issTrackerPage .iss-map-marker { display: grid; place-items: center; width: 42px; height: 42px;
+  border-radius: 50%; background: linear-gradient(135deg,#f4efff,#f7c6db); color: #5b4390;
+  border: 3px solid rgba(255,255,255,.95); font-size: 22px; }
+#issTrackerPage .iss-map-foot { padding: 12px 16px 15px; background: #fffdfc; }
+#issTrackerPage .iss-map-foot p { color: #867c92; font-size: 10px; line-height: 1.8; }
+#issTrackerPage .iss-map-foot a { color: #7962af; text-decoration: underline; text-underline-offset: 2px; }
+#issTrackerPage .leaflet-container { font-family: 'Plus Jakarta Sans','Noto Sans JP',sans-serif; }
+#issTrackerPage .leaflet-tile { filter: none !important; }
+#issTrackerPage .leaflet-control-attribution { font-size: 9px !important; }
+#issTrackerPage .iss-error { color: #be607d; font-weight: 800; }
+html.withlog-dark #appView #tabISS { background: #373443 !important; color: #b8abcf !important; }
+html.withlog-dark #appView.withlog-iss-active #tabISS { background: linear-gradient(135deg,#6655a5,#a05b80) !important; color: #fff !important; }
+html.withlog-dark #appView.withlog-iss-active :is(#tabAll,#tabFollowing) { background: #303138 !important; color: #aaa5b3 !important; }
+html.withlog-dark #issTrackerPage .iss-map-card,
+html.withlog-dark #issTrackerPage .iss-map-foot { background: #2b2c33 !important; border-color: #464351 !important; }
+html.withlog-dark #issTrackerPage .iss-map-title { color: #f0eafa !important; }
+html.withlog-dark #issTrackerPage .iss-map-desc,
+html.withlog-dark #issTrackerPage .iss-map-foot p { color: #b6adc3 !important; }
+html.withlog-dark #issTrackerPage .iss-tool { background: #423953 !important; color: #d3bde9 !important; }
+html.withlog-dark #issTrackerPage .iss-tool[aria-pressed="true"] { background: #7b64b9 !important; color: #fff !important; }
+html.withlog-dark #issTrackerPage .iss-error { color: #ffb1bf !important; }
+@media (min-width:641px) { #appView:has(#issTrackerPage:not(.hidden)) { max-width: 760px !important; }
+  #issTrackerPage { padding: 20px 24px 50px; } #issTrackerPage #issMap { height: 380px; }
+  #issTrackerPage .iss-metrics { grid-template-columns: repeat(4,minmax(0,1fr)); }
+}
+@media (max-width: 360px) { #issTrackerPage { padding: 10px 9px 24px; }
+  #issTrackerPage .iss-content { padding: 18px 14px; }
+  #issTrackerPage .iss-map-head { flex-direction: column; align-items: flex-start; }
+  #issTrackerPage .iss-map-tools { align-self: stretch; }
+  #issTrackerPage .iss-tool { flex: 1 1 0; }
+  #appView #tabISS { padding-left: 10px !important; padding-right: 10px !important; }
+}
+@media (prefers-reduced-motion: reduce) { #issTrackerPage * { scroll-behavior: auto !important; } }
+</style>
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -4415,6 +4496,9 @@ html.withlog-dark #appView #withlogPrimaryActions :is(
     <div class="px-4 pt-3 flex items-center gap-4 text-xs font-bold tracking-wider border-b border-slate-200">
       <button id="tabAll" onclick="switchFeedTab('all')" class="pb-2 text-slate-900 border-b-2 border-slate-900">ALL</button>
       <button id="tabFollowing" onclick="switchFeedTab('following')" class="pb-2 text-slate-400 hover:text-slate-700">FOLLOWING</button>
+      <button id="tabISS" type="button" onclick="openIssTracker()" aria-label="ISS TRACKER ページを開く">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M8 10l6 6M5 14l5 5M14 5l5 5M10 3l11 11-7 7L3 10l7-7z" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg> ISS
+      </button>
     </div>
 
     <!-- フォロー中ストーリーバー -->
@@ -4445,6 +4529,43 @@ html.withlog-dark #appView #withlogPrimaryActions :is(
         <p class="text-center text-xs text-slate-400 py-12 tracking-widest uppercase font-medium">Loading...</p>
       </div>
     </main>
+
+    <!-- 独立したISS追跡ページ：フィードと切り替えて表示 -->
+    <section id="issTrackerPage" class="hidden" aria-label="ISS TRACKER 国際宇宙ステーション追跡" aria-hidden="true">
+      <div class="iss-stage">
+        <div class="iss-content">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <span class="iss-kicker">WITHLOG / SPACE</span>
+            <span class="iss-status" id="issLiveStatus" role="status"><span class="iss-dot" aria-hidden="true"></span><span id="issLiveStatusText">接続待機中</span></span>
+          </div>
+          <h2 class="iss-title">ISS TRACKER <span aria-hidden="true">🛰️</span></h2>
+          <p class="iss-subtitle">国際宇宙ステーションの現在位置をリアルタイムで追跡。</p>
+          <div class="iss-metrics">
+            <div class="iss-metric"><span class="iss-metric-label">ALTITUDE / 高度</span><span class="iss-metric-value" id="issAltitude">-- <small>km</small></span></div>
+            <div class="iss-metric"><span class="iss-metric-label">SPEED / 速度</span><span class="iss-metric-value" id="issSpeed">-- <small>km/h</small></span></div>
+            <div class="iss-metric"><span class="iss-metric-label">LATITUDE / 緯度</span><span class="iss-metric-value" id="issLatitude">--</span></div>
+            <div class="iss-metric"><span class="iss-metric-label">LONGITUDE / 経度</span><span class="iss-metric-value" id="issLongitude">--</span></div>
+          </div>
+          <p id="issUpdatedAt" class="iss-updated" aria-live="polite">データを読み込んでいます…</p>
+          <p id="issSunlight" class="iss-updated">☀︎ 日照状況：--</p>
+        </div>
+      </div>
+      <div class="iss-map-card">
+        <div class="iss-map-head">
+          <div><h3 class="iss-map-title">LIVE ORBIT MAP</h3><p class="iss-map-desc">地図上のマーカーはISSの地表直下点です</p></div>
+          <div class="iss-map-tools">
+            <button id="issFollowBtn" class="iss-tool" type="button" aria-pressed="true" title="ISSに地図を追従させる">追従 ON</button>
+            <button id="issRefreshBtn" class="iss-tool" type="button" title="ISSの現在位置を再取得">↻ 更新</button>
+          </div>
+        </div>
+        <div id="issMap" role="region" aria-label="ISSの現在位置を示す世界地図"></div>
+        <div class="iss-map-foot">
+          <p id="issMapMessage">15秒ごとに自動更新します。点線はこの画面を開いてからの移動履歴です。</p>
+          <p>※「日照状況」はISSが日光を浴びているかどうかです。地上から肉眼で見えるかの予報ではありません。</p>
+          <p>Position data: <a href="https://wheretheiss.at/w/developer" target="_blank" rel="noopener noreferrer">Where the ISS at?</a></p>
+        </div>
+      </div>
+    </section>
 
     <!-- ユーザーID検索モーダル -->
     <div id="userSearchModal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
@@ -5158,6 +5279,7 @@ html.withlog-dark #appView #withlogPrimaryActions :is(
     }
 
     function clearSignedInState() {
+      window.closeIssTracker?.();
       ++feedRequestSerial;
       ++privacyRequestSerial;
       savedPrivacy = null;
@@ -6953,6 +7075,7 @@ html.withlog-dark #appView #withlogPrimaryActions :is(
 
     // --- フィード切り替え ---
     window.switchFeedTab = function(tab) {
+      window.closeIssTracker?.();
       currentFeedTab = tab;
       currentFeedUsername = '';
       document.getElementById('profileFeedBanner').classList.add('hidden');
@@ -8087,6 +8210,7 @@ html.withlog-dark #appView #withlogPrimaryActions :is(
 
     window.viewCurrentProfilePosts = function() {
       if (!currentProfileUsername) return;
+      window.closeIssTracker?.();
       const name = currentProfileUsername;
       closeProfileModal();
       currentFeedTab = 'user';
@@ -9531,6 +9655,200 @@ document.addEventListener("DOMContentLoaded", function () {
       else overlay.focus({ preventScroll: true });
     }
   }, true);
+})();
+</script>
+
+<script id="withlog-iss-tracker-script">
+(() => {
+  'use strict';
+  const apiUrl = 'https://api.wheretheiss.at/v1/satellites/25544';
+  const page = document.getElementById('issTrackerPage');
+  const app = document.getElementById('appView');
+  const tabISS = document.getElementById('tabISS');
+  const followBtn = document.getElementById('issFollowBtn');
+  const refreshBtn = document.getElementById('issRefreshBtn');
+  if (!page || !app || !tabISS || !followBtn || !refreshBtn) return;
+
+  let map = null;
+  let marker = null;
+  let tracks = null;
+  let samples = [];
+  let follow = true;
+  let timer = null;
+  let controller = null;
+  let loading = false;
+  let lastFetchTime = 0;
+  let latestPosition = null;
+  let previousSelectedTab = 'all';
+
+  const el = id => document.getElementById(id);
+  const visible = () => app.classList.contains('withlog-iss-active') && !app.classList.contains('hidden') && !document.hidden;
+  const formatter = new Intl.NumberFormat('ja-JP', {maximumFractionDigits: 0});
+
+  function status(text, online = false) {
+    el('issLiveStatusText').textContent = text;
+    el('issLiveStatus').classList.toggle('is-live', online);
+  }
+
+  function initializeMap() {
+    if (map) { window.setTimeout(() => map.invalidateSize(), 80); return; }
+    if (typeof L === 'undefined') {
+      el('issMapMessage').textContent = '地図ライブラリを読み込めませんでした。ネットワークを確認してください。';
+      return;
+    }
+    map = L.map('issMap', {zoomControl: true, worldCopyJump: true, minZoom: 1, maxZoom: 11}).setView([15, 0], 2);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO', maxZoom: 11,
+      subdomains: 'abcd', detectRetina: false
+    }).addTo(map);
+    tracks = L.layerGroup().addTo(map);
+    const icon = L.divIcon({
+      className: '', iconSize: [42, 42], iconAnchor: [21, 21],
+      html: '<span class="iss-map-marker" aria-label="ISS">🛰</span>'
+    });
+    marker = L.marker([0, 0], {icon, zIndexOffset: 900, keyboard: false}).addTo(map);
+    marker.setOpacity(0);
+    map.on('dragstart zoomstart', () => { follow = false; syncFollow(); });
+  }
+
+  function syncFollow() {
+    followBtn.textContent = follow ? '追従 ON' : '追従 OFF';
+    followBtn.setAttribute('aria-pressed', String(follow));
+  }
+
+  function drawTrail() {
+    if (!tracks || typeof L === 'undefined') return;
+    tracks.clearLayers();
+    let segment = [];
+    const segments = [];
+    for (const p of samples) {
+      if (segment.length && Math.abs(p[1] - segment[segment.length - 1][1]) > 180) {
+        if (segment.length > 1) segments.push(segment);
+        segment = [];
+      }
+      segment.push(p);
+    }
+    if (segment.length > 1) segments.push(segment);
+    segments.forEach(points => L.polyline(points, {color:'#d7a5fa', weight:2.5, opacity:.80, dashArray:'5 8'}).addTo(tracks));
+  }
+
+  function updateDisplay(payload) {
+    const lat = Number(payload.latitude);
+    const lng = Number(payload.longitude);
+    const alt = Number(payload.altitude);
+    const speed = Number(payload.velocity);
+    const t = Number(payload.timestamp);
+    if (![lat,lng,alt,speed,t].every(Number.isFinite) || lat < -90 || lat > 90 || lng < -180 || lng > 180 || t <= 0) {
+      throw new Error('ISS位置データが正しくありません。');
+    }
+    el('issAltitude').innerHTML = `${formatter.format(alt)} <small>km</small>`;
+    el('issSpeed').innerHTML = `${formatter.format(speed)} <small>km/h</small>`;
+    el('issLatitude').textContent = `${Math.abs(lat).toFixed(2)}° ${lat >= 0 ? 'N' : 'S'}`;
+    el('issLongitude').textContent = `${Math.abs(lng).toFixed(2)}° ${lng >= 0 ? 'E' : 'W'}`;
+    const time = new Date(t * 1000);
+    el('issUpdatedAt').textContent = `データ時刻：${time.toLocaleString('ja-JP',{timeZone:'Asia/Tokyo',hour12:false})} (JST)`;
+    const sunlight = payload.visibility === 'daylight' ? '☀️ ISSは日光を浴びています'
+      : payload.visibility === 'eclipsed' ? '🌙 ISSは地球の影に入っています' : '日照状況：取得できません';
+    el('issSunlight').textContent = sunlight;
+    const unique = !latestPosition || latestPosition.timestamp !== t;
+    latestPosition = {lat, lng, timestamp:t};
+    if (!map) return;
+    marker.setLatLng([lat, lng]).setOpacity(1).bindPopup('🛰 ISS 現在の地表直下点');
+    if (unique) {
+      samples.push([lat,lng]);
+      if (samples.length > 90) samples.shift();
+      drawTrail();
+    }
+    if (follow) {
+      if (samples.length === 1) map.setView([lat,lng], Math.max(map.getZoom(),3), {animate:false});
+      else map.panTo([lat,lng], {animate:false});
+    }
+  }
+
+  async function poll(force = false) {
+    if (!visible() || loading) return;
+    if (Date.now() - lastFetchTime < 4500) return;
+    if (!force && document.visibilityState === 'hidden') return;
+    loading = true;
+    lastFetchTime = Date.now();
+    controller = new AbortController();
+    const signal = controller.signal;
+    const timeoutId = window.setTimeout(() => controller.abort(), 12000);
+    status(latestPosition ? '位置を更新中…' : 'ISSに接続中…');
+    try {
+      const response = await fetch(apiUrl, {signal,cache:'no-store'});
+      if (!response.ok) throw new Error(`API HTTP ${response.status}`);
+      const data = await response.json();
+      if (signal.aborted || !visible()) return;
+      updateDisplay(data);
+      status('LIVE · 15秒ごとに更新', true);
+      el('issMapMessage').textContent = '位置データを15秒ごとに自動更新中。点線はこの画面を開いてからの履歴です。';
+    } catch (error) {
+      if (signal.aborted || !visible()) return;
+      status('接続を確認してください');
+      const message = el('issMapMessage');
+      message.replaceChildren();
+      const span = document.createElement('span');
+      span.className = 'iss-error';
+      span.textContent = 'ISSの位置情報を取得できませんでした。通信状況を確認し「更新」を押してください。';
+      message.append(span);
+    } finally {
+      window.clearTimeout(timeoutId);
+      loading = false;
+      if (controller && controller.signal === signal) controller = null;
+    }
+  }
+
+  function stop() {
+    if (timer) window.clearInterval(timer);
+    timer = null;
+    if (controller) controller.abort();
+    controller = null;
+  }
+
+  window.openIssTracker = function() {
+    if (app.classList.contains('hidden')) return;
+    if (!app.classList.contains('withlog-iss-active')) {
+      previousSelectedTab = el('tabFollowing').classList.contains('border-b-2') ? 'following' : 'all';
+    }
+    page.classList.remove('hidden');
+    page.setAttribute('aria-hidden', 'false');
+    app.classList.add('withlog-iss-active');
+    tabISS.setAttribute('aria-current','page');
+    el('tabAll').classList.remove('border-b-2');
+    el('tabFollowing').classList.remove('border-b-2');
+    initializeMap();
+    syncFollow();
+    stop();
+    if (visible()) poll(true);
+    timer = window.setInterval(() => { if (visible()) poll(); }, 15000);
+    window.scrollTo({top:0,behavior:'auto'});
+  };
+
+  window.closeIssTracker = function() {
+    stop();
+    app.classList.remove('withlog-iss-active');
+    page.classList.add('hidden');
+    page.setAttribute('aria-hidden','true');
+    tabISS.removeAttribute('aria-current');
+    // Rebuild the highlighted home tab when returning to the feed.
+    (previousSelectedTab === 'following' ? el('tabFollowing') : el('tabAll')).classList.add('border-b-2');
+  };
+
+  followBtn.addEventListener('click', () => {
+    follow = !follow;
+    syncFollow();
+    if (follow && map && latestPosition) map.setView([latestPosition.lat, latestPosition.lng], Math.max(3, map.getZoom()));
+  });
+  refreshBtn.addEventListener('click', () => poll(true));
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      if (controller) controller.abort();
+    } else if (app.classList.contains('withlog-iss-active')) {
+      initializeMap();
+      poll(true);
+    }
+  });
 })();
 </script>
 </body>
