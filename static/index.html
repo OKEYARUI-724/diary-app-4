@@ -5326,6 +5326,132 @@ html.withlog-dark #profileActionContainer .withlog-edit-profile-button {
 }
 </style>
 
+
+<style id="withlog-flight-tracker-styles">
+/* Dedicated FLIGHTS view - no changes to existing feeds. */
+#appView.withlog-flights-active > main,
+#appView.withlog-flights-active > #storiesSection {display:none!important}
+#flightsPage.hidden {display:none!important}
+#flightsPage {flex:1 0 auto;min-width:0;padding:16px 14px 52px;color:#40354c}
+#appView #tabFlights {display:inline-flex;align-items:center;gap:6px;padding:8px 15px!important}
+#appView #tabFlights svg {width:16px;height:16px;flex:0 0 auto}
+#appView :is(#tabAll,#tabFollowing,#tabISS,#tabFlights,#tabWeather,#tabNews) {
+ min-height:38px!important;border:0!important;border-radius:9999px!important;
+ background:#f1ecf7!important;color:#998da8!important;font-size:11px!important;
+ font-weight:750!important;white-space:nowrap;transition:transform .16s ease!important
+}
+#appView :is(#tabAll,#tabFollowing).border-b-2,
+#appView.withlog-iss-active #tabISS,
+#appView.withlog-flights-active #tabFlights,
+#appView.withlog-weather-active #tabWeather,
+#appView.withlog-news-active #tabNews {
+ background:linear-gradient(135deg,#8569d3,#cf7ea8)!important;color:#fff!important;font-weight:800!important
+}
+html.withlog-dark #appView :is(#tabAll,#tabFollowing,#tabISS,#tabFlights,#tabWeather,#tabNews) {
+ background:#303138!important;color:#aaa5b3!important
+}
+html.withlog-dark #appView :is(#tabAll,#tabFollowing).border-b-2,
+html.withlog-dark #appView.withlog-iss-active #tabISS,
+html.withlog-dark #appView.withlog-flights-active #tabFlights,
+html.withlog-dark #appView.withlog-weather-active #tabWeather,
+html.withlog-dark #appView.withlog-news-active #tabNews {
+ background:linear-gradient(135deg,#6655a5,#a05b80)!important;color:#fff!important
+}
+#appView.withlog-flights-active :is(#tabAll,#tabFollowing,#tabISS,#tabWeather,#tabNews) {background:#f1ecf7!important;color:#998da8!important}
+html.withlog-dark #appView.withlog-flights-active :is(#tabAll,#tabFollowing,#tabISS,#tabWeather,#tabNews) {background:#303138!important;color:#aaa5b3!important}
+#appView #tabFlights:focus-visible {outline:2px solid #8569d3!important;outline-offset:3px}
+#flightsPage .flights-hero {position:relative;overflow:hidden;padding:24px 22px 20px;border-radius:30px;
+ background:radial-gradient(circle at 93% 7%,rgba(255,255,255,.68),transparent 31%),linear-gradient(132deg,#e6e1fa 0%,#f4e6f2 52%,#fbe9dd 100%)}
+#flightsPage .flights-head {display:flex;align-items:center;justify-content:space-between;gap:9px;flex-wrap:wrap}
+#flightsPage .flights-eyebrow {font-size:10px;font-weight:900;letter-spacing:.14em;color:#81699a}
+#flightsPage .flights-live {font-size:10px;font-weight:800;border-radius:100px;padding:7px 10px;color:#66517e;background:rgba(255,255,255,.69)}
+#flightsPage .flights-live::before {content:'';display:inline-block;width:7px;height:7px;margin-right:7px;border-radius:50%;background:#4dad96}
+#flightsPage .flights-title {font-size:clamp(25px,5vw,35px);letter-spacing:-.045em;font-weight:900;line-height:1.2;margin:11px 0 7px;color:#38304d}
+#flightsPage .flights-lead {font-size:11px;line-height:1.8;color:#756681}
+#flightsPage .flights-stats {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:19px}
+#flightsPage .flights-stat {background:rgba(255,255,255,.66);border:1px solid rgba(255,255,255,.72);border-radius:18px;padding:13px 12px;min-width:0}
+#flightsPage .flights-stat span {display:block;font-size:9px;font-weight:800;letter-spacing:.07em;color:#887896}
+#flightsPage .flights-stat strong {display:block;font-size:22px;font-weight:900;margin-top:4px;color:#49395e;overflow-wrap:anywhere}
+#flightsPage .flights-location {display:flex;gap:9px;overflow-x:auto;padding:13px 0 5px;scrollbar-width:thin}
+#flightsPage .flight-region {border:0;flex:0 0 auto;border-radius:999px;padding:10px 14px;min-height:40px;
+ background:#f0ebf6;color:#8a7b9a;font-weight:850;font-size:11px}
+#flightsPage .flight-region[aria-pressed="true"] {background:linear-gradient(135deg,#8569d3,#c37ba8);color:#fff}
+#flightsPage .flight-region:focus-visible, #flightsPage .flight-tool:focus-visible, #flightsPage .flight-row:focus-visible {
+ outline:2px solid #9674d4;outline-offset:3px}
+#flightsPage .flights-map-card {background:#fffafc;border:1px solid #e4ddeb;border-radius:28px;overflow:hidden;margin-top:8px}
+#flightsPage .flights-map-top {display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:15px 16px}
+#flightsPage .flights-map-title {font-size:13px;font-weight:900;color:#483a58}
+#flightsPage .flights-map-hint {font-size:10px;color:#9286a1;margin-top:3px}
+#flightsPage .flight-tool {border:0;border-radius:999px;background:#eee8f8;color:#765d9f;font-size:10px;font-weight:800;padding:9px 13px;min-height:38px}
+#flightsPage .flight-tool:disabled {opacity:.6;cursor:wait}
+#flightsMap {height:370px;width:100%;background:#e5eaf0;z-index:1}
+#flightsPage .leaflet-container {font-family:'Plus Jakarta Sans','Noto Sans JP',sans-serif}
+#flightsPage .flight-marker {display:grid;place-items:center;width:29px;height:29px;border-radius:50%;background:rgba(255,255,255,.88);
+ border:1px solid #d7c9ed;box-shadow:0 1px 4px rgba(32,22,61,.17)}
+#flightsPage .flight-marker svg {width:18px;height:18px;display:block;fill:#795db4}
+#flightsPage .flight-marker.selected {background:#8368c0;border:2px solid white}
+#flightsPage .flight-marker.selected svg {fill:white}
+#flightsPage .flights-map-foot {padding:12px 16px;font-size:10px;line-height:1.7;color:#80728b}
+#flightsPage .flights-status {min-height:16px;font-size:11px;color:#786689;line-height:1.7;margin:10px 3px}
+#flightsPage .flights-status.is-error {color:#b44f6a}
+#flightsPage .flights-detail {background:rgba(255,255,255,.83);border:1px solid #e7dfec;border-radius:22px;padding:15px 17px;margin-top:13px}
+#flightsPage .flights-detail.hidden {display:none!important}
+#flightsPage .flights-detail-title {font-size:16px;font-weight:900;color:#4d3a63}
+#flightsPage .flights-detail-sub {font-size:10px;color:#8b7b97;line-height:1.8;margin:4px 0 10px}
+#flightsPage .flights-detail-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#flightsPage .flights-detail-grid div {background:#f4eff8;border-radius:13px;padding:9px;min-width:0}
+#flightsPage .flights-detail-grid span {display:block;font-size:9px;font-weight:750;color:#978ba0}
+#flightsPage .flights-detail-grid strong {display:block;font-size:12px;font-weight:850;margin-top:4px;color:#514465;overflow-wrap:anywhere}
+#flightsPage .flights-list-panel {margin-top:13px;border-radius:25px;padding:16px;background:rgba(255,255,255,.75);border:1px solid #e8e2eb}
+#flightsPage .flights-list-header {display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}
+#flightsPage .flights-list-heading {font-size:13px;font-weight:900;color:#4c3a5b}
+#flightsPage .flights-search {min-width:0;width:min(220px,100%);border:1px solid #e4dbea!important;background:#f5f0fa!important;
+ border-radius:999px!important;padding:10px 14px!important;font-size:12px!important;color:#4a3b5d!important}
+#flightsPage .flights-rows {display:grid;gap:7px}
+#flightsPage .flight-row {width:100%;display:flex;gap:12px;align-items:center;text-align:left;padding:11px 12px;
+ background:#f5f1f8;border:1px solid transparent;border-radius:17px;color:inherit;min-width:0}
+#flightsPage .flight-row:hover {background:#eee6f4}
+#flightsPage .flight-row.is-selected {border-color:#bb9bdf;background:#ede5f8}
+#flightsPage .flight-row-icon {width:33px;height:33px;border-radius:50%;display:grid;place-items:center;background:#e5dbf4;color:#775db2;font-size:17px;flex:0 0 33px}
+#flightsPage .flight-row-meta {flex:1;min-width:0}
+#flightsPage .flight-row-meta strong {font-size:12px;color:#443451;font-weight:900;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#flightsPage .flight-row-meta small {font-size:10px;color:#8f8299;display:block;margin-top:3px}
+#flightsPage .flight-row-distance {font-size:10px;color:#816c9d;white-space:nowrap;font-weight:800}
+#flightsPage .flights-empty {padding:20px 13px;font-size:11px;line-height:1.8;color:#8b7d94;text-align:center}
+#flightsPage .flights-source {margin:15px 3px 0;font-size:10px;line-height:1.8;color:#85798e}
+#flightsPage .flights-source a {color:#8065b5;text-decoration:underline;text-underline-offset:2px}
+@media(min-width:641px) {#flightsPage {padding:20px 24px 54px}#flightsMap {height:390px}}
+@media(max-width:560px) {#flightsPage {padding:12px 10px 42px}#flightsPage .flights-hero {padding:20px 17px}
+ #flightsMap {height:295px}#flightsPage .flights-stats {gap:6px}#flightsPage .flights-stat {padding:10px 8px}
+ #flightsPage .flights-stat strong {font-size:19px}#flightsPage .flights-detail-grid {grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:340px) {#flightsPage .flights-map-top {align-items:flex-start}#flightsPage .flights-map-title {font-size:12px}}
+html.withlog-dark #flightsPage {color:#ece5f3}
+html.withlog-dark #flightsPage .flights-hero {background:linear-gradient(130deg,#373249,#443444 57%,#4b393d)}
+html.withlog-dark #flightsPage .flights-title {color:#faf1fe}
+html.withlog-dark #flightsPage .flights-eyebrow,html.withlog-dark #flightsPage .flights-lead {color:#cfbadd}
+html.withlog-dark #flightsPage .flights-live {background:#55465b;color:#e4d6eb}
+html.withlog-dark #flightsPage .flights-stat {background:#443c50;border-color:#62516b}
+html.withlog-dark #flightsPage .flights-stat span {color:#bbaace}
+html.withlog-dark #flightsPage .flights-stat strong {color:#f4eafa}
+html.withlog-dark #flightsPage .flight-region,html.withlog-dark #flightsPage .flight-tool {background:#37333f;color:#bfb1ce}
+html.withlog-dark #flightsPage .flight-region[aria-pressed="true"] {background:linear-gradient(135deg,#6655a5,#a05b80);color:white}
+html.withlog-dark #flightsPage .flights-map-card,html.withlog-dark #flightsPage .flights-detail,
+html.withlog-dark #flightsPage .flights-list-panel {background:#2f2d37;border-color:#4e4559}
+html.withlog-dark #flightsPage .flights-map-title,html.withlog-dark #flightsPage .flights-list-heading,
+html.withlog-dark #flightsPage .flights-detail-title {color:#f4eafa}
+html.withlog-dark #flightsPage .flights-map-hint,html.withlog-dark #flightsPage .flights-map-foot,
+html.withlog-dark #flightsPage .flights-detail-sub,html.withlog-dark #flightsPage .flights-status,
+html.withlog-dark #flightsPage .flights-source {color:#bfb2c8}
+html.withlog-dark #flightsPage .flights-detail-grid div,html.withlog-dark #flightsPage .flight-row {background:#3b3543}
+html.withlog-dark #flightsPage .flights-detail-grid strong,html.withlog-dark #flightsPage .flight-row-meta strong {color:#f3e7f9}
+html.withlog-dark #flightsPage .flight-row-meta small,html.withlog-dark #flightsPage .flights-detail-grid span {color:#baacc6}
+html.withlog-dark #flightsPage .flight-row.is-selected {background:#514263;border-color:#7e619f}
+html.withlog-dark #flightsPage .flight-row-icon {background:#594a69;color:#f3e0fc}
+html.withlog-dark #flightsPage .flights-search {background:#3d3645!important;border-color:#574e63!important;color:#f3ebf8!important}
+html.withlog-dark #flightsPage .flight-row-distance {color:#d4bbe9}
+html.withlog-dark #flightsPage .leaflet-tile {filter:brightness(.74) saturate(.78)!important}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -5443,6 +5569,9 @@ html.withlog-dark #profileActionContainer .withlog-edit-profile-button {
       <button id="tabISS" type="button" onclick="openIssTracker()" aria-label="ISS TRACKER ページを開く">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M8 10l6 6M5 14l5 5M14 5l5 5M10 3l11 11-7 7L3 10l7-7z" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg> ISS
       </button>
+      <button id="tabFlights" type="button" onclick="openFlightTracker()" aria-label="航空機の現在位置を開く">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="m3 11 8.1 1.4 3.5-8.3a1.7 1.7 0 0 1 2.8-.5 1.6 1.6 0 0 1 .4 1.5l-1.9 8.9 5.1 3.7-1 2-6.1-2-4.5 3-.9-1.9 3.3-4.6L3.5 13z" stroke-width="1.7" stroke-linejoin="round"/></svg> FLIGHTS
+      </button>
       <button id="tabWeather" type="button" onclick="openWeatherPage()" aria-label="現在地の天気ページを開く">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><circle cx="8" cy="8" r="3" stroke-width="1.6"/><path d="M13 11a5 5 0 0 1 1.5-.2c3.3 0 5.5 2.2 5.5 4.9 0 2.1-1.6 3.8-3.8 3.8H8.8C6.6 19.5 5 18 5 16c0-1.9 1.5-3.4 3.3-3.6M8 1.5v1.5m-6 5h1.5m9-4 1.1-1.1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg> WEATHER
       </button>
@@ -5530,6 +5659,50 @@ html.withlog-dark #profileActionContainer .withlog-edit-profile-button {
           <p>Position data: <a href="https://wheretheiss.at/w/developer" target="_blank" rel="noopener noreferrer">Where the ISS at?</a></p>
         </div>
       </div>
+    </section>
+
+
+    <!-- FLIGHT TRACKER: nearby observed ADS-B positions, not flight schedules. -->
+    <section id="flightsPage" class="hidden" aria-label="FLIGHTS 航空機ライブマップ" aria-hidden="true">
+      <div class="flights-hero">
+        <div class="flights-head"><span class="flights-eyebrow">WITHLOG / AVIATION</span><span class="flights-live">LIVE POSITION DATA</span></div>
+        <h2 class="flights-title">FLIGHT TRACKER <span aria-hidden="true">✈</span></h2>
+        <p class="flights-lead">空の上を飛ぶ航空機を、地図で見つけよう。便名や機体の高度・速度を確認できます。</p>
+        <div class="flights-stats">
+          <div class="flights-stat"><span>TRACKED / 検出数</span><strong id="flightsCount">--</strong></div>
+          <div class="flights-stat"><span>AIRBORNE / 飛行中</span><strong id="flightsAirborne">--</strong></div>
+          <div class="flights-stat"><span>UPDATED / 更新</span><strong id="flightsUpdated">--:--</strong></div>
+        </div>
+      </div>
+      <div class="flights-location" aria-label="航空機を探す地域">
+        <button type="button" class="flight-region" data-flight-region="tokyo" aria-pressed="true">東京</button>
+        <button type="button" class="flight-region" data-flight-region="osaka" aria-pressed="false">大阪</button>
+        <button type="button" class="flight-region" data-flight-region="chitose" aria-pressed="false">新千歳</button>
+        <button type="button" class="flight-region" data-flight-region="seoul" aria-pressed="false">ソウル</button>
+        <button type="button" class="flight-region" data-flight-region="busan" aria-pressed="false">釜山</button>
+        <button type="button" class="flight-region" data-flight-region="okinawa" aria-pressed="false">沖縄</button>
+      </div>
+      <div class="flights-map-card">
+        <div class="flights-map-top">
+          <div><h3 class="flights-map-title" id="flightsMapTitle">TOKYO / AIR TRAFFIC</h3><p class="flights-map-hint">航空機をタップすると飛行情報が見られます</p></div>
+          <button type="button" class="flight-tool" id="flightsRefreshBtn">↻ 更新</button>
+        </div>
+        <div id="flightsMap" role="region" aria-label="航空機の現在位置を表示する地図"></div>
+        <p id="flightsMapFoot" class="flights-map-foot">地図上の航空機は受信局が観測した位置です。航跡・到着地・運航予定を保証するものではありません。</p>
+      </div>
+      <p id="flightsStatus" class="flights-status" aria-live="polite" role="status">FLIGHTSを開くと航空機データを読み込みます。</p>
+      <section id="flightsDetail" class="flights-detail hidden" aria-live="polite">
+        <h3 class="flights-detail-title" id="flightsDetailTitle"></h3>
+        <p class="flights-detail-sub" id="flightsDetailSub"></p>
+        <div class="flights-detail-grid" id="flightsDetailGrid"></div>
+      </section>
+      <section class="flights-list-panel" aria-label="周辺の航空機一覧">
+        <div class="flights-list-header"><h3 class="flights-list-heading">NEARBY AIRCRAFT ｜ 周辺の航空機</h3>
+          <input class="flights-search" type="search" id="flightsSearch" aria-label="便名や機体記号で検索" placeholder="便名・機体記号で検索" autocomplete="off" maxlength="24">
+        </div>
+        <div id="flightsList" class="flights-rows" aria-live="off"><p class="flights-empty">データを読み込んでいます…</p></div>
+      </section>
+      <p class="flights-source">データ提供：<a href="https://www.adsb.lol/docs/open-data/api/" target="_blank" rel="noopener noreferrer">ADSB.lol</a>（ODbL 1.0）。取得できる航空機は受信状況により異なり、機体識別や速度は遅延・欠損する場合があります。取得間隔は約90秒で、複数ユーザー間でキャッシュを共有します。運航・安全判断には使用しないでください。</p>
     </section>
 
     <!-- 現在地の天気：ブラウザー位置情報に同意した場合のみAPI呼び出し -->
@@ -6326,6 +6499,7 @@ html.withlog-dark #profileActionContainer .withlog-edit-profile-button {
         notificationTimer = null;
       }
       window.closeNewsPage?.();
+      window.closeFlightTracker?.();
       renderAuthUI(null);
       updateViewState(false);
     }
@@ -8435,6 +8609,7 @@ html.withlog-dark #profileActionContainer .withlog-edit-profile-button {
 
     // --- フィード切り替え ---
     window.switchFeedTab = function(tab) {
+      window.closeFlightTracker?.();
       window.closeNewsPage?.();
       window.closeWeatherPage?.();
       window.closeIssTracker?.();
@@ -11572,6 +11747,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (app.classList.contains('hidden')) return;
     window.closeWeatherPage?.();
     window.closeNewsPage?.();
+    window.closeFlightTracker?.();
     if (!app.classList.contains('withlog-iss-active')) {
       previousSelectedTab = el('tabFollowing').classList.contains('border-b-2') ? 'following' : 'all';
     }
@@ -11900,6 +12076,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (app.classList.contains('hidden')) return;
     window.closeIssTracker?.();
     window.closeNewsPage?.();
+    window.closeFlightTracker?.();
     if (isOpen()) return;
     previousWeatherFeed = el('tabFollowing').classList.contains('border-b-2') ? 'following' : 'all';
     stop();
@@ -12089,6 +12266,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (app.classList.contains('hidden')) return;
     window.closeIssTracker?.();
     window.closeWeatherPage?.();
+    window.closeFlightTracker?.();
     if (isOpen()) return;
     previousNewsFeed = el('tabFollowing').classList.contains('border-b-2') ? 'following' : 'all';
     page.classList.remove('hidden');
@@ -12127,6 +12305,223 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && isOpen() && Date.now()-fetchedAt >= NEWS_RELOAD_MS) void loadNews();
+  });
+})();
+</script>
+
+
+<script id="withlog-flight-tracker-script">
+(() => {
+  'use strict';
+  const app = document.getElementById('appView');
+  const page = document.getElementById('flightsPage');
+  const tab = document.getElementById('tabFlights');
+  if (!app || !page || !tab) return;
+  const center = {
+    tokyo: [35.65,139.81], osaka: [34.60,135.25], chitose: [42.79,141.69],
+    seoul: [37.48,126.67], busan: [35.18,128.94], okinawa: [26.21,127.67]
+  };
+  const el = id => document.getElementById(id);
+  const isOpen = () => app.classList.contains('withlog-flights-active') && !app.classList.contains('hidden');
+  let area = 'tokyo';
+  let flights = [];
+  let selected = null;
+  let map = null;
+  let layer = null;
+  let rangeCircle = null;
+  let markerLookup = new Map();
+  let timer = null;
+  let request = null;
+  let generation = 0;
+  let previousFeed = 'all';
+  let latestAt = 0;
+  const RELOAD_INTERVAL = 90000;
+  const number = value => Number(value).toLocaleString('ja-JP');
+
+  function status(message, error = false) {
+    const node = el('flightsStatus');
+    node.textContent = message;
+    node.classList.toggle('is-error', error);
+  }
+  function resetVisible() {
+    flights = [];
+    selected = null;
+    el('flightsCount').textContent = '--';
+    el('flightsAirborne').textContent = '--';
+    el('flightsUpdated').textContent = '--:--';
+    el('flightsDetail').classList.add('hidden');
+    markerLookup.clear();
+    if (layer) layer.clearLayers();
+    el('flightsList').replaceChildren();
+    const text = document.createElement('p');
+    text.className = 'flights-empty'; text.textContent = '航空機データを読み込んでいます…';
+    el('flightsList').appendChild(text);
+  }
+  function initMap() {
+    if (!window.L) {
+      status('地図を読み込めませんでした。ネットワークを確認してください。',true);
+      return;
+    }
+    if (!map) {
+      map = L.map('flightsMap', {minZoom:3,maxZoom:12,worldCopyJump:true,zoomControl:true}).setView(center[area],7);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
+        maxZoom:12,detectRetina:false
+      }).addTo(map);
+      layer = L.layerGroup().addTo(map);
+      rangeCircle = L.circle(center[area],{radius:120*1852,color:'#a889db',weight:1.2,dashArray:'4 7',fillColor:'#b29cdd',fillOpacity:.025,interactive:false}).addTo(map);
+    }
+    window.setTimeout(() => map?.invalidateSize(),80);
+  }
+  function focusArea() {
+    if (!map) return;
+    rangeCircle.setLatLng(center[area]);
+    map.fitBounds(rangeCircle.getBounds(), {padding:[18,18],animate:false});
+    window.setTimeout(() => map?.invalidateSize(),80);
+  }
+  function planeIcon(flight) {
+    // Backend has already normalized heading to an integer.
+    const angle = Number.isFinite(flight.heading) ? flight.heading : 0;
+    const highlight = flight.icao === selected ? ' selected' : '';
+    return L.divIcon({className:'',iconSize:[29,29],iconAnchor:[14.5,14.5],html:
+      `<span class="flight-marker${highlight}"><svg viewBox="0 0 24 24" style="transform:rotate(${angle}deg)" aria-hidden="true"><path d="M12 2 9 10 3 13v3l8-2 1 7 1-7 8 2v-3l-6-3z"/></svg></span>`});
+  }
+  function redrawMarkers() {
+    if (!layer || !map) return;
+    layer.clearLayers();markerLookup.clear();
+    for (const flight of flights) {
+      const marker = L.marker([flight.latitude,flight.longitude], {icon:planeIcon(flight),title:flight.callsign || flight.registration || flight.icao});
+      marker.on('click', () => selectFlight(flight.icao,true));
+      const tip = document.createElement('span');
+      tip.textContent = flight.callsign || flight.registration || flight.icao;
+      marker.bindTooltip(tip, {direction:'top',offset:[0,-15]});
+      marker.addTo(layer);markerLookup.set(flight.icao,marker);
+    }
+  }
+  function addDetail(parent,label,value) {
+    const div = document.createElement('div');
+    const span = document.createElement('span');span.textContent = label;
+    const strong = document.createElement('strong');strong.textContent = value;
+    div.append(span,strong); parent.appendChild(div);
+  }
+  function updateDetails() {
+    const f = flights.find(x => x.icao === selected);
+    if (!f) {el('flightsDetail').classList.add('hidden');return;}
+    el('flightsDetail').classList.remove('hidden');
+    el('flightsDetailTitle').textContent = f.callsign || f.registration || f.icao.toUpperCase();
+    el('flightsDetailSub').textContent = `位置情報 ${f.age_seconds === null ? '取得中' : `${f.age_seconds}秒前`} ・ 追跡識別ID ${f.icao.toUpperCase()}`;
+    const grid = el('flightsDetailGrid');grid.replaceChildren();
+    addDetail(grid,'高度',f.on_ground ? '地上' : f.altitude_m === null ? '不明' : `${number(f.altitude_m)} m`);
+    addDetail(grid,'対地速度',f.speed_kmh === null ? '不明' : `${number(f.speed_kmh)} km/h`);
+    addDetail(grid,'進行方向',f.heading === null ? '不明' : `${f.heading}°`);
+    addDetail(grid,'機種コード',f.aircraft_type || '不明');
+    addDetail(grid,'機体記号',f.registration || '不明');
+    addDetail(grid,'エリア中心から',`${f.distance_km} km`);
+  }
+  function selectFlight(icao, moveMap = false) {
+    selected = icao;
+    updateDetails();
+    redrawMarkers();
+    renderList();
+    const f = flights.find(x=>x.icao===icao);
+    if (moveMap && f && map) map.panTo([f.latitude,f.longitude],{animate:true,duration:.35});
+  }
+  function renderList() {
+    const list = el('flightsList');list.replaceChildren();
+    const key = el('flightsSearch').value.trim().toLowerCase();
+    const filtered = flights.filter(f => [f.callsign,f.registration,f.icao,f.aircraft_type]
+      .some(value => value && value.toLowerCase().includes(key)));
+    if (!filtered.length) {
+      const p = document.createElement('p');p.className='flights-empty';
+      p.textContent = flights.length ? '一致する機体はありません。' : 'この地域では位置情報を受信できた航空機がありません。';
+      list.appendChild(p);return;
+    }
+    for (const f of filtered.slice(0,25)) {
+      const btn = document.createElement('button');btn.type='button';
+      btn.className='flight-row'+(f.icao===selected?' is-selected':'');
+      btn.setAttribute('aria-label',`${f.callsign || f.registration || f.icao}の詳細を表示`);
+      const icon=document.createElement('span');icon.className='flight-row-icon';icon.textContent='✈';
+      const meta=document.createElement('span');meta.className='flight-row-meta';
+      const title=document.createElement('strong');title.textContent=f.callsign || f.registration || f.icao.toUpperCase();
+      const sub=document.createElement('small');sub.textContent=`${f.aircraft_type || '機種不明'} · ${f.on_ground ? '地上' : f.altitude_m === null ? '高度不明' : `${number(f.altitude_m)} m`}`;
+      meta.append(title,sub);
+      const distance=document.createElement('span');distance.className='flight-row-distance';distance.textContent=`${f.distance_km} km ›`;
+      btn.append(icon,meta,distance);
+      btn.addEventListener('click',()=>selectFlight(f.icao,true));
+      list.appendChild(btn);
+    }
+    if (filtered.length > 25) {
+      const p=document.createElement('p');p.className='flights-empty';p.textContent=`ほかに${filtered.length-25}機あります。検索で絞り込めます。`;list.appendChild(p);
+    }
+  }
+  async function loadFlights() {
+    if (!isOpen() || document.hidden || request) return;
+    const seq=++generation;
+    const controller=new AbortController();request=controller;
+    const timeout=window.setTimeout(()=>controller.abort(),14500);
+    el('flightsRefreshBtn').disabled=true;
+    status('航空機の位置を取得しています…');
+    try {
+      const res=await fetch(`/api/flights?region=${encodeURIComponent(area)}`,{signal:controller.signal,cache:'no-store'});
+      if (!res.ok) throw Error('flight api');
+      const data=await res.json();
+      if (!isOpen() || seq!==generation || data.region!==area) return;
+      flights=Array.isArray(data.flights) ? data.flights : [];
+      if (!flights.some(f=>f.icao===selected)) selected=null;
+      el('flightsCount').textContent=number(flights.length);
+      el('flightsAirborne').textContent=number(flights.filter(f=>!f.on_ground).length);
+      const stamp=data.updated_at ? new Date(data.updated_at) : null;
+      el('flightsUpdated').textContent=stamp && !Number.isNaN(stamp.getTime()) ? stamp.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}) : '--:--';
+      redrawMarkers();renderList();updateDetails();
+      latestAt=Date.now();
+      status(data.warning || `${data.region_name || '周辺'}の航空機 ${flights.length} 機を表示中。位置情報は約90秒ごとに再取得します。`,!!data.warning);
+    } catch(error) {
+      if (!isOpen() || seq!==generation || controller.signal.aborted) return;
+      latestAt=Date.now();
+      status('航空機データを取得できませんでした。通信状態を確認し、更新を押してください。',true);
+    } finally {
+      window.clearTimeout(timeout);
+      if (request===controller) request=null;
+      if (request===null) el('flightsRefreshBtn').disabled=false;
+    }
+  }
+  function stop() {
+    window.clearInterval(timer);timer=null;
+    if (request) request.abort();request=null;
+    generation++;
+  }
+  window.openFlightTracker = () => {
+    if (app.classList.contains('hidden')) return;
+    window.closeIssTracker?.();window.closeWeatherPage?.();window.closeNewsPage?.();
+    if (isOpen()) return;
+    previousFeed=el('tabFollowing').classList.contains('border-b-2')?'following':'all';
+    page.classList.remove('hidden');page.setAttribute('aria-hidden','false');
+    app.classList.add('withlog-flights-active');tab.setAttribute('aria-current','page');
+    el('tabAll').classList.remove('border-b-2');el('tabFollowing').classList.remove('border-b-2');
+    initMap();focusArea();resetVisible();
+    if (!document.hidden) void loadFlights();
+    timer=window.setInterval(()=>{if(isOpen() && !document.hidden && Date.now()-latestAt>=RELOAD_INTERVAL)void loadFlights();},10000);
+    tab.scrollIntoView({behavior:'smooth',inline:'nearest',block:'nearest'});
+  };
+  window.closeFlightTracker = () => {
+    if (!isOpen() && page.classList.contains('hidden')) return;
+    stop();page.classList.add('hidden');page.setAttribute('aria-hidden','true');
+    app.classList.remove('withlog-flights-active');tab.removeAttribute('aria-current');
+    (previousFeed==='following'?el('tabFollowing'):el('tabAll')).classList.add('border-b-2');
+  };
+  page.querySelectorAll('[data-flight-region]').forEach(btn=>btn.addEventListener('click',()=>{
+    if(area===btn.dataset.flightRegion) return;
+    stop();area=btn.dataset.flightRegion;latestAt=0;el('flightsSearch').value='';
+    page.querySelectorAll('[data-flight-region]').forEach(item=>item.setAttribute('aria-pressed',String(item===btn)));
+    el('flightsMapTitle').textContent=`${btn.textContent.trim().toUpperCase()} / AIR TRAFFIC`;
+    resetVisible();focusArea();void loadFlights();
+    timer=window.setInterval(()=>{if(isOpen() && !document.hidden && Date.now()-latestAt>=RELOAD_INTERVAL)void loadFlights();},10000);
+  }));
+  el('flightsRefreshBtn').addEventListener('click',()=>void loadFlights());
+  el('flightsSearch').addEventListener('input',renderList);
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden && request){request.abort();request=null;generation++;}
+    else if(!document.hidden && isOpen() && Date.now()-latestAt>=RELOAD_INTERVAL)void loadFlights();
   });
 })();
 </script>

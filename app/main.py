@@ -2788,3 +2788,143 @@ def get_withlog_news():
         _news_cache["payload"] = payload
         _news_cache["expires"] = time.monotonic() + (600 if items else 60)
         return payload
+
+
+# --- WITHLOG Flight Tracker (ADSB.lol open data, ODbL 1.0) ---
+# The provider requests production operators to contact them first. Keep this
+# read-only endpoint small, fixed-region, cached and non-critical to the app.
+import math as _flight_math
+import urllib.request as _flight_request
+import urllib.error as _flight_error
+
+_FLIGHT_REGIONS = {
+    "tokyo": {"name": "東京・羽田／成田", "latitude": 35.65, "longitude": 139.81, "radius_nm": 120},
+    "osaka": {"name": "大阪・関西", "latitude": 34.60, "longitude": 135.25, "radius_nm": 120},
+    "chitose": {"name": "北海道・新千歳", "latitude": 42.79, "longitude": 141.69, "radius_nm": 120},
+    "seoul": {"name": "ソウル・仁川／金浦", "latitude": 37.48, "longitude": 126.67, "radius_nm": 120},
+    "busan": {"name": "釜山・金海", "latitude": 35.18, "longitude": 128.94, "radius_nm": 120},
+    "okinawa": {"name": "沖縄・那覇", "latitude": 26.21, "longitude": 127.67, "radius_nm": 120},
+}
+_FLIGHT_TTL = 90.0  # Prevent each browser/session from making an upstream call.
+_FLIGHT_ERROR_TTL = 50.0
+_flight_cache = {}
+_flight_locks = {key: threading.Lock() for key in _FLIGHT_REGIONS}
+
+
+def _flight_number(value):
+    try:
+        number = float(value)
+        return number if _flight_math.isfinite(number) else None
+    except (ValueError, TypeError):
+        return None
+
+
+def _flight_distance_nm(lat1, lon1, lat2, lon2):
+    r1, r2 = _flight_math.radians(lat1), _flight_math.radians(lat2)
+    dlat = r2 - r1
+    dlon = _flight_math.radians(lon2 - lon1)
+    value = _flight_math.sin(dlat/2)**2 + _flight_math.cos(r1)*_flight_math.cos(r2)*_flight_math.sin(dlon/2)**2
+    return 3440.065 * 2 * _flight_math.asin(min(1.0, _flight_math.sqrt(max(0.0, value))))
+
+
+def _flight_parse_aircraft(data, region):
+    records = data.get("ac") if isinstance(data, dict) else None
+    if not isinstance(records, list):
+        raise ValueError("Invalid ADS-B response")
+    flights = []
+    for row in records[:1500]:
+        if not isinstance(row, dict):
+            continue
+        latitude, longitude = _flight_number(row.get("lat")), _flight_number(row.get("lon"))
+        seen = _flight_number(row.get("seen_pos"))
+        if latitude is None or longitude is None or not -90 <= latitude <= 90 or not -180 <= longitude <= 180:
+            continue
+        if seen is not None and (seen < 0 or seen > 90):
+            continue
+        distance = _flight_distance_nm(region["latitude"], region["longitude"], latitude, longitude)
+        if distance > region["radius_nm"] + 2:
+            continue
+        icao = str(row.get("hex") or "").strip().lower()
+        if not re.fullmatch(r"[0-9a-f]{6}", icao):
+            continue
+        altitude_ft = _flight_number(row.get("alt_baro"))
+        if altitude_ft is None:
+            altitude_ft = _flight_number(row.get("alt_geom"))
+        groundspeed = _flight_number(row.get("gs"))
+        heading = _flight_number(row.get("track"))
+        callsign = str(row.get("flight") or "").strip()[:14]
+        registration = str(row.get("r") or "").strip()[:16]
+        aircraft_type = str(row.get("t") or "").strip()[:12]
+        flights.append({
+            "icao": icao,
+            "callsign": callsign or None,
+            "registration": registration or None,
+            "aircraft_type": aircraft_type or None,
+            "latitude": round(latitude, 5), "longitude": round(longitude, 5),
+            "altitude_m": round(altitude_ft * 0.3048) if altitude_ft is not None else None,
+            "speed_kmh": round(groundspeed * 1.852) if groundspeed is not None else None,
+            "heading": round(heading % 360) if heading is not None else None,
+            "on_ground": row.get("alt_baro") == "ground",
+            "distance_km": round(distance * 1.852, 1),
+            "age_seconds": round(seen) if seen is not None else None,
+        })
+    flights.sort(key=lambda item: item["distance_km"])
+    return flights[:250]
+
+
+def _flight_fetch(region):
+    url = ("https://api.adsb.lol/v2/point/"
+           f"{region['latitude']}/{region['longitude']}/{region['radius_nm']}")
+    req = _flight_request.Request(url, headers={
+        "Accept": "application/json", "User-Agent": "WITHLOG-flight-tracker/1.0"
+    })
+    with _flight_request.urlopen(req, timeout=9) as response:
+        if response.status != 200:
+            raise ValueError("Unexpected flight provider status")
+        raw = response.read(4000001)
+    if len(raw) > 4000000:
+        raise ValueError("Flight response too large")
+    return _flight_parse_aircraft(json.loads(raw), region)
+
+
+@app.get("/api/flights")
+def get_withlog_flights(region: str = Query("tokyo", max_length=20)):
+    """Nearby recent aircraft positions, never a flight schedule/route predictor."""
+    if region not in _FLIGHT_REGIONS:
+        raise HTTPException(status_code=400, detail="対応していないエリアです")
+    area = _FLIGHT_REGIONS[region]
+    now = time.monotonic()
+    with _flight_locks[region]:
+        entry = _flight_cache.get(region)
+        if entry and now < entry["expires"]:
+            return dict(entry["payload"])
+        try:
+            flights = _flight_fetch(area)
+            payload = {
+                "region": region, "region_name": area["name"],
+                "center": {"latitude": area["latitude"], "longitude": area["longitude"]},
+                "radius_nm": area["radius_nm"], "flights": flights,
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "stale": False, "warning": None, "provider": "ADSB.lol",
+            }
+            _flight_cache[region] = {"payload": payload, "expires": time.monotonic() + _FLIGHT_TTL}
+            return payload
+        except Exception as exc:
+            # Do not leak provider exception bodies or URLs to clients.
+            print(f"[Flight data unavailable] {type(exc).__name__}", flush=True)
+            if entry and entry["payload"].get("flights") is not None:
+                payload = dict(entry["payload"])
+                payload["stale"] = True
+                payload["warning"] = "航空機データを更新できません。前回取得した情報を表示しています。"
+                _flight_cache[region] = {"payload": payload, "expires": time.monotonic() + _FLIGHT_ERROR_TTL}
+                return payload
+            payload = {
+                "region": region, "region_name": area["name"],
+                "center": {"latitude": area["latitude"], "longitude": area["longitude"]},
+                "radius_nm": area["radius_nm"], "flights": [],
+                "updated_at": None, "stale": True,
+                "warning": "航空機データを取得できませんでした。しばらくしてから更新してください。",
+                "provider": "ADSB.lol",
+            }
+            _flight_cache[region] = {"payload": payload, "expires": time.monotonic() + _FLIGHT_ERROR_TTL}
+            return payload
