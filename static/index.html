@@ -4769,30 +4769,45 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
 
 
 <style id="withlog-visible-post-places">
-/* A selected map pin is visible directly on the post, not hidden in the 3-dot menu. */
+/* Show a locality and town/neighborhood on separate lines where available. */
 .tl-post-card .withlog-post-place {
-  display: flex !important;
+  display: inline-flex !important;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
   width: fit-content;
-  max-width: min(100%, 350px);
-  min-height: 27px;
-  margin-top: 6px;
-  padding: 5px 10px !important;
-  border: 1px solid rgba(125, 108, 164, .14) !important;
-  border-radius: 999px !important;
+  max-width: min(100%, 440px);
+  min-height: 34px;
+  margin-top: 7px;
+  padding: 7px 11px !important;
+  border: 1px solid rgba(125, 108, 164, .15) !important;
+  border-radius: 14px !important;
   background: rgba(232, 222, 250, .62) !important;
   color: #685581 !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
   font-weight: 750 !important;
   line-height: 1.4;
   text-align: left;
   box-shadow: none !important;
   cursor: pointer;
 }
-.tl-post-card .withlog-post-place svg { width: 13px; height: 13px; flex: 0 0 auto; }
-.tl-post-card .withlog-post-place-text { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-.tl-post-card .withlog-post-place-arrow { font-size: 11px; opacity: .7; }
+.tl-post-card .withlog-post-place svg { width: 15px; height: 15px; flex: 0 0 auto; }
+.tl-post-card .withlog-post-place-lines { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.tl-post-card .withlog-post-place-text {
+  display: block; min-width: 0; font-size: 11px; font-weight: 800;
+  overflow-wrap: anywhere; white-space: normal;
+}
+.tl-post-card .withlog-post-place-detail {
+  display: block; min-width: 0; font-size: 10px; line-height: 1.4;
+  color: #857198; font-weight: 650; overflow-wrap: anywhere; white-space: normal;
+}
+.tl-post-card .withlog-post-place-detail:empty { display: none; }
+.tl-post-card .withlog-post-place.is-gsi .withlog-post-place-detail::after {
+  content: " · 出典：国土地理院";
+  color: #9a88ab;
+  font-size: 8px;
+  font-weight: 500;
+}
+.tl-post-card .withlog-post-place-arrow { font-size: 12px; opacity: .72; flex-shrink: 0; margin-left: 2px; }
 .tl-post-card .withlog-post-place:hover { background: rgba(216, 199, 245, .84) !important; }
 .tl-post-card .withlog-post-place:focus-visible { outline: 2px solid #9274cf !important; outline-offset: 2px; }
 html.withlog-dark .tl-post-card .withlog-post-place {
@@ -4800,9 +4815,16 @@ html.withlog-dark .tl-post-card .withlog-post-place {
   color: #e8dafa !important;
   border-color: rgba(189, 166, 223, .16) !important;
 }
+html.withlog-dark .tl-post-card .withlog-post-place-detail { color: #c6b5d9; }
 html.withlog-dark .tl-post-card .withlog-post-place:hover { background: rgba(116, 96, 153, .50) !important; }
+/* Do not let long neighborhood names push the menu button outside the post. */
+.tl-post-card > div:first-child > div:first-child { min-width: 0; }
+.tl-post-card > div:first-child > div:first-child > div:last-child { min-width: 0; }
 @media (max-width: 560px) {
-  .tl-post-card .withlog-post-place { max-width: min(100%, 220px); }
+  .tl-post-card .withlog-post-place { max-width: min(100%, 240px); }
+}
+@media (max-width: 360px) {
+  .tl-post-card .withlog-post-place { max-width: min(100%, 195px); }
 }
 </style>
 
@@ -7834,53 +7856,99 @@ html.withlog-dark .tl-post-card .withlog-post-place:hover { background: rgba(116
     }
 
 
-    // Resolve saved post coordinates to a short regional label (the map pin is
-    // authoritative; this optional label is only a convenience). The location
-    // button works immediately even when reverse geocoding is unavailable.
+    // Use GSI's Japanese reverse-geocoder for saved post coordinates.
+    // Unlike APIs restricted to the *viewer's current GPS*, GSI can resolve
+    // selected map locations on existing posts. Results are an approximation
+    // to the town/chome level, never an exact street address or venue name.
     const spotPlaceNameCache = new Map();
     const spotPlacePending = new Map();
     let spotPlaceObserver = null;
+    let gsiMunicipalitiesPromise = null;
+    let gsiReverseQueue = Promise.resolve();
+    let gsiLastRequestAt = 0;
 
-    function formatSpotPlaceAddress(data) {
-      if (!data || typeof data !== 'object') return '';
-      const parts = [data.principalSubdivision, data.city, data.locality]
-        .filter(value => typeof value === 'string' && value.trim())
-        .map(value => value.trim());
-      const unique = [];
-      for (const part of parts) {
-        if (!unique.some(previous => previous === part || previous.endsWith(part) || part.endsWith(previous))) {
-          unique.push(part);
-        }
+    function isInJapanArea(latitude, longitude) {
+      // Geographic bounding area, including Okinawa and the Ogasawara Islands.
+      return latitude >= 20 && latitude <= 46 && longitude >= 122 && longitude <= 154 &&
+        (latitude < 30 || longitude >= 129.2); // Avoid Korea/China mainland. Japan's islands may extend farther west.
+    }
+
+    function loadGsiMunicipalities() {
+      if (window.GSI?.MUNI_ARRAY) return Promise.resolve(window.GSI.MUNI_ARRAY);
+      if (gsiMunicipalitiesPromise) return gsiMunicipalitiesPromise;
+      gsiMunicipalitiesPromise = new Promise(resolve => {
+        // GSI publishes the municipality code/name table as JavaScript rather
+        // than JSON. Load it once from the official GSI domain when needed.
+        const script = document.createElement('script');
+        script.async = true;
+        script.src = 'https://maps.gsi.go.jp/js/muni.js';
+        let done = false;
+        const finish = (value) => {
+          if (done) return;
+          done = true;
+          clearTimeout(timeout);
+          script.onload = script.onerror = null;
+          if (!value) script.remove();
+          resolve(value || null);
+        };
+        const timeout = setTimeout(() => finish(null), 8000);
+        script.onload = () => finish(window.GSI?.MUNI_ARRAY || null);
+        script.onerror = () => finish(null);
+        document.head.appendChild(script);
+      });
+      return gsiMunicipalitiesPromise;
+    }
+
+    function formatGsiPostPlace(result, municipalityTable) {
+      const record = result?.results;
+      if (!record || typeof record !== 'object') return null;
+      const code = String(record.muniCd || '').trim();
+      const town = String(record.lv01Nm || '').trim().slice(0, 90);
+      let region = '';
+      const mapValue = municipalityTable?.[code];
+      if (typeof mapValue === 'string') {
+        const fields = mapValue.split(',');
+        const prefecture = (fields[1] || '').trim();
+        const city = (fields[3] || '').replace(/[\s\u3000]+/g, '').trim();
+        region = (prefecture + city).slice(0, 100);
       }
-      if (!unique.length) return '';
-      return String(data.countryCode || '').toUpperCase() === 'JP'
-        ? unique.join('')
-        : [...unique, data.countryName].filter(Boolean).join(' / ');
+      if (!region && !town) return null;
+      return {
+        region: region || '日本国内の場所',
+        detail: town || '',
+        full: [region, town].filter(Boolean).join(''),
+      };
     }
 
     async function resolveSpotPlaceName(latitude, longitude) {
       const key = `${latitude.toFixed(4)},${longitude.toFixed(4)}`;
       if (spotPlaceNameCache.has(key)) return spotPlaceNameCache.get(key);
       if (spotPlacePending.has(key)) return spotPlacePending.get(key);
+      if (!isInJapanArea(latitude, longitude)) return null;
+
       const request = (async () => {
-        try {
-          const query = new URLSearchParams({
-            latitude: String(latitude), longitude: String(longitude), localityLanguage: 'ja'
-          });
+        // Fetch the municipality table and GSI locality info concurrently.
+        // Serialise reverse lookups to avoid generating a burst from the feed.
+        const localityTask = gsiReverseQueue.then(async () => {
+          const wait = Math.max(0, 550 - (Date.now() - gsiLastRequestAt));
+          if (wait) await new Promise(resolve => setTimeout(resolve, wait));
+          gsiLastRequestAt = Date.now();
           const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 7000);
+          const timeout = setTimeout(() => controller.abort(), 8500);
           try {
-            const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?${query}`, {
-              signal: controller.signal
-            });
-            if (!response.ok) throw new Error('Reverse geocoding unavailable');
-            const label = formatSpotPlaceAddress(await response.json());
-            if (label) spotPlaceNameCache.set(key, label);
-            return label;
+            const params = new URLSearchParams({lat:String(latitude), lon:String(longitude)});
+            const response = await fetch(`https://mreversegeocoder.gsi.go.jp/reverse-geocoder/LonLatToAddress?${params}`, { signal:controller.signal });
+            if (!response.ok) throw new Error('GSI reverse-geocoding unavailable');
+            return await response.json();
           } finally { clearTimeout(timeout); }
-        } catch (_) {
-          return ''; // Keep the tappable "場所を確認" fallback.
-        }
+        });
+        gsiReverseQueue = localityTask.catch(() => null);
+        try {
+          const [locality, municipalities] = await Promise.all([localityTask, loadGsiMunicipalities()]);
+          const label = formatGsiPostPlace(locality, municipalities);
+          if (label) spotPlaceNameCache.set(key, label);
+          return label;
+        } catch (_) { return null; }
       })();
       spotPlacePending.set(key, request);
       try { return await request; }
@@ -7901,19 +7969,27 @@ html.withlog-dark .tl-post-card .withlog-post-place:hover { background: rgba(116
         const latitude = Number(data.latitude), longitude = Number(data.longitude);
         if (!Number.isFinite(latitude) || !Number.isFinite(longitude) ||
             Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return;
+        const detailNode = button.querySelector('.withlog-post-place-detail');
+        const textNode = button.querySelector('.withlog-post-place-text');
+        if (!textNode || !detailNode) return;
+        const defaultCoordinates = `緯度 ${latitude.toFixed(4)} / 経度 ${longitude.toFixed(4)}`;
+        // Coordinates remain useful if the place is outside Japan or if
+        // geocoding is temporarily unavailable; the map button still works.
+        detailNode.textContent = defaultCoordinates;
         const key = `${latitude.toFixed(4)},${longitude.toFixed(4)}`;
-        // Cache hits do not consume a request. Limit remote queries per feed.
-        if (!spotPlaceNameCache.has(key) && lookups >= 15) return;
+        if (!isInJapanArea(latitude, longitude)) return;
+        if (!spotPlaceNameCache.has(key) && lookups >= 12) return;
         if (!spotPlaceNameCache.has(key)) lookups++;
         const label = await resolveSpotPlaceName(latitude, longitude);
         if (!label || !button.isConnected || !feedEl.contains(button)) return;
-        const textNode = button.querySelector('.withlog-post-place-text');
-        if (textNode) textNode.textContent = label;
-        button.setAttribute('aria-label', `${label}をGoogleマップで見る`);
-        button.setAttribute('title', `${label}をGoogleマップで見る`);
+        textNode.textContent = label.region;
+        detailNode.textContent = label.detail || defaultCoordinates;
+        button.classList.add('is-gsi');
+        button.setAttribute('aria-label', `${label.full}付近の地図を開く`);
+        button.setAttribute('title', `${label.full}付近の地図を開く（推定住所・出典：国土地理院）`);
       };
       if (!('IntersectionObserver' in window)) {
-        buttons.slice(0, 15).forEach(button => { void enrich(button); });
+        buttons.slice(0, 12).forEach(button => { void enrich(button); });
         return;
       }
       spotPlaceObserver = new IntersectionObserver(entries => {
@@ -8056,7 +8132,10 @@ html.withlog-dark .tl-post-card .withlog-post-place:hover { background: rgba(116
                     <button type="button" class="withlog-post-place" data-spot-place="${escapeHtml(String(s.id))}"
                       onclick="event.stopPropagation(); openSpotMap('${s.id}')" aria-label="投稿した場所をGoogleマップで見る" title="Googleマップで場所を確認">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21s6-5.35 6-11a6 6 0 1 0-12 0c0 5.65 6 11 6 11Z"/><circle cx="12" cy="10" r="2"/></svg>
-                      <span class="withlog-post-place-text">場所を確認</span>
+                      <span class="withlog-post-place-lines">
+                        <span class="withlog-post-place-text">場所を確認</span>
+                        <span class="withlog-post-place-detail"></span>
+                      </span>
                       <span class="withlog-post-place-arrow" aria-hidden="true">↗</span>
                     </button>
                   ` : ''}
