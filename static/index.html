@@ -4969,6 +4969,80 @@ html.withlog-dark .tl-post-card .withlog-post-place-row:hover { background: rgba
 }
 </style>
 
+
+<style id="withlog-shared-with-following-suggestions-style">
+/* SHARED WITH invitation suggestions, shared brand look on desktop and phones. */
+#sharedWithInviteModal .shared-with-suggestion-intro {
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  gap:4px 10px;margin-top:19px;margin-bottom:5px;padding:0 2px;
+}
+#sharedWithInviteModal #sharedWithSuggestionTitle {
+  color:#4c3d64;font-size:11px;font-weight:900;letter-spacing:.035em;
+}
+#sharedWithInviteModal #sharedWithSuggestionHint {
+  color:#9a90a4;font-size:9px;font-weight:600;
+}
+#sharedWithInviteModal #sharedWithSearchResults {
+  display:grid;gap:7px;max-height:min(305px,35dvh);overflow-y:auto;
+  overflow-x:hidden;overscroll-behavior:contain;padding:3px 0 5px;
+}
+#sharedWithInviteModal .shared-with-suggest-row {
+  margin-top:0!important;min-height:64px;gap:10px;
+  border-radius:18px!important;
+  background:#f6f1fa!important;
+  border:1px solid rgba(130,105,175,.08)!important;
+}
+#sharedWithInviteModal .shared-with-suggest-avatar {
+  width:42px!important;height:42px!important;min-width:42px!important;
+  flex:0 0 42px!important;font-size:14px!important;
+}
+#sharedWithInviteModal .shared-with-suggest-copy {display:flex;flex-direction:column;gap:3px;min-width:0;}
+#sharedWithInviteModal .shared-with-suggest-name {
+  font-size:12px;font-weight:900;color:#40334e;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+#sharedWithInviteModal .shared-with-suggest-handle {
+  font-size:10px;color:#8f859c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+#sharedWithInviteModal .shared-with-suggest-tag {
+  width:max-content;padding:3px 7px;border-radius:999px;
+  color:#775caa;background:#eae2fa;font-size:8px;font-weight:800;
+}
+#sharedWithInviteModal .shared-with-suggest-invite {
+  flex:0 0 auto;min-width:54px;min-height:35px;padding:8px 12px!important;
+  background:linear-gradient(135deg,#7e68c3,#ba79ac)!important;
+  color:#fff!important;font-size:10px!important;
+}
+#sharedWithInviteModal .shared-with-suggest-invite:disabled {
+  background:#e4dfe9!important;color:#8d8397!important;cursor:default;
+}
+#sharedWithInviteModal .shared-with-suggest-message {
+  font-size:10px;line-height:1.8;color:#897c96;padding:12px 8px 6px;
+}
+html.withlog-dark #sharedWithInviteModal #sharedWithSuggestionTitle {color:#efe7fa!important;}
+html.withlog-dark #sharedWithInviteModal #sharedWithSuggestionHint,
+html.withlog-dark #sharedWithInviteModal .shared-with-suggest-message {color:#b4aabd!important;}
+html.withlog-dark #sharedWithInviteModal .shared-with-suggest-row {
+  background:#36333e!important;border-color:#50465f!important;
+}
+html.withlog-dark #sharedWithInviteModal .shared-with-suggest-name {color:#f3edf8!important;}
+html.withlog-dark #sharedWithInviteModal .shared-with-suggest-handle {color:#b5a9c0!important;}
+html.withlog-dark #sharedWithInviteModal .shared-with-suggest-tag {
+  background:#514460!important;color:#e2d2f4!important;
+}
+html.withlog-dark #sharedWithInviteModal .shared-with-suggest-invite {
+  background:linear-gradient(135deg,#68558e,#915f86)!important;
+}
+html.withlog-dark #sharedWithInviteModal .shared-with-suggest-invite:disabled {
+  background:#4a4550!important;color:#b6adbb!important;
+}
+@media(max-width:380px) {
+  #sharedWithInviteModal .shared-with-suggest-row {gap:8px;padding:9px 8px;}
+  #sharedWithInviteModal .shared-with-suggest-avatar {width:38px!important;height:38px!important;min-width:38px!important;flex-basis:38px!important;}
+  #sharedWithInviteModal .shared-with-suggest-invite {min-width:49px;padding:8px 10px!important;}
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -5630,8 +5704,12 @@ html.withlog-dark .tl-post-card .withlog-post-place-row:hover { background: rgba
           <input id="sharedWithSearchInput" type="search" placeholder="@ユーザーID または名前">
           <button type="button" class="shared-with-action" onclick="searchSharedWithUsers()">検索</button>
         </div>
-        <div id="sharedWithSearchResults"></div>
-        <p id="sharedWithInviteStatus" class="shared-with-note mt-3"></p>
+        <div class="shared-with-suggestion-intro" id="sharedWithSuggestionIntro">
+          <span id="sharedWithSuggestionTitle">フォロー中のユーザー</span>
+          <span id="sharedWithSuggestionHint">招待したい相手を選んでください</span>
+        </div>
+        <div id="sharedWithSearchResults" role="list" aria-live="polite"></div>
+        <p id="sharedWithInviteStatus" class="shared-with-note mt-3" role="status" aria-live="polite"></p>
       </div>
     </div>
 
@@ -6608,31 +6686,208 @@ html.withlog-dark .tl-post-card .withlog-post-place-row:hover { background: rgba
       return headers;
     }
 
+    // Users you already follow appear as invitation candidates when this dialog opens.
+    // Users outside your follows remain findable through the existing users/search API.
+    let sharedWithFollowingCandidates = [];
+    let sharedWithFollowingReady = false;
+    let sharedWithCandidateError = false;
+    let sharedWithInviteCompleted = false;
+    let sharedWithInviteOpenSerial = 0;
+    let sharedWithSearchSerial = 0;
+    let sharedWithSearchTimer = null;
+
+    function sharedWithInviteIsOpen() {
+      return Boolean(activeSharedWithSpotId)
+        && !document.getElementById('sharedWithInviteModal').classList.contains('hidden');
+    }
+
+    function sharedWithCandidateMatches(user, query) {
+      const q = String(query || '').trim().replace(/^@/, '').toLocaleLowerCase();
+      return !q || [user.username, user.display_name].some(value =>
+        String(value || '').toLocaleLowerCase().includes(q));
+    }
+
+    function sharedWithCandidateElement(user, followed) {
+      const username = String(user.username || '').trim();
+      const label = String(user.display_name || username);
+      const row = document.createElement('div');
+      row.className = 'shared-with-result shared-with-suggest-row';
+      row.setAttribute('role', 'listitem');
+
+      const avatar = document.createElement('span');
+      avatar.className = 'withlog-social-avatar shared-with-suggest-avatar';
+      avatar.textContent = (label.trim().charAt(0) || '?').toUpperCase();
+      if (user.avatar_url) {
+        const image = document.createElement('img');
+        image.src = String(user.avatar_url);
+        image.alt = '';
+        image.loading = 'lazy';
+        image.addEventListener('error', () => image.remove(), { once: true });
+        avatar.appendChild(image);
+      }
+      const copy = document.createElement('div');
+      copy.className = 'grow shared-with-suggest-copy';
+      const display = document.createElement('span');
+      display.className = 'shared-with-suggest-name';
+      display.textContent = label;
+      const handle = document.createElement('span');
+      handle.className = 'shared-with-suggest-handle';
+      handle.textContent = '@' + username;
+      copy.append(display, handle);
+      if (followed) {
+        const badge = document.createElement('span');
+        badge.className = 'shared-with-suggest-tag';
+        badge.textContent = 'フォロー中';
+        copy.appendChild(badge);
+      }
+      const invite = document.createElement('button');
+      invite.type = 'button';
+      invite.className = 'shared-with-suggest-invite';
+      invite.textContent = '招待';
+      invite.disabled = sharedWithInviteCompleted;
+      invite.setAttribute('aria-label', `${label} さんをSHARED WITHに招待`);
+      invite.addEventListener('click', () => sendSharedWithInvite(username, invite));
+      row.append(avatar, copy, invite);
+      return row;
+    }
+
+    function renderSharedWithCandidates(searchResults = null, searching = false, error = '') {
+      if (!sharedWithInviteIsOpen()) return;
+      const input = document.getElementById('sharedWithSearchInput');
+      const query = input.value.trim();
+      const results = document.getElementById('sharedWithSearchResults');
+      const title = document.getElementById('sharedWithSuggestionTitle');
+      const hint = document.getElementById('sharedWithSuggestionHint');
+      const isFollowing = user => sharedWithFollowingCandidates.some(
+        f => String(f.username).toLowerCase() === String(user.username).toLowerCase());
+      const excludeSelf = user => user && user.username
+        && String(user.username).toLowerCase() !== String(currentUser?.username || '').toLowerCase();
+
+      title.textContent = query ? 'ユーザー検索結果' : 'フォロー中のユーザー';
+      hint.textContent = query ? 'フォロー中の人を優先表示' : 'タップして招待';
+      const followedMatches = sharedWithFollowingCandidates.filter(
+        user => excludeSelf(user) && sharedWithCandidateMatches(user, query));
+      const candidates = [...followedMatches];
+      const included = new Set(candidates.map(u => String(u.username).toLowerCase()));
+      if (query && Array.isArray(searchResults)) {
+        for (const user of searchResults) {
+          if (!excludeSelf(user) || !sharedWithCandidateMatches(user, query)) continue;
+          const key = String(user.username).toLowerCase();
+          if (!included.has(key)) { candidates.push(user); included.add(key); }
+        }
+      }
+
+      results.replaceChildren();
+      for (const user of candidates.slice(0, 12)) {
+        results.appendChild(sharedWithCandidateElement(user, isFollowing(user)));
+      }
+      let message = '';
+      if (searching) message = 'ほかのユーザーも検索しています...';
+      else if (error) message = error;
+      else if (!query && !sharedWithFollowingReady) message = 'フォロー中のユーザーを読み込んでいます...';
+      else if (!query && sharedWithCandidateError) message = '候補を取得できませんでした。名前から検索できます。';
+      else if (!query && !candidates.length) message = 'まだフォロー中のユーザーはいません。名前やIDを入力して検索できます。';
+      else if (query && !candidates.length) message = 'ユーザーが見つかりませんでした。';
+      else if (!query && candidates.length > 12) message = 'ほかのフォロー中の人は、名前やIDで絞り込めます。';
+      if (message) {
+        const info = document.createElement('p');
+        info.className = 'shared-with-suggest-message';
+        info.textContent = message;
+        results.appendChild(info);
+      }
+    }
+
+    async function loadSharedWithCandidates(openSerial) {
+      try {
+        const me = currentUser;
+        if (!me || !(me.username || me.id)) throw new Error('ログインしてください');
+        const path = `/api/users/${encodeURIComponent(me.username || me.id)}/following`;
+        const res = await fetch(path, { headers: sharedWithHeaders(), cache:'no-store' });
+        if (!res.ok) throw new Error('フォロー中のユーザーを取得できませんでした');
+        const payload = await res.json();
+        if (!Array.isArray(payload)) throw new Error('候補データを読み込めませんでした');
+        if (openSerial !== sharedWithInviteOpenSerial || !sharedWithInviteIsOpen()) return;
+        sharedWithFollowingCandidates = payload;
+      } catch (error) {
+        if (openSerial !== sharedWithInviteOpenSerial || !sharedWithInviteIsOpen()) return;
+        sharedWithCandidateError = true;
+        console.warn('SHARED WITH suggestions:', error);
+      } finally {
+        if (openSerial === sharedWithInviteOpenSerial && sharedWithInviteIsOpen()) {
+          sharedWithFollowingReady = true;
+          if (!document.getElementById('sharedWithSearchInput').value.trim()) {
+            renderSharedWithCandidates();
+          } else {
+            window.searchSharedWithUsers();
+          }
+        }
+      }
+    }
+
     window.openSharedWithInviteModal = function(spotId) {
       activeSharedWithSpotId = String(spotId || '');
+      if (!activeSharedWithSpotId) return;
+      sharedWithInviteOpenSerial++;
+      sharedWithSearchSerial++;
+      clearTimeout(sharedWithSearchTimer);
+      sharedWithFollowingCandidates = [];
+      sharedWithFollowingReady = false;
+      sharedWithCandidateError = false;
+      sharedWithInviteCompleted = false;
       document.querySelectorAll('.post-action-menu.is-open').forEach(menu => menu.classList.remove('is-open'));
       document.getElementById('sharedWithSearchInput').value = '';
-      document.getElementById('sharedWithSearchResults').innerHTML = '';
       document.getElementById('sharedWithInviteStatus').textContent = '';
       document.getElementById('sharedWithInviteModal').classList.remove('hidden');
-      setTimeout(() => document.getElementById('sharedWithSearchInput').focus(), 0);
+      renderSharedWithCandidates();
+      void loadSharedWithCandidates(sharedWithInviteOpenSerial);
+      setTimeout(() => {
+        if (sharedWithInviteIsOpen()) document.getElementById('sharedWithSearchInput').focus();
+      }, 0);
     };
-    window.closeSharedWithInviteModal = function() { document.getElementById('sharedWithInviteModal').classList.add('hidden'); activeSharedWithSpotId=''; };
+
+    window.closeSharedWithInviteModal = function() {
+      sharedWithInviteOpenSerial++;
+      sharedWithSearchSerial++;
+      clearTimeout(sharedWithSearchTimer);
+      document.getElementById('sharedWithInviteModal').classList.add('hidden');
+      activeSharedWithSpotId = '';
+    };
 
     window.searchSharedWithUsers = async function() {
-      const q=document.getElementById('sharedWithSearchInput').value.trim();
-      const results=document.getElementById('sharedWithSearchResults');
-      if(!q)return;
-      results.innerHTML='<p class="shared-with-note mt-3">検索中...</p>';
-      try{
-        const res=await fetch(`/users/search?q=${encodeURIComponent(q)}`,{headers:sharedWithHeaders()});
-        if(!res.ok)throw new Error('検索できませんでした');
-        const users=await res.json();
-        const filtered=users.filter(u=>!currentUser||u.username!==currentUser.username);
-        results.innerHTML=filtered.length?filtered.map(u=>`<div class="shared-with-result"><div class="shared-with-avatar" ${u.avatar_url?`style="background-image:url('${escapeHtml(u.avatar_url)}')"`:''}>${u.avatar_url?'':escapeHtml((u.display_name||u.username||'?').charAt(0).toUpperCase())}</div><div class="grow"><div class="font-black text-[11px]">${escapeHtml(u.display_name||u.username)}</div><div class="text-[9px] text-slate-400">@${escapeHtml(u.username)}</div></div><button type="button" onclick="sendSharedWithInvite('${escapeHtml(u.username)}',this)">招待</button></div>`).join(''):'<p class="shared-with-note mt-3">ユーザーが見つかりません</p>';
-      }catch(error){results.innerHTML=`<p class="shared-with-note mt-3">${escapeHtml(error.message||'検索できませんでした')}</p>`;}
+      if (!sharedWithInviteIsOpen()) return;
+      clearTimeout(sharedWithSearchTimer);
+      const q = document.getElementById('sharedWithSearchInput').value.trim();
+      const serial = ++sharedWithSearchSerial;
+      if (!q) { renderSharedWithCandidates(); return; }
+      renderSharedWithCandidates(null, true);
+      try {
+        const res = await fetch(`/users/search?q=${encodeURIComponent(q)}`, { headers: sharedWithHeaders() });
+        if (!res.ok) throw new Error('検索できませんでした');
+        const users = await res.json();
+        if (serial === sharedWithSearchSerial && sharedWithInviteIsOpen()) {
+          renderSharedWithCandidates(Array.isArray(users) ? users : []);
+        }
+      } catch (error) {
+        if (serial === sharedWithSearchSerial && sharedWithInviteIsOpen()) {
+          renderSharedWithCandidates(null, false, error.message || '検索できませんでした');
+        }
+      }
     };
 
+    document.getElementById('sharedWithSearchInput')?.addEventListener('input', () => {
+      clearTimeout(sharedWithSearchTimer);
+      sharedWithSearchSerial++;
+      const q = document.getElementById('sharedWithSearchInput').value.trim();
+      if (!q) { renderSharedWithCandidates(); return; }
+      renderSharedWithCandidates(null, true);
+      sharedWithSearchTimer = setTimeout(() => window.searchSharedWithUsers(), 300);
+    });
+    document.getElementById('sharedWithSearchInput')?.addEventListener('keydown', event => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        void window.searchSharedWithUsers();
+      }
+    });
 
     async function getSharedWithStatus(spotId){
       try{
@@ -6673,6 +6928,8 @@ html.withlog-dark .tl-post-card .withlog-post-place-row:hover { background: rgba
           if(actual && sameInvitee && ['pending','accepted'].includes(actual.state)){
             status.textContent=`@${username} さんにSHARED WITHの招待を送りました。`;
             button.textContent='送信済み';
+            sharedWithInviteCompleted = true;
+            document.querySelectorAll('#sharedWithSearchResults .shared-with-suggest-invite').forEach(item => item.disabled = true);
             void loadSharedWithStatuses([{id:spotId}]);
             return;
           }
@@ -6681,6 +6938,8 @@ html.withlog-dark .tl-post-card .withlog-post-place-row:hover { background: rgba
 
         status.textContent=`@${username} さんにSHARED WITHの招待を送りました。`;
         button.textContent='送信済み';
+        sharedWithInviteCompleted = true;
+        document.querySelectorAll('#sharedWithSearchResults .shared-with-suggest-invite').forEach(item => item.disabled = true);
         void loadSharedWithStatuses([{id:spotId}]);
       }catch(error){
         status.textContent=error.message||'招待を送れませんでした';
