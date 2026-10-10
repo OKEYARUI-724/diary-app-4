@@ -2198,6 +2198,19 @@ html.withlog-dark .shared-with-crop-done{background:#31433b;color:#bfe1ce}
   backdrop-filter:blur(10px);
   box-shadow:0 4px 16px rgba(27,24,34,.09);
 }
+.shared-with-carousel-profile-trigger{
+  cursor:pointer;
+  border:0!important;
+  appearance:none;
+  -webkit-appearance:none;
+  font:inherit;
+  color:inherit;
+  text-align:left;
+}
+.shared-with-carousel-profile-trigger:focus-visible{
+  outline:3px solid #886bcf;
+  outline-offset:3px;
+}
 .shared-with-carousel-person-avatar{
   width:28px;
   height:28px;
@@ -7179,13 +7192,17 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
       const username=person?.username||'';
       const avatarStyle=avatarUrl?`style="background-image:url('${escapeHtml(avatarUrl)}')"`:'';
       const initial=avatarUrl?'':escapeHtml(String(display||'?').charAt(0).toUpperCase());
-      return `<div class="shared-with-carousel-person">
+      // Both SHARED WITH slides can open the corresponding participant's profile.
+      // Keep a noninteractive fallback when the username is missing.
+      const tag=username?'button':'div';
+      const interaction=username?`type="button" class="shared-with-carousel-person shared-with-carousel-profile-trigger" data-profile-username="${escapeHtml(username)}" aria-label="${escapeHtml(display||username)}のプロフィールを開く" onclick="event.stopPropagation();openProfile(this.dataset.profileUsername)"`:'class="shared-with-carousel-person"';
+      return `<${tag} ${interaction}>
         <span class="shared-with-carousel-person-avatar" ${avatarStyle}>${initial}</span>
         <span class="shared-with-carousel-person-copy">
           <strong>${escapeHtml(display)}</strong>
           <span>@${escapeHtml(username)}</span>
         </span>
-      </div>`;
+      </${tag}>`;
     }
 
     function updateSharedWithCarouselNav(carousel){
@@ -8145,6 +8162,7 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
     let doubleLikeTouchAt = 0;
 
     feedEl.addEventListener('dblclick', event => {
+      if (event.target.closest('.shared-with-carousel-profile-trigger')) return;
       const frame = event.target.closest('[data-double-like-spot]');
       if (!frame || !feedEl.contains(frame)) return;
       event.preventDefault();
@@ -8153,6 +8171,7 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
 
     feedEl.addEventListener('pointerup', event => {
       if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return;
+      if (event.target.closest('.shared-with-carousel-profile-trigger')) return;
       const frame = event.target.closest('[data-double-like-spot]');
       if (!frame || !feedEl.contains(frame)) return;
 
