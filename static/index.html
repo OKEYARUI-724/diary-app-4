@@ -6811,9 +6811,12 @@ html.withlog-dark .withlog-following-new-count { background: #43374f; color: #e5
       }
     }
 
+    let notificationsModalRequestId = 0;
     window.openNotificationsModal = async function({quiet = false} = {}) {
       const token = getToken();
       if (!token) return;
+      // A later WebSocket-triggered reload must win over older in-flight GETs.
+      const requestId = ++notificationsModalRequestId;
 
       document.getElementById('notificationsModal').classList.remove('hidden');
       const incomingEl = document.getElementById('incomingRequestsList');
@@ -6832,16 +6835,17 @@ html.withlog-dark .withlog-following-new-count { background: #43374f; color: #e5
         const [incomingRes, outgoingRes, notifRes, sharedRes] = await Promise.all([
           fetch('/friends/incoming-requests', { headers }),
           fetch('/friends/outgoing-requests', { headers }),
-          fetch('/notifications', { headers }),
+          fetch('/notifications', { headers, cache:'no-store' }),
           fetch('/shared-with/incoming', { headers })
         ]);
 
-        if (token !== getToken()) return;
+        if (token !== getToken() || requestId !== notificationsModalRequestId) return;
         if (!incomingRes.ok || !outgoingRes.ok || !notifRes.ok || !sharedRes.ok) throw new Error('通知の取得に失敗しました');
         const incoming = await incomingRes.json();
         const outgoing = await outgoingRes.json();
         const notifications = await notifRes.json();
         const sharedInvites = await sharedRes.json();
+        if (token !== getToken() || requestId !== notificationsModalRequestId) return;
 
         incomingEl.innerHTML = incoming.length ? incoming.map(u => `
           <div data-follow-request="${escapeHtml(u.username)}" class="p-2.5 rounded-xl border border-slate-200 bg-slate-50">
@@ -8134,6 +8138,7 @@ html.withlog-dark .withlog-following-new-count { background: #43374f; color: #e5
     };
 
     window.closeNotificationsModal = function() {
+      ++notificationsModalRequestId;
       document.getElementById('notificationsModal').classList.add('hidden');
     };
 
@@ -10246,6 +10251,13 @@ html.withlog-dark .withlog-following-new-count { background: #43374f; color: #e5
 
         if ((payload.event === 'comment_created' || payload.event === 'comment_deleted') && payload.spot_id) {
           void refreshNotificationBadge();
+          // The deleted comment's notification has already been removed on the
+          // server. Refresh the open bell panel immediately on the same socket
+          // event (the 8-second polling remains a fallback if socket is down).
+          const notificationsModal = document.getElementById('notificationsModal');
+          if (notificationsModal && !notificationsModal.classList.contains('hidden')) {
+            void openNotificationsModal({quiet:true});
+          }
           const spotId = String(payload.spot_id);
           nextCommentGeneration(spotId);
           setCommentCount(spotId, payload.count || 0, {animate:true});

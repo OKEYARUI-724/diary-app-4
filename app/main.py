@@ -210,6 +210,28 @@ def migrate_social_features():
                 CREATE INDEX IF NOT EXISTS idx_spot_comments_user
                 ON spot_comments(user_id);
             """))
+            # Associate comment notifications with the exact comment that
+            # produced them. Nullable for notifications created before this
+            # deployment, and added without changing the existing ORM model.
+            conn.execute(text("""
+                ALTER TABLE notifications
+                ADD COLUMN IF NOT EXISTS comment_id UUID;
+            """))
+            conn.execute(text("""
+                CREATE INDEX IF NOT EXISTS idx_notifications_comment_id
+                ON notifications(comment_id)
+                WHERE comment_id IS NOT NULL;
+            """))
+            conn.execute(text("""
+                DO $$
+                BEGIN
+                    ALTER TABLE notifications
+                    ADD CONSTRAINT fk_notifications_comment_id
+                    FOREIGN KEY (comment_id) REFERENCES spot_comments(id)
+                    ON DELETE CASCADE;
+                EXCEPTION WHEN duplicate_object THEN NULL;
+                END $$;
+            """))
             conn.execute(text("""
                 CREATE TABLE IF NOT EXISTS shared_with_invites (
                     id UUID PRIMARY KEY,
@@ -591,8 +613,25 @@ def add_notification(
     sender_id,
     notification_type: str,
     message: str,
+    *,
+    comment_id: Optional[uuid.UUID] = None,
 ):
     if recipient_id == sender_id:
+        return
+    if comment_id is not None:
+        # Use SQL for the new nullable column so the rest of the application
+        # can continue using its existing Notification ORM model unchanged.
+        db.execute(text("""
+            INSERT INTO notifications (id, recipient_id, sender_id, type, message, comment_id)
+            VALUES (:id, :recipient_id, :sender_id, :type, :message, :comment_id)
+        """), {
+            "id": uuid.uuid4(),
+            "recipient_id": recipient_id,
+            "sender_id": sender_id,
+            "type": notification_type,
+            "message": message[:255],
+            "comment_id": comment_id,
+        })
         return
     db.add(
         Notification(
@@ -1618,6 +1657,7 @@ async def create_spot_comment(
             current_user.id,
             "comment",
             f"@{current_user.username} さんが『{spot.name}』にコメントしました: {preview}",
+            comment_id=comment_id,
         )
 
     db.commit()
@@ -1662,7 +1702,7 @@ async def delete_spot_comment(
     db: Session = Depends(get_db),
 ):
     row = db.execute(text("""
-        SELECT id, spot_id, user_id
+        SELECT id, spot_id, user_id, content, created_at
         FROM spot_comments
         WHERE id = :comment_id
         FOR UPDATE
@@ -1676,6 +1716,42 @@ async def delete_spot_comment(
 
     if current_user.id != row["user_id"]:
         raise HTTPException(status_code=403, detail="コメントした本人だけが削除できます")
+
+    # Delete the associated notification in the *same transaction*, including
+    # notifications the recipient has already read. The FK also ensures cleanup
+    # if a comment disappears because its parent post is deleted.
+    removed_linked = db.execute(text("""
+        DELETE FROM notifications
+        WHERE type = 'comment' AND comment_id = :comment_id
+    """), {"comment_id": comment_id}).rowcount
+
+    # Notifications created before comment_id tracking have a NULL comment_id.
+    # Match the original text and nearest creation time, removing at most one
+    # matching legacy notification (never a different comment's notification).
+    if not removed_linked and spot.user_id and spot.user_id != current_user.id:
+        legacy_preview = (row["content"] or "").replace("\n", " ")[:80]
+        legacy_message = (
+            f"@{current_user.username} さんが『{spot.name}』にコメントしました: {legacy_preview}"
+        )[:255]
+        db.execute(text("""
+            DELETE FROM notifications
+            WHERE id = (
+                SELECT id FROM notifications
+                WHERE type = 'comment'
+                  AND comment_id IS NULL
+                  AND recipient_id = :recipient_id
+                  AND sender_id = :sender_id
+                  AND message = :message
+                  AND ABS(EXTRACT(EPOCH FROM (created_at - :created_at))) <= 180
+                ORDER BY ABS(EXTRACT(EPOCH FROM (created_at - :created_at))), created_at
+                LIMIT 1
+            )
+        """), {
+            "recipient_id": spot.user_id,
+            "sender_id": current_user.id,
+            "message": legacy_message,
+            "created_at": row["created_at"],
+        })
 
     db.execute(text("DELETE FROM spot_comments WHERE id = :comment_id"), {"comment_id": comment_id})
     db.commit()
