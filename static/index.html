@@ -4769,8 +4769,8 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
 
 
 <style id="withlog-visible-post-places">
-/* The location indicator floats INSIDE the post photo, like the music player.
-   Collapsed: a single pin. Tap to reveal the address and a direct map link. */
+/* Post photo controls: a small glass pin sits on the SAME line as the music
+   pill. The address unfolds upwards, so opening it never reflows the music. */
 .tl-post-card .withlog-post-photo-shell {
   position: relative;
   isolation: isolate;
@@ -4778,51 +4778,42 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
   min-width: 0;
 }
 .tl-post-card .withlog-post-place-row {
-  display: inline-flex;
-  align-items: center;
   position: absolute;
-  left: 26px;
-  bottom: 27px;
+  left: 25px;
+  bottom: 13px;
+  top: auto;
   z-index: 12;
-  max-width: min(82%, 325px);
-  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  padding: 0;
+  border: 1px solid rgba(255,255,255,.58);
   border-radius: 999px;
-  border: 1px solid rgba(127,108,156,.18);
-  background: rgba(255,253,254,.94);
+  background: rgba(255,253,255,.75);
   color: #69557f;
   box-shadow: none !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  overflow: visible;
   transition: background-color .16s ease;
-  overflow: hidden;
-}
-/* Leave room for the embedded music control at the bottom-left. */
-.tl-post-card .withlog-post-photo-shell.has-post-song .withlog-post-place-row {
-  bottom: 66px;
-}
-/* Video playback controls must not be covered. */
-.tl-post-card .withlog-post-photo-shell.is-video-media .withlog-post-place-row {
-  top: 22px;
-  bottom: auto;
-}
-/* SHARED WITH: above slide captions and away from bottom carousel controls. */
-.tl-post-card .withlog-post-photo-shell:has(.shared-with-carousel) .withlog-post-place-row {
-  top: 67px;
-  bottom: auto;
 }
 .tl-post-card .withlog-post-place-toggle {
   display: grid !important;
   place-items: center;
-  flex: 0 0 36px;
-  width: 36px !important;
-  height: 36px !important;
-  min-width: 36px !important;
-  min-height: 36px !important;
+  flex: 0 0 30px;
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  min-height: 30px !important;
   margin: 0 !important;
   padding: 0 !important;
   border: none !important;
   border-radius: 50% !important;
-  color: #8166ad !important;
+  color: #7655a0 !important;
   background: transparent !important;
   cursor: pointer;
 }
@@ -4830,38 +4821,77 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
   width: 17px;
   height: 17px;
   stroke: currentColor;
+  opacity: 1;
+}
+/* Reserve precisely one compact control + 7px gap to the LEFT of the music. */
+.tl-post-card .withlog-post-photo-shell:has(> .withlog-post-place-row) .withlog-post-song-overlay {
+  left: 49px !important;
+}
+.tl-post-card .withlog-post-photo-shell:has(> .withlog-post-place-row) .withlog-post-song-overlay .shared-with-carousel-song {
+  max-width: 100% !important;
+}
+/* SHARED WITH: the second slide has its own player in the carousel caption. */
+.tl-post-card .withlog-post-photo-shell:has(> .withlog-post-place-row) .shared-with-carousel-caption .shared-with-carousel-song {
+  margin-left: 37px !important;
+  max-width: min(295px, calc(100% - 145px)) !important;
+}
+/* Keep the same bottom-left pair even after SHARED WITH loads asynchronously. */
+.tl-post-card .withlog-post-photo-shell:has(.shared-with-carousel) .withlog-post-place-row {
+  left: 25px;
+  bottom: 13px;
+  top: auto;
+}
+/* Videos use native bottom playback controls: keep the pin away from them. */
+.tl-post-card .withlog-post-photo-shell.is-video-media .withlog-post-place-row {
+  left: 25px;
+  top: 22px;
+  bottom: auto;
 }
 .tl-post-card .withlog-post-place-toggle:focus-visible,
 .tl-post-card .withlog-post-place-details:focus-visible {
   outline: 2px solid #8e75c0 !important;
-  outline-offset: -3px;
+  outline-offset: 2px;
 }
+/* The address appears as a frosted floating pill ABOVE the pin rather than
+   a solid white strip across the photograph. Only the pin stays fully opaque. */
 .tl-post-card .withlog-post-place-details {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 7px);
+  top: auto;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  flex: 0 1 auto;
+  gap: 7px;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: min(285px, calc(100vw - 65px));
   min-width: 0;
-  width: 0;
-  max-width: 0;
-  height: 36px;
-  padding: 0 !important;
-  overflow: hidden;
+  min-height: 35px;
+  height: auto;
+  padding: 7px 11px !important;
+  border: 1px solid rgba(255,255,255,.63);
+  border-radius: 15px;
+  background: rgba(255,253,255,.78);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   color: #665275 !important;
   text-decoration: none !important;
-  white-space: nowrap;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: max-width .20s ease, opacity .12s ease, padding .20s ease;
+  transform: translateY(5px);
+  transition: transform .18s ease, opacity .18s ease, visibility .18s ease;
 }
 .tl-post-card .withlog-post-place-row.is-open .withlog-post-place-details {
-  width: auto;
-  max-width: min(260px, calc(82vw - 85px));
-  padding: 3px 11px 3px 0 !important;
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
+  transform: translateY(0);
+}
+/* The video version opens down so it remains inside the photo frame. */
+.tl-post-card .withlog-post-photo-shell.is-video-media .withlog-post-place-details {
+  top: calc(100% + 7px);
+  bottom: auto;
 }
 .tl-post-card .withlog-post-place-lines {
   display: flex;
@@ -4886,7 +4916,7 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
 .tl-post-card .withlog-post-place-detail {
   font-size: 8px;
   font-weight: 600;
-  color: #9587a4;
+  color: #84728f;
 }
 .tl-post-card .withlog-post-place-detail:empty { display: none; }
 .tl-post-card .withlog-post-place-arrow {
@@ -4894,10 +4924,10 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
   margin-left: 1px;
   font-size: 12px;
   font-weight: 800;
-  opacity: .75;
+  opacity: .82;
 }
-.tl-post-card .withlog-post-place-row:hover { background: rgba(250,244,255,.97); }
-/* Posts without photos still offer the same compact reveal control in the footer. */
+.tl-post-card .withlog-post-place-row:hover { background: rgba(255,253,255,.87); }
+/* A post without a photo uses a compact reveal control in its footer. */
 .tl-post-card .withlog-post-place-row.is-post-without-media {
   position: relative;
   left: auto;
@@ -4906,22 +4936,36 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
   margin: 0 0 12px;
 }
 html.withlog-dark .tl-post-card .withlog-post-place-row {
-  background: rgba(49,45,58,.94);
-  border-color: rgba(205,185,227,.22);
+  background: rgba(47,42,57,.73);
+  border-color: rgba(227,207,245,.22);
 }
-html.withlog-dark .tl-post-card .withlog-post-place-toggle { color: #d6bfef !important; }
-html.withlog-dark .tl-post-card .withlog-post-place-details { color: #f0e7f6 !important; }
-html.withlog-dark .tl-post-card .withlog-post-place-detail { color: #c0b1cc; }
-html.withlog-dark .tl-post-card .withlog-post-place-row:hover { background: rgba(65,57,75,.97); }
-@media(max-width:560px){
-  .tl-post-card .withlog-post-place-row { left: 22px; bottom: 23px; max-width: min(83%,290px); }
-  .tl-post-card .withlog-post-photo-shell.has-post-song .withlog-post-place-row { bottom: 58px; }
-  .tl-post-card .withlog-post-photo-shell.is-video-media .withlog-post-place-row { top: 19px; bottom: auto; }
-  .tl-post-card .withlog-post-photo-shell:has(.shared-with-carousel) .withlog-post-place-row { top: 64px; bottom: auto; }
-  .tl-post-card .withlog-post-place-row.is-post-without-media { left: auto; bottom: auto; top: auto; }
+html.withlog-dark .tl-post-card .withlog-post-place-toggle { color: #d9baf4 !important; }
+html.withlog-dark .tl-post-card .withlog-post-place-details {
+  background: rgba(52,45,64,.79);
+  border-color: rgba(233,214,249,.19);
+  color: #f0e7f6 !important;
 }
-@media(prefers-reduced-motion: reduce){
-  .tl-post-card .withlog-post-place-details { transition:none; }
+html.withlog-dark .tl-post-card .withlog-post-place-detail { color: #cebad9; }
+html.withlog-dark .tl-post-card .withlog-post-place-row:hover { background: rgba(64,55,77,.85); }
+@media (max-width: 560px) {
+  .tl-post-card .withlog-post-place-row { left: 19px; bottom: 11px; }
+  .tl-post-card .withlog-post-photo-shell:has(> .withlog-post-place-row) .withlog-post-song-overlay {
+    left: 46px !important;
+  }
+  .tl-post-card .withlog-post-photo-shell:has(.shared-with-carousel) .withlog-post-place-row {
+    left: 19px;
+    bottom: 11px;
+    top: auto;
+  }
+  .tl-post-card .withlog-post-photo-shell.is-video-media .withlog-post-place-row {
+    left: 19px;
+    top: 19px;
+    bottom: auto;
+  }
+  .tl-post-card .withlog-post-place-row.is-post-without-media { left:auto; bottom:auto; top:auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tl-post-card .withlog-post-place-details { transition: none; }
 }
 </style>
 
