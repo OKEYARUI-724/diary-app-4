@@ -5170,6 +5170,23 @@ html.withlog-dark .withlog-following-new-count { background: #43374f; color: #e5
 }
 </style>
 
+
+<style id="withlog-post-author-avatar-size">
+/* 投稿ヘッダーのプロフィール写真を見やすい48pxに統一（通常投稿・SHARED WITH・TODAY'S WITH） */
+.tl-post-card:not(.with-daily-post) > div:first-child .w-8.h-8,
+.tl-post-card.with-daily-post > div:first-child .w-8.h-8 {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  min-height: 48px !important;
+  flex: 0 0 48px !important;
+  box-sizing: border-box !important;
+  border-radius: 50% !important;
+  background-size: cover;
+  background-position: center;
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
