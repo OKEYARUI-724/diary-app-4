@@ -5200,7 +5200,7 @@ html.withlog-dark .withlog-following-new-count { background: #43374f; color: #e5
 
 
 <style id="withlog-post-author-avatar-size">
-/* 投稿ヘッダーのプロフィール写真を見やすい48pxに統一（通常投稿・SHARED WITH・TODAY'S WITH） */
+/* 投稿ヘッダーのアイコン：48pxの円形 + 柄のない単色の細いフチ */
 .tl-post-card:not(.with-daily-post) > div:first-child .w-8.h-8,
 .tl-post-card.with-daily-post > div:first-child .w-8.h-8 {
   width: 48px !important;
@@ -5210,8 +5210,18 @@ html.withlog-dark .withlog-following-new-count { background: #43374f; color: #e5
   flex: 0 0 48px !important;
   box-sizing: border-box !important;
   border-radius: 50% !important;
-  background-size: cover;
-  background-position: center;
+  border: 2px solid #ffffff !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background-clip: padding-box !important;
+  background-size: cover !important;
+  background-position: center !important;
+}
+html.withlog-dark .tl-post-card:not(.with-daily-post) > div:first-child .w-8.h-8,
+html.withlog-dark .tl-post-card.with-daily-post > div:first-child .w-8.h-8 {
+  border-color: #d9d5df !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 </style>
 
