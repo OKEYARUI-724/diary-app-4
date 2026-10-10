@@ -5043,6 +5043,133 @@ html.withlog-dark #sharedWithInviteModal .shared-with-suggest-invite:disabled {
 }
 </style>
 
+
+<style id="withlog-following-live-posts-style">
+/* A brand-colored ring and a small NEW badge distinguish unread posts from
+   the normal followed-user avatars. A quiet border remains after viewing. */
+#storiesBar .withlog-following-person {
+  position: relative;
+  display: flex;
+  flex: 0 0 77px;
+  width: 77px;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 2px 2px;
+  border: 0 !important;
+  background: transparent !important;
+  color: #5e5370;
+  border-radius: 18px !important;
+  text-align: center;
+}
+#storiesBar .withlog-following-ring {
+  width: 60px;
+  height: 60px;
+  flex: 0 0 60px;
+  padding: 3px;
+  display: grid;
+  place-items: center;
+  border: 0 !important;
+  border-radius: 50%;
+  background: #e7e2ee !important;
+  position: relative;
+}
+#storiesBar .withlog-following-photo {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 2px solid #fffafc;
+  border-radius: 50%;
+  background-color: #e6e0f6;
+  background-size: cover;
+  background-position: center;
+  color: #51446a;
+  font-size: 13px;
+  font-weight: 900;
+}
+#storiesBar .withlog-following-person.is-new .withlog-following-ring {
+  background: linear-gradient(135deg, #7760c7 4%, #b074cc 50%, #e789ad 100%) !important;
+}
+#storiesBar .withlog-following-person.is-new .withlog-following-ring::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border: 1.5px solid rgba(176, 109, 188, .5);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: withlog-following-pulse 2.6s ease-in-out infinite;
+}
+#storiesBar .withlog-following-new-badge {
+  position: absolute;
+  z-index: 2;
+  right: -1px;
+  top: 1px;
+  padding: 3px 6px;
+  border: 2px solid #fffafc;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #8a6bcc, #c77baa);
+  color: white;
+  font-size: 8px;
+  font-weight: 900;
+  line-height: 1.3;
+  letter-spacing: .03em;
+}
+#storiesBar .withlog-following-name {
+  display: block;
+  max-width: 100%;
+  font-size: 10px;
+  font-weight: 750;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#storiesBar .withlog-following-person.is-new .withlog-following-name {
+  color: #7756a4;
+  font-weight: 900;
+}
+.withlog-following-new-count {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #eee2f9;
+  color: #7651a8;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+.withlog-following-new-count.hidden { display: none !important; }
+#storiesBar .withlog-following-person:focus-visible {
+  outline: 2px solid #8166c9;
+  outline-offset: 1px;
+}
+@keyframes withlog-following-pulse {
+  0%, 100% { transform: scale(1); opacity: .7; }
+  50% { transform: scale(1.055); opacity: .22; }
+}
+html.withlog-dark #storiesBar .withlog-following-ring { background: #4d495b !important; }
+html.withlog-dark #storiesBar .withlog-following-person.is-new .withlog-following-ring {
+  background: linear-gradient(135deg, #7762ac, #9566a4, #b66f93) !important;
+}
+html.withlog-dark #storiesBar .withlog-following-photo {
+  border-color: #303039;
+  background-color: #454153;
+  color: #e1d4f2;
+}
+html.withlog-dark #storiesBar .withlog-following-person { color: #c3bacf; }
+html.withlog-dark #storiesBar .withlog-following-person.is-new .withlog-following-name { color: #e2c8ff; }
+html.withlog-dark #storiesBar .withlog-following-new-badge {
+  border-color: #313039;
+  background: linear-gradient(135deg, #69549d, #a16689);
+}
+html.withlog-dark .withlog-following-new-count { background: #43374f; color: #e5d1f5; }
+@media (prefers-reduced-motion: reduce) {
+  #storiesBar .withlog-following-person.is-new .withlog-following-ring::after { animation: none; }
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -5173,8 +5300,9 @@ html.withlog-dark #sharedWithInviteModal .shared-with-suggest-invite:disabled {
       <div class="tl-filter-card px-3 py-3 overflow-hidden">
         <div class="flex items-center justify-between mb-2">
           <span class="text-[10px] font-black tracking-[0.16em] text-slate-500 uppercase">Following</span>
+          <span id="followingFreshCount" class="withlog-following-new-count hidden" aria-live="polite"></span>
         </div>
-        <div id="storiesBar" class="flex gap-3 overflow-x-auto pb-1"></div>
+        <div id="storiesBar" class="flex gap-3 overflow-x-auto pb-1" aria-label="フォロー中のユーザー"></div>
       </div>
     </section>
 
@@ -5975,6 +6103,7 @@ html.withlog-dark #sharedWithInviteModal .shared-with-suggest-invite:disabled {
           await ensureMediaSession();
           loadSpots();
           loadStories();
+          startFollowingStoriesPolling();
           connectDmWebSocket();
           startNotificationPolling();
         } else {
@@ -6014,7 +6143,13 @@ html.withlog-dark #sharedWithInviteModal .shared-with-suggest-invite:disabled {
       document.querySelectorAll('[id$="Modal"]').forEach(el => el.classList.add('hidden'));
       document.getElementById('feed').replaceChildren();
       document.getElementById('likedPostsContent').replaceChildren();
+      stopFollowingStoriesPolling();
+      followedUsersSnapshot = [];
       document.getElementById('storiesBar').replaceChildren();
+      document.getElementById('storiesBar').dataset.storySnapshot = '';
+      document.getElementById('storiesSection').classList.add('hidden');
+      const freshCount = document.getElementById('followingFreshCount');
+      if (freshCount) { freshCount.textContent = ''; freshCount.classList.add('hidden'); }
       document.getElementById('notificationsList').replaceChildren();
       currentFeedUsername = '';
       currentFeedTab = 'all';
@@ -6203,6 +6338,7 @@ html.withlog-dark #sharedWithInviteModal .shared-with-suggest-invite:disabled {
       await ensureMediaSession();
       loadSpots();
       loadStories();
+      startFollowingStoriesPolling();
       connectDmWebSocket();
       startNotificationPolling();
     }
@@ -6426,39 +6562,144 @@ html.withlog-dark #sharedWithInviteModal .shared-with-suggest-invite:disabled {
       }
     });
 
-    // --- ストーリー / 通知 / フォロー申請 / ユーザー一覧 ---
-    async function loadStories() {
-      const section = document.getElementById('storiesSection');
-      const bar = document.getElementById('storiesBar');
-      const token = getToken();
-      if (!token || !section || !bar) return;
+    // --- Following: live new-post badges / notifications / follow requests ---
+    let followedUsersSnapshot = [];
+    let storiesRequestInFlight = false;
+    let followingStoriesTimer = null;
 
+    // A 'NEW' badge is dismissed when a follower's profile is opened.
+    // Store it separately for each signed-in account on this browser.
+    function followingReadStorageKey() {
+      const identity = currentUser?.id || currentUser?.username;
+      return identity ? `withlog_following_read_v1:${String(identity).toLowerCase()}` : null;
+    }
+
+    function followingReadTimes() {
+      const key = followingReadStorageKey();
+      if (!key) return {};
+      try {
+        const value = JSON.parse(localStorage.getItem(key) || '{}');
+        return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+      } catch (_) { return {}; }
+    }
+
+    function isFollowingPostNew(user, readTimes, now = Date.now()) {
+      const time = Date.parse(user.latest_spot_at || '');
+      if (!Number.isFinite(time) || time > now + 60_000) return false;
+      const seenTime = Number(readTimes[String(user.id || user.username).toLowerCase()] || 0);
+      if (time <= seenTime) return false;
+      // The first visit should not mark posts from months ago as unread.
+      // Once a user has been visited, new posts are marked until viewed
+      // (up to one month, so old activity doesn't remain 'NEW' forever).
+      return now - time <= (seenTime ? 30 : 1) * 24 * 60 * 60 * 1000;
+    }
+
+    function renderFollowingUsers() {
+      const bar = document.getElementById('storiesBar');
+      const section = document.getElementById('storiesSection');
+      const counter = document.getElementById('followingFreshCount');
+      if (!bar || !section) return;
+      if (!followedUsersSnapshot.length) {
+        section.classList.add('hidden');
+        bar.replaceChildren();
+        if (counter) { counter.textContent = ''; counter.classList.add('hidden'); }
+        bar.dataset.storySnapshot = '';
+        return;
+      }
+      const readTimes = followingReadTimes();
+      const flags = followedUsersSnapshot.map(user => isFollowingPostNew(user, readTimes));
+      const newCount = flags.filter(Boolean).length;
+      if (counter) {
+        counter.textContent = newCount ? `新着 ${newCount}` : '';
+        counter.classList.toggle('hidden', newCount === 0);
+      }
+      section.classList.remove('hidden');
+      const key = JSON.stringify([followedUsersSnapshot, flags]);
+      if (bar.dataset.storySnapshot === key) return;
+      const scrollPos = bar.scrollLeft;
+      bar.innerHTML = followedUsersSnapshot.map((user, index) => {
+        const newPost = flags[index];
+        const handle = escapeHtml(user.username || '');
+        const initial = escapeHtml(String(user.display_name || user.username || '?').charAt(0).toUpperCase());
+        return `<button type="button" class="withlog-following-person${newPost ? ' is-new' : ''}"
+            data-following-username="${handle}" aria-label="@${handle}${newPost ? '：新着投稿があります' : ''}、プロフィールを見る">
+            <span class="withlog-following-ring">
+              <span class="withlog-following-photo" ${user.avatar_url ? `style="background-image:url('${escapeHtml(user.avatar_url)}')"` : ''}>${user.avatar_url ? '' : initial}</span>
+            </span>
+            ${newPost ? '<span class="withlog-following-new-badge" aria-hidden="true">NEW</span>' : ''}
+            <span class="withlog-following-name">@${handle}</span>
+          </button>`;
+      }).join('');
+      bar.querySelectorAll('[data-following-username]').forEach(button => {
+        button.addEventListener('click', () => {
+          const username = button.dataset.followingUsername;
+          const user = followedUsersSnapshot.find(item => item.username === username);
+          if (user) markFollowingPostRead(user);
+          openProfile(username);
+        });
+      });
+      bar.dataset.storySnapshot = key;
+      bar.scrollLeft = scrollPos;
+    }
+
+    function markFollowingPostRead(user) {
+      const key = followingReadStorageKey();
+      const latest = Date.parse(user.latest_spot_at || '');
+      if (!key || !Number.isFinite(latest)) return;
+      const reads = followingReadTimes();
+      const userKey = String(user.id || user.username).toLowerCase();
+      reads[userKey] = Math.max(Number(reads[userKey]) || 0, latest);
+      try {
+        // Bound local storage even for accounts that follow many people.
+        const recent = Object.entries(reads).sort((a, b) => Number(b[1]) - Number(a[1])).slice(0, 300);
+        localStorage.setItem(key, JSON.stringify(Object.fromEntries(recent)));
+      } catch (_) {}
+      renderFollowingUsers();
+    }
+
+    async function loadStories() {
+      const token = getToken();
+      if (!token || !currentUser || storiesRequestInFlight) return;
+      storiesRequestInFlight = true;
       try {
         const res = await fetch('/users/following/stories', {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { 'Authorization': `Bearer ${token}` },
+          cache: 'no-store'
         });
-        const users = res.ok ? await res.json() : [];
+        if (!res.ok) throw new Error('Following status unavailable');
+        const users = await res.json();
         if (token !== getToken()) return;
-        if (!Array.isArray(users) || users.length === 0) {
-          section.classList.add('hidden');
-          bar.innerHTML = '';
-          return;
-        }
-
-        bar.innerHTML = users.map(u => `
-          <button type="button" onclick="openProfile('${escapeHtml(u.username)}')" class="shrink-0 w-[72px] text-center group">
-            <span class="mx-auto w-12 h-12 rounded-2xl border-2 ${u.has_recent_spot ? 'border-rose-300' : 'border-slate-200'} bg-slate-100 bg-cover bg-center flex items-center justify-center text-xs font-black "
-              ${u.avatar_url ? `style="background-image:url('${escapeHtml(u.avatar_url)}')"` : ''}>
-              ${u.avatar_url ? '' : escapeHtml((u.display_name || u.username).charAt(0).toUpperCase())}
-            </span>
-            <span class="block mt-1 text-[9px] font-bold text-slate-600 truncate">@${escapeHtml(u.username)}</span>
-          </button>
-        `).join('');
-        section.classList.remove('hidden');
+        if (!Array.isArray(users)) return;
+        followedUsersSnapshot = users;
+        renderFollowingUsers();
       } catch (err) {
-        console.warn('stories:', err);
+        console.warn('following:', err);
+      } finally {
+        storiesRequestInFlight = false;
       }
     }
+
+    function startFollowingStoriesPolling() {
+      stopFollowingStoriesPolling();
+      followingStoriesTimer = setInterval(() => {
+        if (document.hidden || !getToken() || !currentUser) return;
+        void loadStories();
+      }, 12000);
+    }
+
+    function stopFollowingStoriesPolling() {
+      if (followingStoriesTimer) {
+        clearInterval(followingStoriesTimer);
+        followingStoriesTimer = null;
+      }
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && getToken() && currentUser) void loadStories();
+    });
+    window.addEventListener('storage', event => {
+      if (event.key === followingReadStorageKey()) renderFollowingUsers();
+    });
 
     function startNotificationPolling() {
       if (notificationTimer) clearInterval(notificationTimer);
@@ -9130,6 +9371,8 @@ html.withlog-dark #sharedWithInviteModal .shared-with-suggest-invite:disabled {
       if (!res.ok) return;
       const user = await res.json();
       if (token !== getToken() || currentProfileUsername !== username) return;
+      const followed = followedUsersSnapshot.find(item => item.username?.toLowerCase() === String(user.username || '').toLowerCase());
+      if (followed) markFollowingPostRead(followed);
 
       document.getElementById('profileDisplayName').innerText = user.display_name || user.username;
       document.getElementById('profileUsername').innerText = `@${user.username}${user.is_private ? ' 🔒' : ''}`;

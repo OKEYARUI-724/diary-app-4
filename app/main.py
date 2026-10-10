@@ -1121,19 +1121,30 @@ def get_following_stories(
         return []
 
     users = db.query(User).filter(User.id.in_(ids)).all()
+    # Return the *latest published* timestamp, not just whether the account has
+    # ever posted. One grouped query also keeps frequent follower-bar refreshes
+    # inexpensive when the user follows many accounts.
+    recent_rows = db.query(
+        Spot.user_id, func.max(Spot.visited_at)
+    ).filter(
+        Spot.user_id.in_(ids),
+        Spot.visited_at <= func.now(),
+    ).group_by(Spot.user_id).all()
+    last_published = {user_id: published_at for user_id, published_at in recent_rows}
+    now_utc = datetime.now(timezone.utc)
     result = []
     for user in users:
-        latest_spot = db.query(Spot).filter(
-            Spot.user_id == user.id,
-            Spot.visited_at <= func.now(),
-        ).order_by(desc(Spot.visited_at)).first()
+        published_at = last_published.get(user.id)
+        if published_at and published_at.tzinfo is None:
+            published_at = published_at.replace(tzinfo=timezone.utc)
         result.append(
             {
                 "id": str(user.id),
                 "username": user.username,
                 "display_name": user.display_name or user.username,
                 "avatar_url": user.avatar_url,
-                "has_recent_spot": latest_spot is not None,
+                "latest_spot_at": published_at.isoformat() if published_at else None,
+                "has_recent_spot": bool(published_at and now_utc - timedelta(hours=24) <= published_at <= now_utc),
             }
         )
     return result
