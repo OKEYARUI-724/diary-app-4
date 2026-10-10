@@ -4769,53 +4769,105 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
 
 
 <style id="withlog-visible-post-places">
-/* The post's map link is a discreet pill UNDER its photo / music player.
-   This keeps the author header small and works with SHARED WITH carousels. */
-.tl-post-card .withlog-post-place-row {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  max-width: 100%;
-  margin: 0 0 11px;
+/* The location indicator floats INSIDE the post photo, like the music player.
+   Collapsed: a single pin. Tap to reveal the address and a direct map link. */
+.tl-post-card .withlog-post-photo-shell {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
   min-width: 0;
 }
-.tl-post-card .withlog-post-place {
-  display: inline-flex !important;
+.tl-post-card .withlog-post-place-row {
+  display: inline-flex;
   align-items: center;
-  gap: 7px;
-  width: fit-content;
-  max-width: min(100%, 320px);
-  min-height: 34px;
-  margin: 0 !important;
-  padding: 6px 10px !important;
-  border: 1px solid rgba(134, 114, 164, .13) !important;
-  border-radius: 999px !important;
-  background: rgba(255, 255, 255, .86) !important;
-  color: #625275 !important;
-  font-size: 10px !important;
-  font-weight: 800 !important;
-  line-height: 1.3;
-  text-align: left;
+  position: absolute;
+  left: 26px;
+  bottom: 27px;
+  z-index: 12;
+  max-width: min(82%, 325px);
+  min-height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(127,108,156,.18);
+  background: rgba(255,253,254,.94);
+  color: #69557f;
   box-shadow: none !important;
-  cursor: pointer;
-  backdrop-filter: blur(9px);
-  -webkit-backdrop-filter: blur(9px);
-  transition: background-color .16s ease, transform .16s ease !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: background-color .16s ease;
+  overflow: hidden;
 }
-.tl-post-card .withlog-post-place svg {
-  width: 20px;
-  height: 20px;
-  padding: 3px;
-  flex: 0 0 20px;
-  border-radius: 50%;
-  background: #f0e9fa;
-  color: #806cb0;
+/* Leave room for the embedded music control at the bottom-left. */
+.tl-post-card .withlog-post-photo-shell.has-post-song .withlog-post-place-row {
+  bottom: 66px;
+}
+/* Video playback controls must not be covered. */
+.tl-post-card .withlog-post-photo-shell.is-video-media .withlog-post-place-row {
+  top: 22px;
+  bottom: auto;
+}
+/* SHARED WITH: above slide captions and away from bottom carousel controls. */
+.tl-post-card .withlog-post-photo-shell:has(.shared-with-carousel) .withlog-post-place-row {
+  top: 67px;
+  bottom: auto;
+}
+.tl-post-card .withlog-post-place-toggle {
+  display: grid !important;
+  place-items: center;
+  flex: 0 0 36px;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 50% !important;
+  color: #8166ad !important;
+  background: transparent !important;
+  cursor: pointer;
+}
+.tl-post-card .withlog-post-place-toggle svg {
+  width: 17px;
+  height: 17px;
+  stroke: currentColor;
+}
+.tl-post-card .withlog-post-place-toggle:focus-visible,
+.tl-post-card .withlog-post-place-details:focus-visible {
+  outline: 2px solid #8e75c0 !important;
+  outline-offset: -3px;
+}
+.tl-post-card .withlog-post-place-details {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 1 auto;
+  min-width: 0;
+  width: 0;
+  max-width: 0;
+  height: 36px;
+  padding: 0 !important;
+  overflow: hidden;
+  color: #665275 !important;
+  text-decoration: none !important;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: max-width .20s ease, opacity .12s ease, padding .20s ease;
+}
+.tl-post-card .withlog-post-place-row.is-open .withlog-post-place-details {
+  width: auto;
+  max-width: min(260px, calc(82vw - 85px));
+  padding: 3px 11px 3px 0 !important;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 .tl-post-card .withlog-post-place-lines {
-  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 0;
+  min-width: 0;
 }
 .tl-post-card .withlog-post-place-text,
 .tl-post-card .withlog-post-place-detail {
@@ -4824,48 +4876,52 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 1.33;
 }
 .tl-post-card .withlog-post-place-text {
   font-size: 10px;
   font-weight: 850;
-  line-height: 1.3;
+  color: inherit;
 }
 .tl-post-card .withlog-post-place-detail {
-  font-size: 9px;
-  font-weight: 550;
-  line-height: 1.3;
-  color: #91849e;
+  font-size: 8px;
+  font-weight: 600;
+  color: #9587a4;
 }
 .tl-post-card .withlog-post-place-detail:empty { display: none; }
-.tl-post-card .withlog-post-place.is-gsi .withlog-post-place-detail::after {
-  content: " · 国土地理院";
-  font-size: 8px;
-  color: #9a8eaa;
-}
 .tl-post-card .withlog-post-place-arrow {
-  font-size: 12px;
-  opacity: .67;
   flex: 0 0 auto;
   margin-left: 1px;
+  font-size: 12px;
+  font-weight: 800;
+  opacity: .75;
 }
-.tl-post-card .withlog-post-place:hover { background: #f5effc !important; }
-.tl-post-card .withlog-post-place:focus-visible { outline: 2px solid #9274cf !important; outline-offset: 3px; }
-html.withlog-dark .tl-post-card .withlog-post-place {
-  background: rgba(62, 57, 74, .93) !important;
-  color: #e8ddf3 !important;
-  border-color: rgba(194, 177, 218, .16) !important;
+.tl-post-card .withlog-post-place-row:hover { background: rgba(250,244,255,.97); }
+/* Posts without photos still offer the same compact reveal control in the footer. */
+.tl-post-card .withlog-post-place-row.is-post-without-media {
+  position: relative;
+  left: auto;
+  bottom: auto;
+  top: auto;
+  margin: 0 0 12px;
 }
-html.withlog-dark .tl-post-card .withlog-post-place svg {
-  background: #51465f;
-  color: #d6c5ef;
+html.withlog-dark .tl-post-card .withlog-post-place-row {
+  background: rgba(49,45,58,.94);
+  border-color: rgba(205,185,227,.22);
 }
-html.withlog-dark .tl-post-card .withlog-post-place-detail { color: #bdb0ca; }
-html.withlog-dark .tl-post-card .withlog-post-place:hover { background: #50455b !important; }
-@media (max-width: 560px) {
-  .tl-post-card .withlog-post-place { max-width: min(100%, 280px); }
+html.withlog-dark .tl-post-card .withlog-post-place-toggle { color: #d6bfef !important; }
+html.withlog-dark .tl-post-card .withlog-post-place-details { color: #f0e7f6 !important; }
+html.withlog-dark .tl-post-card .withlog-post-place-detail { color: #c0b1cc; }
+html.withlog-dark .tl-post-card .withlog-post-place-row:hover { background: rgba(65,57,75,.97); }
+@media(max-width:560px){
+  .tl-post-card .withlog-post-place-row { left: 22px; bottom: 23px; max-width: min(83%,290px); }
+  .tl-post-card .withlog-post-photo-shell.has-post-song .withlog-post-place-row { bottom: 58px; }
+  .tl-post-card .withlog-post-photo-shell.is-video-media .withlog-post-place-row { top: 19px; bottom: auto; }
+  .tl-post-card .withlog-post-photo-shell:has(.shared-with-carousel) .withlog-post-place-row { top: 64px; bottom: auto; }
+  .tl-post-card .withlog-post-place-row.is-post-without-media { left: auto; bottom: auto; top: auto; }
 }
-@media (max-width: 360px) {
-  .tl-post-card .withlog-post-place { max-width: min(100%, 245px); }
+@media(prefers-reduced-motion: reduce){
+  .tl-post-card .withlog-post-place-details { transition:none; }
 }
 </style>
 
@@ -7996,6 +8052,38 @@ html.withlog-dark .tl-post-card .withlog-post-place:hover { background: #50455b 
       finally { spotPlacePending.delete(key); }
     }
 
+    // Reveal/close the compact in-photo location chip (Google Maps link appears
+    // only once expanded). Closing and opening are accessible by keyboard too.
+    function closeSpotPlaceRows(except = null) {
+      feedEl.querySelectorAll('.withlog-post-place-row.is-open').forEach(row => {
+        if (row === except) return;
+        row.classList.remove('is-open');
+        const toggle = row.querySelector('.withlog-post-place-toggle');
+        const link = row.querySelector('.withlog-post-place-details');
+        toggle?.setAttribute('aria-expanded', 'false');
+        toggle?.setAttribute('aria-label', '投稿した場所を表示');
+        if (link) { link.setAttribute('aria-hidden', 'true'); link.setAttribute('tabindex', '-1'); }
+      });
+    }
+    window.toggleSpotPlace = function(spotId, toggle) {
+      const row = toggle?.closest('.withlog-post-place-row');
+      if (!row || !feedEl.contains(row) || row.dataset.spotPlace !== String(spotId)) return;
+      const opening = !row.classList.contains('is-open');
+      closeSpotPlaceRows();
+      if (!opening) return;
+      row.classList.add('is-open');
+      toggle.setAttribute('aria-expanded', 'true');
+      toggle.setAttribute('aria-label', '場所を閉じる');
+      const link = row.querySelector('.withlog-post-place-details');
+      if (link) { link.setAttribute('aria-hidden', 'false'); link.removeAttribute('tabindex'); }
+    };
+    document.addEventListener('click', event => {
+      if (!event.target.closest('.withlog-post-place-row')) closeSpotPlaceRows();
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') closeSpotPlaceRows();
+    });
+
     function enrichSpotPlaceButtons() {
       if (spotPlaceObserver) spotPlaceObserver.disconnect();
       spotPlaceObserver = null;
@@ -8026,8 +8114,11 @@ html.withlog-dark .tl-post-card .withlog-post-place:hover { background: #50455b 
         textNode.textContent = label.region;
         detailNode.textContent = label.detail || defaultCoordinates;
         button.classList.add('is-gsi');
-        button.setAttribute('aria-label', `${label.full}付近の地図を開く`);
-        button.setAttribute('title', `${label.full}付近の地図を開く（推定住所・出典：国土地理院）`);
+        const mapLink = button.querySelector('.withlog-post-place-details');
+        if (mapLink) {
+          mapLink.setAttribute('aria-label', `${label.full}付近の地図を開く`);
+          mapLink.setAttribute('title', `${label.full}付近の地図を開く（推定住所・出典：国土地理院）`);
+        }
       };
       if (!('IntersectionObserver' in window)) {
         buttons.slice(0, 12).forEach(button => { void enrich(button); });
@@ -8156,6 +8247,28 @@ html.withlog-dark .tl-post-card .withlog-post-place:hover { background: #50455b 
             <strong>${escapeHtml(canonicalDailyPrompt || '')}</strong>
           </div>` : '';
 
+        const postPlaceWidget = `
+              ${s.google_map_url ? `
+                <div class="withlog-post-place-row${s.media_url ? '' : ' is-post-without-media'}" data-spot-place="${escapeHtml(String(s.id))}">
+                  <button type="button" class="withlog-post-place-toggle"
+                    onclick="event.stopPropagation(); toggleSpotPlace('${s.id}', this)"
+                    aria-label="投稿した場所を表示" aria-expanded="false"
+                    aria-controls="spot-place-details-${escapeHtml(String(s.id))}" title="場所を表示">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21s6-5.35 6-11a6 6 0 1 0-12 0c0 5.65 6 11 6 11Z"/><circle cx="12" cy="10" r="2"/></svg>
+                  </button>
+                  <a id="spot-place-details-${escapeHtml(String(s.id))}" class="withlog-post-place-details"
+                    href="${escapeHtml(s.google_map_url)}" target="_blank" rel="noopener noreferrer"
+                    aria-label="Googleマップで投稿場所を開く" aria-hidden="true" tabindex="-1"
+                    onclick="event.stopPropagation()" title="Googleマップで場所を確認">
+                    <span class="withlog-post-place-lines">
+                      <span class="withlog-post-place-text">場所を確認</span>
+                      <span class="withlog-post-place-detail"></span>
+                    </span>
+                    <span class="withlog-post-place-arrow" aria-hidden="true">↗</span>
+                  </a>
+                </div>
+              ` : ''}
+        `;
         const postHtml = `
           <article id="spot-${s.id}" class="navy-card tl-post-card rounded-2xl overflow-hidden${dailyClass}">
             <div class="px-4 py-3 flex items-center justify-between border-b border-slate-900 bg-white">
@@ -8212,27 +8325,19 @@ html.withlog-dark .tl-post-card .withlog-post-place:hover { background: #50455b 
 
             ${dailyBanner}
 
+            ${s.media_url ? `<div class="withlog-post-photo-shell${parsedMemo.music?.videoId ? ' has-post-song' : ''}${s.media_type === 'video' ? ' is-video-media' : ''}">` : ''}
             ${s.media_url ? (
               s.media_type === 'video' 
                 ? `<div class="post-media-frame" data-shared-media-spot="${s.id}" data-owner-media-url="${escapeHtml(s.media_url)}" data-owner-media-type="video" data-owner-alt="${escapeHtml(s.name || 'WITHLOGの投稿')}"><video src="${s.media_url}" controls onerror="retryWithlogMedia(this)"></video>${ownerSongOverlay}</div>`
                 : `<div class="post-media-frame withlog-double-like-target" data-double-like-spot="${s.id}" data-shared-media-spot="${s.id}" data-owner-media-url="${escapeHtml(s.media_url)}" data-owner-media-type="image" data-owner-alt="${escapeHtml(s.name || 'WITHLOGの投稿画像')}" aria-label="ダブルタップでいいね"><div class="withlog-double-like-heart" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s-7.2-4.5-9.6-9C.4 8.3 2.2 4 6.5 4c2.3 0 4 1.3 5.5 3 1.5-1.7 3.2-3 5.5-3 4.3 0 6.1 4.3 4.1 8-2.4 4.5-9.6 9-9.6 9Z"/></svg></div><img src="${s.media_url}" alt="${escapeHtml(s.name || 'WITHLOGの投稿画像')}" onerror="retryWithlogMedia(this)" />${ownerSongOverlay}</div>`
             ) : ''}
 
+            ${s.media_url ? postPlaceWidget : ''}
+            ${s.media_url ? '</div>' : ''}
+
             <div class="p-4 bg-white">
               ${ownerSongFallback}
-              ${s.google_map_url ? `
-                <div class="withlog-post-place-row">
-                    <button type="button" class="withlog-post-place" data-spot-place="${escapeHtml(String(s.id))}"
-                      onclick="event.stopPropagation(); openSpotMap('${s.id}')" aria-label="投稿した場所をGoogleマップで見る" title="Googleマップで場所を確認">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21s6-5.35 6-11a6 6 0 1 0-12 0c0 5.65 6 11 6 11Z"/><circle cx="12" cy="10" r="2"/></svg>
-                      <span class="withlog-post-place-lines">
-                        <span class="withlog-post-place-text">場所を確認</span>
-                        <span class="withlog-post-place-detail"></span>
-                      </span>
-                      <span class="withlog-post-place-arrow" aria-hidden="true">↗</span>
-                    </button>
-                </div>
-              ` : ''}
+              ${!s.media_url ? postPlaceWidget : ''}
               <div class="flex items-center justify-between mb-2 gap-2">
                 <div class="withlog-post-actions-left">
                   <button data-like-spot="${s.id}" onclick="toggleSpotLike('${s.id}', this)" class="flex items-center gap-1.5 text-xs text-slate-700 hover:text-slate-950">
@@ -8424,7 +8529,7 @@ html.withlog-dark .tl-post-card .withlog-post-place:hover { background: #50455b 
     let doubleLikeTouchAt = 0;
 
     feedEl.addEventListener('dblclick', event => {
-      if (event.target.closest('.shared-with-carousel-profile-trigger')) return;
+      if (event.target.closest('.shared-with-carousel-profile-trigger, .withlog-post-place-row')) return;
       const frame = event.target.closest('[data-double-like-spot]');
       if (!frame || !feedEl.contains(frame)) return;
       event.preventDefault();
@@ -8433,7 +8538,7 @@ html.withlog-dark .tl-post-card .withlog-post-place:hover { background: #50455b 
 
     feedEl.addEventListener('pointerup', event => {
       if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return;
-      if (event.target.closest('.shared-with-carousel-profile-trigger')) return;
+      if (event.target.closest('.shared-with-carousel-profile-trigger, .withlog-post-place-row')) return;
       const frame = event.target.closest('[data-double-like-spot]');
       if (!frame || !feedEl.contains(frame)) return;
 
