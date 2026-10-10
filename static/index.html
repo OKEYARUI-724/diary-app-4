@@ -7917,7 +7917,7 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
                     <span class="text-xs font-bold text-slate-900 leading-none">${escapeHtml(s.display_name || s.username)}</span>
                     <span class="text-[10px] text-slate-400 font-mono">@${s.username}</span>
                   </div>
-                  <h2 class="font-bold text-xs text-slate-800 tracking-wide mt-1">${escapeHtml(s.name)}</h2>
+                  ${String(s.name ?? '').trim() ? `<h2 class="font-bold text-xs text-slate-800 tracking-wide mt-1">${escapeHtml(String(s.name).trim())}</h2>` : ''}
                 </div>
               </div>
 
