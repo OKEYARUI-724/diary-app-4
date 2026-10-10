@@ -1428,6 +1428,16 @@ html.withlog-dark .withlog-delete-confirm { background:#a94663; color:#fff; }
 .withlog-comment-form{display:flex;align-items:center;gap:8px;margin-top:12px}.withlog-comment-input{min-width:0;flex:1;height:40px;padding:0 13px;border:1px solid #e1d9e6!important;border-radius:9999px!important;background:#fbf8fc!important;color:#4f4654!important;font-size:11px!important;outline:none}.withlog-comment-input:focus{border-color:#b7a5c7!important}
 .withlog-comment-submit{height:40px;padding:0 14px;border:0;border-radius:9999px;background:linear-gradient(135deg,#b9a5ca,#c9a7b5);color:#fff;font-size:10px;font-weight:900}.withlog-comment-submit:disabled{opacity:.55;cursor:wait}.withlog-comment-status{min-height:14px;margin-top:6px;color:#9a8e9e;font-size:9px}
 html.withlog-dark .withlog-comment-toggle{background:#3b3c43;color:#f2edf5;border:1px solid #55565f}html.withlog-dark .withlog-comment-toggle.is-live-updated{animation-name:withlogCommentButtonPulseDark}@keyframes withlogCommentButtonPulseDark{0%{transform:scale(1)}38%{transform:scale(1.055);background:#514661;color:#f7efff}100%{transform:scale(1)}}html.withlog-dark .withlog-comments-panel{border-top-color:#4c4d56}html.withlog-dark .withlog-comment-empty{background:#34353b;border-color:#55565f;color:#aaa4b2}html.withlog-dark .withlog-comment-avatar{background-color:#4a4551;color:#f1edf3}html.withlog-dark .withlog-comment-name{color:#f4f0f5}html.withlog-dark .withlog-comment-name span{color:#9d96a3}html.withlog-dark .withlog-comment-text{color:#c9c2cd}html.withlog-dark .withlog-comment-time{color:#8f8994}html.withlog-dark .withlog-comment-delete{color:#d3a9b8}html.withlog-dark .withlog-comment-input{background:#34353b!important;border-color:#55565f!important;color:#f3eef5!important}html.withlog-dark .withlog-comment-status{color:#aaa4b2}
+/* Reply interactions: compact like Instagram, readable in both themes. */
+.withlog-comment-reply-action{display:inline-flex;align-items:center;margin-top:5px;padding:3px 0;border:0;background:none;color:#89709d;font-size:10px;font-weight:800;cursor:pointer}
+.withlog-comment-reply-action:hover{text-decoration:underline;text-underline-offset:3px}
+.withlog-comment-reply-action:focus-visible,.withlog-comment-reply-cancel:focus-visible{outline:2px solid #a38bc5;outline-offset:3px;border-radius:4px}
+.withlog-comment-reply-context{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;margin-top:10px;border-radius:13px;background:rgba(218,206,236,.38);color:#79618d;font-size:10px;font-weight:700}
+.withlog-comment-reply-context.hidden{display:none!important}
+.withlog-comment-reply-target{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.withlog-comment-reply-cancel{flex:0 0 auto;border:0;background:transparent;color:inherit;font-size:10px;font-weight:900;cursor:pointer}
+html.withlog-dark .withlog-comment-reply-action{color:#c9acdc}
+html.withlog-dark .withlog-comment-reply-context{background:rgba(138,115,168,.16);color:#ddd0e9}
 @media(max-width:420px){.withlog-comment-toggle{padding:10px 11px}.withlog-comment-toggle .withlog-comment-label{display:none}}
 </style>
 
@@ -8990,6 +9000,10 @@ html.withlog-dark .withlog-elegant-username {
                   <div class="withlog-comment-empty">コメントを読み込んでいます...</div>
                 </div>
                 ${getToken() ? `
+                  <div class="withlog-comment-reply-context hidden" data-comment-reply-context="${s.id}" aria-live="polite">
+                    <span class="withlog-comment-reply-target" data-comment-reply-target="${s.id}"></span>
+                    <button type="button" class="withlog-comment-reply-cancel" onclick="cancelSpotCommentReply('${s.id}')" aria-label="返信を取り消す">キャンセル ×</button>
+                  </div>
                   <form class="withlog-comment-form" onsubmit="submitSpotComment(event, '${s.id}')">
                     <input class="withlog-comment-input" data-comment-input="${s.id}" maxlength="500" autocomplete="off" placeholder="コメントを追加..." aria-label="コメントを追加">
                     <button type="submit" class="withlog-comment-submit">送信</button>
@@ -9269,6 +9283,7 @@ html.withlog-dark .withlog-elegant-username {
             </div>
             <div class="withlog-comment-text">${escapeHtml(comment.content || '').replace(/\n/g, '<br>')}</div>
             <div class="withlog-comment-time">${escapeHtml(commentTimeText(comment.created_at))}</div>
+            ${comment.can_reply && getToken() ? `<button type="button" class="withlog-comment-reply-action" data-reply-comment-id="${escapeHtml(comment.id)}" data-reply-username="${escapeHtml(comment.username || '')}" onclick="replyToSpotComment(this, '${spotId}')" aria-label="@${escapeHtml(comment.username || '')} に返信する">返信する</button>` : ''}
           </div>
           ${comment.can_delete ? `<button type="button" class="withlog-comment-delete" onclick="deleteSpotComment('${escapeHtml(comment.id)}','${spotId}',this)">削除</button>` : '<span></span>'}
         </div>`;
@@ -9375,6 +9390,50 @@ html.withlog-dark .withlog-elegant-username {
       }
     };
 
+    function clearSpotCommentReply(spotId, {preserveDraft = false} = {}) {
+      const panel = document.getElementById(`comments-${spotId}`);
+      const input = panel?.querySelector(`[data-comment-input="${spotId}"]`);
+      if (input) {
+        const username = input.dataset.replyToUsername || '';
+        const mention = `@${username}`;
+        if (preserveDraft && username && input.value.toLowerCase().startsWith((mention + ' ').toLowerCase())) {
+          input.value = input.value.slice(mention.length + 1);
+        }
+        delete input.dataset.replyToId;
+        delete input.dataset.replyToUsername;
+      }
+      panel?.querySelector(`[data-comment-reply-context="${spotId}"]`)?.classList.add('hidden');
+    }
+
+    window.cancelSpotCommentReply = function(spotId) {
+      clearSpotCommentReply(spotId, {preserveDraft:true});
+      document.querySelector(`[data-comment-input="${spotId}"]`)?.focus();
+    };
+
+    window.replyToSpotComment = function(button, spotId) {
+      const input = document.querySelector(`[data-comment-input="${spotId}"]`);
+      const panel = document.getElementById(`comments-${spotId}`);
+      const commentId = button?.dataset.replyCommentId || '';
+      const username = button?.dataset.replyUsername || '';
+      if (!input || !panel || !commentId || !/^[A-Za-z0-9_]+$/.test(username)) return;
+      // Preserve a draft if the user switches the person they are replying to.
+      let draft = input.value;
+      const previous = input.dataset.replyToUsername || '';
+      if (previous && draft.toLowerCase().startsWith((`@${previous} `).toLowerCase())) {
+        draft = draft.slice(previous.length + 2);
+      }
+      input.dataset.replyToId = commentId;
+      input.dataset.replyToUsername = username;
+      input.value = `@${username} ${draft}`;
+      const context = panel.querySelector(`[data-comment-reply-context="${spotId}"]`);
+      const target = panel.querySelector(`[data-comment-reply-target="${spotId}"]`);
+      if (target) target.textContent = `↪ @${username} に返信中`;
+      context?.classList.remove('hidden');
+      input.focus({preventScroll:true});
+      input.setSelectionRange(input.value.length, input.value.length);
+      input.scrollIntoView({behavior:'smooth',block:'nearest'});
+    };
+
     window.submitSpotComment = async function(event, spotId) {
       event.preventDefault();
       const token = getToken();
@@ -9384,7 +9443,12 @@ html.withlog-dark .withlog-elegant-username {
       const submit = form.querySelector('button[type="submit"]');
       const statusEl = document.querySelector(`[data-comment-status="${spotId}"]`);
       const content = (input?.value || '').trim();
-      if (!content) { if (statusEl) statusEl.textContent = 'コメントを入力してください。'; return; }
+      const replyToId = input?.dataset.replyToId || null;
+      const replyToUsername = input?.dataset.replyToUsername || '';
+      if (!content || (replyToId && content.toLowerCase() === `@${replyToUsername}`.toLowerCase())) {
+        if (statusEl) statusEl.textContent = '返信内容を入力してください。';
+        return;
+      }
       if (content.length > 500) { if (statusEl) statusEl.textContent = 'コメントは500文字以内で入力してください。'; return; }
 
       // Invalidate a GET that may have started before this submission.
@@ -9394,7 +9458,7 @@ html.withlog-dark .withlog-elegant-username {
       try {
         const res = await fetch(`/spots/${encodeURIComponent(spotId)}/comments`, {
           method:'POST', headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
-          body:JSON.stringify({content}), cache:'no-store',
+          body:JSON.stringify({content, reply_to_comment_id:replyToId}), cache:'no-store',
         });
         let data = {};
         try { data = await res.json(); } catch (_) {}
@@ -9402,7 +9466,8 @@ html.withlog-dark .withlog-elegant-username {
         if (token !== getToken()) return;
 
         input.value = '';
-        if (statusEl) statusEl.textContent = 'コメントしました。';
+        clearSpotCommentReply(spotId);
+        if (statusEl) statusEl.textContent = replyToId ? '返信しました。' : 'コメントしました。';
 
         // Use the POST response immediately. The user no longer has to wait for a
         // second GET before the number and the new comment become visible.
@@ -9411,7 +9476,7 @@ html.withlog-dark .withlog-elegant-username {
         // Reconcile the complete list in the background. Request generations make
         // it impossible for an older response to overwrite this newly posted item.
         await loadSpotComments(spotId, {force:true, silent:true});
-        window.setTimeout(() => { if (statusEl?.textContent === 'コメントしました。') statusEl.textContent = ''; }, 1800);
+        window.setTimeout(() => { if (['コメントしました。', '返信しました。'].includes(statusEl?.textContent)) statusEl.textContent = ''; }, 1800);
       } catch (error) {
         if (statusEl) statusEl.textContent = error.message || 'コメントを送信できませんでした。';
       } finally { submit.disabled = false; }
@@ -10310,6 +10375,13 @@ html.withlog-dark .withlog-elegant-username {
           void refreshNotificationBadge();
           const modal = document.getElementById('notificationsModal');
           if (modal && !modal.classList.contains('hidden')) void openNotificationsModal({quiet:true});
+          return;
+        }
+
+        if (payload.event === 'comment_reply_notification') {
+          void refreshNotificationBadge();
+          const bell = document.getElementById('notificationsModal');
+          if (bell && !bell.classList.contains('hidden')) void openNotificationsModal({quiet:true});
           return;
         }
 

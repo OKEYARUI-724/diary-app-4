@@ -68,6 +68,9 @@ class FollowDecision(BaseModel):
 
 class CommentCreate(BaseModel):
     content: str
+    # The comment being replied to. Kept separate from the visible @mention
+    # so notifications always reach the right account.
+    reply_to_comment_id: Optional[uuid.UUID] = None
 
 
 class CommentCountsRequest(BaseModel):
@@ -209,6 +212,24 @@ def migrate_social_features():
             conn.execute(text("""
                 CREATE INDEX IF NOT EXISTS idx_spot_comments_user
                 ON spot_comments(user_id);
+            """))
+            # Existing posts/comments are preserved. Replies point to an existing
+            # comment on the same post; deleting that parent only clears the link.
+            conn.execute(text("""
+                ALTER TABLE spot_comments ADD COLUMN IF NOT EXISTS reply_to_id UUID;
+            """))
+            conn.execute(text("""
+                CREATE INDEX IF NOT EXISTS idx_spot_comments_reply_to_id
+                ON spot_comments(reply_to_id) WHERE reply_to_id IS NOT NULL;
+            """))
+            conn.execute(text("""
+                DO $$
+                BEGIN
+                    ALTER TABLE spot_comments ADD CONSTRAINT fk_spot_comments_reply_to_id
+                    FOREIGN KEY (reply_to_id) REFERENCES spot_comments(id)
+                    ON DELETE SET NULL;
+                EXCEPTION WHEN duplicate_object THEN NULL;
+                END $$;
             """))
             # Associate comment notifications with the exact comment that
             # produced them. Nullable for notifications created before this
@@ -1587,10 +1608,13 @@ def get_spot_comments(
 
     rows = db.execute(text("""
         SELECT
-            c.id, c.content, c.created_at, c.user_id,
-            u.username, COALESCE(u.display_name, u.username) AS display_name, u.avatar_url
+            c.id, c.content, c.created_at, c.user_id, c.reply_to_id,
+            u.username, COALESCE(u.display_name, u.username) AS display_name, u.avatar_url,
+            parent_user.username AS reply_to_username
         FROM spot_comments c
         JOIN users u ON u.id = c.user_id
+        LEFT JOIN spot_comments parent ON parent.id = c.reply_to_id
+        LEFT JOIN users parent_user ON parent_user.id = parent.user_id
         WHERE c.spot_id = :spot_id
         ORDER BY c.created_at ASC
         LIMIT 200
@@ -1614,6 +1638,9 @@ def get_spot_comments(
             "content": row["content"],
             "created_at": row["created_at"].isoformat() if row["created_at"] else None,
             "can_delete": bool(viewer_id and viewer_id == row["user_id"]),
+            "can_reply": bool(viewer_id),
+            "reply_to_comment_id": str(row["reply_to_id"]) if row["reply_to_id"] else None,
+            "reply_to_username": row["reply_to_username"],
         })
 
     return {"comments": comments, "count": int(count)}
@@ -1633,29 +1660,57 @@ async def create_spot_comment(
     content = (payload.content or "").strip()
     if not content:
         raise HTTPException(status_code=400, detail="コメントを入力してください")
+    # Resolve a reply by its original comment ID, not by an arbitrary @mention.
+    # This makes forged mentions harmless and guarantees the recipient is real.
+    reply_to_id = payload.reply_to_comment_id
+    reply_target = None
+    if reply_to_id:
+        reply_target = db.execute(text("""
+            SELECT parent.id, parent.user_id, u.username
+            FROM spot_comments parent
+            JOIN users u ON u.id = parent.user_id
+            WHERE parent.id = :parent_id AND parent.spot_id = :spot_id
+        """), {"parent_id": reply_to_id, "spot_id": spot.id}).mappings().first()
+        if not reply_target:
+            raise HTTPException(status_code=404, detail="返信先のコメントが見つかりません")
+        mention = f"@{reply_target['username']}"
+        # A visible, canonical @username prefix accompanies every reply.
+        if not (content.lower().startswith((mention + " ").lower()) or
+                content.lower() == mention.lower() or
+                content.lower().startswith((mention + "\n").lower())):
+            content = f"{mention} {content}"
+        if not content[len(mention):].strip():
+            raise HTTPException(status_code=400, detail="返信内容を入力してください")
     if len(content) > 500:
         raise HTTPException(status_code=400, detail="コメントは500文字以内で入力してください")
 
     comment_id = uuid.uuid4()
     created_at = datetime.utcnow()
     db.execute(text("""
-        INSERT INTO spot_comments (id, spot_id, user_id, content, created_at)
-        VALUES (:id, :spot_id, :user_id, :content, :created_at)
+        INSERT INTO spot_comments (id, spot_id, user_id, content, created_at, reply_to_id)
+        VALUES (:id, :spot_id, :user_id, :content, :created_at, :reply_to_id)
     """), {
         "id": comment_id,
         "spot_id": spot.id,
         "user_id": current_user.id,
         "content": content,
         "created_at": created_at,
+        "reply_to_id": reply_to_id,
     })
 
-    if spot.user_id and spot.user_id != current_user.id:
-        preview = content.replace("\n", " ")[:80]
+    preview = content.replace("\n", " ")[:80]
+    reply_recipient_id = reply_target["user_id"] if reply_target else None
+    if reply_target and reply_recipient_id != current_user.id:
         add_notification(
-            db,
-            spot.user_id,
-            current_user.id,
-            "comment",
+            db, reply_recipient_id, current_user.id, "comment_reply",
+            f"@{current_user.username} さんがあなたのコメントに返信しました: {preview}",
+            comment_id=comment_id,
+        )
+    # The post owner also receives normal comment notifications, unless they
+    # are the author or were already notified as this reply's recipient.
+    if spot.user_id and spot.user_id not in (current_user.id, reply_recipient_id):
+        add_notification(
+            db, spot.user_id, current_user.id, "comment",
             f"@{current_user.username} さんが『{spot.name}』にコメントしました: {preview}",
             comment_id=comment_id,
         )
@@ -1679,6 +1734,17 @@ async def create_spot_comment(
         spot,
         db,
     )
+    # Targeted live event for the person being replied to. Other clients keep
+    # the existing 4-second notification polling as a reconnection fallback.
+    if reply_target and reply_recipient_id != current_user.id:
+        try:
+            await manager.send_personal_message({
+                "event": "comment_reply_notification",
+                "spot_id": str(spot.id),
+                "comment_id": str(comment_id),
+            }, reply_target["username"])
+        except Exception:
+            pass  # Notification is already safely committed to the database.
 
     return {
         "comment": {
@@ -1690,6 +1756,9 @@ async def create_spot_comment(
             "content": content,
             "created_at": created_at.isoformat(),
             "can_delete": True,
+            "can_reply": True,
+            "reply_to_comment_id": str(reply_to_id) if reply_to_id else None,
+            "reply_to_username": reply_target["username"] if reply_target else None,
         },
         "count": int(count),
     }
@@ -1722,7 +1791,7 @@ async def delete_spot_comment(
     # if a comment disappears because its parent post is deleted.
     removed_linked = db.execute(text("""
         DELETE FROM notifications
-        WHERE type = 'comment' AND comment_id = :comment_id
+        WHERE type IN ('comment', 'comment_reply') AND comment_id = :comment_id
     """), {"comment_id": comment_id}).rowcount
 
     # Notifications created before comment_id tracking have a NULL comment_id.
