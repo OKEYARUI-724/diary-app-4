@@ -4037,6 +4037,99 @@ html.withlog-dark .withlog-follower-id{color:#aaa4b2;}
 }
 </style>
 
+<style id="withlog-social-circle-avatar-style">
+/* Consistent, circular profile pictures throughout Search, Messages and Notifications. */
+.withlog-social-avatar {
+  position:relative;
+  box-sizing:border-box;
+  display:grid;
+  place-items:center;
+  width:44px;
+  height:44px;
+  min-width:44px;
+  flex:0 0 44px;
+  overflow:hidden;
+  border-radius:50% !important;
+  border:2px solid rgba(255,255,255,.96) !important;
+  outline:1px solid rgba(130,105,169,.16);
+  background:linear-gradient(135deg,#e9deff 0%,#f2e1ec 100%) !important;
+  color:#65518b !important;
+  font-size:15px;
+  font-weight:800;
+  line-height:1;
+  text-transform:uppercase;
+}
+.withlog-social-avatar > img {
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;
+  border-radius:50% !important;
+}
+.withlog-social-person-row {
+  width:100%;
+  min-height:64px;
+  padding:10px 9px !important;
+  display:flex !important;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  border:0 !important;
+  border-radius:18px !important;
+  background:transparent !important;
+  text-align:left;
+  cursor:pointer;
+}
+.withlog-social-person-row:hover {background:#f6f1fb !important;}
+.withlog-social-person-row:focus-visible,
+.withlog-notification-avatar-button:focus-visible {outline:2px solid #9778ca !important;outline-offset:2px;}
+.withlog-social-person-main {display:flex;align-items:center;gap:11px;min-width:0;flex:1;}
+.withlog-social-person-copy {min-width:0;display:flex;flex-direction:column;gap:3px;}
+.withlog-social-person-name {font-size:12px;font-weight:900;color:#382f45;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.withlog-social-person-handle {font-size:10px;color:#8a8098;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.withlog-social-person-action {flex:0 0 auto;color:#69568d;font-size:10px;font-weight:800;}
+.withlog-notice-person-row {display:flex;align-items:flex-start;gap:11px;min-width:0;}
+.withlog-notice-person-main {min-width:0;flex:1;}
+.withlog-notice-person-main .withlog-social-person-handle {display:block;margin-top:3px;}
+.withlog-notification-avatar-button {
+  display:block;
+  box-sizing:border-box;
+  flex:0 0 44px;
+  width:44px;
+  height:44px;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:50% !important;
+  background:transparent !important;
+  cursor:pointer;
+}
+.withlog-notification-avatar-button .withlog-social-avatar {pointer-events:none;}
+.withlog-notice-entry {display:flex;align-items:flex-start;gap:11px;padding:13px 2px !important;min-width:0;}
+.withlog-notice-entry-copy {min-width:0;flex:1;overflow-wrap:anywhere;}
+.withlog-notice-entry-time {font-size:9px;color:#9990a6;margin-top:5px;}
+#incomingRequestsList .withlog-notice-person-main,
+#outgoingRequestsList .withlog-notice-person-main,
+#sharedWithIncomingList .withlog-notice-person-main {overflow-wrap:anywhere;}
+html.withlog-dark .withlog-social-avatar {
+  border-color:#4f475d !important;
+  outline-color:rgba(208,180,234,.22);
+  background:linear-gradient(135deg,#524668,#594352) !important;
+  color:#f4e9ff !important;
+}
+html.withlog-dark .withlog-social-person-row:hover {background:#3b3744 !important;}
+html.withlog-dark .withlog-social-person-name {color:#f6f1f7 !important;}
+html.withlog-dark .withlog-social-person-handle {color:#b5a9bd !important;}
+html.withlog-dark .withlog-social-person-action {color:#d5c5ec !important;}
+html.withlog-dark .withlog-notice-entry-time {color:#aaa0b3 !important;}
+@media(max-width:380px){
+  .withlog-social-person-row {gap:7px;padding:9px 4px !important;}
+  .withlog-social-person-main {gap:8px;}
+  .withlog-social-avatar,.withlog-notification-avatar-button {width:40px;height:40px;min-width:40px;flex-basis:40px;}
+}
+</style>
+
 <style id="withlog-profile-avatar-preview-style">
 /* Show the profile icon full-size without changing its circular crop. */
 #profileAvatar {
@@ -5969,6 +6062,24 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
       }
     });
 
+    // Rounded user pictures for Search, Messages, follow requests, shared invites and notices.
+    function withlogSocialAvatar(user) {
+      const name = String(user?.display_name || user?.owner_display_name || user?.username || user?.owner_username || user?.sender_username || '?').trim();
+      const initial = Array.from(name)[0]?.toUpperCase() || '?';
+      const raw = String(user?.avatar_url || user?.sender_avatar_url || user?.owner_avatar_url || '').trim();
+      const allowed = (/^\/(?!\/)/.test(raw) || /^https?:\/\//i.test(raw)) && !/[<>\r\n]/.test(raw);
+      const picture = allowed
+        ? `<img src="${escapeHtml(raw)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">`
+        : '';
+      return `<span class="withlog-social-avatar" aria-hidden="true">${escapeHtml(initial)}${picture}</span>`;
+    }
+
+    function withlogNoticeAvatar(user, username) {
+      const cleanUsername = String(username || '').trim();
+      if (!cleanUsername || cleanUsername === 'someone') return withlogSocialAvatar(user);
+      return `<button type="button" class="withlog-notification-avatar-button" data-notification-user="${escapeHtml(cleanUsername)}" aria-label="@${escapeHtml(cleanUsername)} のプロフィールを見る">${withlogSocialAvatar(user)}</button>`;
+    }
+
     // --- ユーザーID検索モーダル ---
     window.openUserSearchModal = function() {
       document.getElementById('userSearchModal').classList.remove('hidden');
@@ -5997,19 +6108,23 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
       }
 
       listEl.innerHTML = users.map(u => `
-        <div class="p-3 flex items-center justify-between hover:bg-slate-50 transition cursor-pointer" onclick="closeUserSearchModal(); openProfile('${u.username}');">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-lg bg-slate-200 bg-cover bg-center border border-slate-400 flex items-center justify-center font-bold text-xs" ${u.avatar_url ? `style="background-image: url('${u.avatar_url}')"` : ''}>
-              ${!u.avatar_url ? (u.display_name || u.username).charAt(0).toUpperCase() : ''}
-            </div>
-            <div>
-              <p class="font-bold text-slate-900 leading-none">${escapeHtml(u.display_name || u.username)}</p>
-              <p class="text-[10px] text-slate-400 font-mono mt-0.5">@${u.username}</p>
-            </div>
-          </div>
-          <span class="text-[10px] text-slate-800 font-bold">VIEW ↗</span>
-        </div>
+        <button type="button" class="withlog-social-person-row" data-search-username="${escapeHtml(u.username)}" aria-label="@${escapeHtml(u.username)} のプロフィールを見る">
+          <span class="withlog-social-person-main">
+            ${withlogSocialAvatar(u)}
+            <span class="withlog-social-person-copy">
+              <span class="withlog-social-person-name">${escapeHtml(u.display_name || u.username)}</span>
+              <span class="withlog-social-person-handle">@${escapeHtml(u.username)}</span>
+            </span>
+          </span>
+          <span class="withlog-social-person-action">VIEW ↗</span>
+        </button>
       `).join('');
+      listEl.querySelectorAll('[data-search-username]').forEach(row => {
+        row.addEventListener('click', () => {
+          closeUserSearchModal();
+          openProfile(row.dataset.searchUsername);
+        });
+      });
     };
 
     document.getElementById('userSearchInput')?.addEventListener('keydown', (e) => {
@@ -6180,38 +6295,53 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
 
         incomingEl.innerHTML = incoming.length ? incoming.map(u => `
           <div data-follow-request="${escapeHtml(u.username)}" class="p-2.5 rounded-xl border border-slate-200 bg-slate-50">
-            <div class="font-bold text-slate-800">
-              <button type="button" class="withlog-notification-user" data-notification-user="${escapeHtml(u.username)}">${escapeHtml(u.display_name || u.username)} <span class="font-normal">@${escapeHtml(u.username)}</span></button>
-            </div>
-            <div class="flex gap-2 mt-2">
-              <button onclick="decideFollow('${escapeHtml(u.username)}','accept',this)" class="navy-btn text-[10px] px-3 py-1.5 rounded-full font-bold">承認</button>
-              <button onclick="decideFollow('${escapeHtml(u.username)}','decline',this)" class="navy-btn-outline text-[10px] px-3 py-1.5 rounded-full font-bold">拒否</button>
+            <div class="withlog-notice-person-row">
+              ${withlogNoticeAvatar(u, u.username)}
+              <div class="withlog-notice-person-main">
+                <button type="button" class="withlog-notification-user" data-notification-user="${escapeHtml(u.username)}">${escapeHtml(u.display_name || u.username)}</button>
+                <span class="withlog-social-person-handle">@${escapeHtml(u.username)}</span>
+                <div class="flex gap-2 mt-2">
+                  <button onclick="decideFollow('${escapeHtml(u.username)}','accept',this)" class="navy-btn text-[10px] px-3 py-1.5 rounded-full font-bold">承認</button>
+                  <button onclick="decideFollow('${escapeHtml(u.username)}','decline',this)" class="navy-btn-outline text-[10px] px-3 py-1.5 rounded-full font-bold">拒否</button>
+                </div>
+              </div>
             </div>
           </div>
         `).join('') : '<p class="text-slate-400 py-2">承認待ちの申請はありません</p>';
 
         outgoingEl.innerHTML = outgoing.length ? outgoing.map(u => `
           <div class="p-2.5 rounded-xl border border-slate-200 bg-white">
-            <button type="button" class="withlog-notification-user" data-notification-user="${escapeHtml(u.username)}">${escapeHtml(u.display_name || u.username)} @${escapeHtml(u.username)}</button>
-            <span class="text-slate-400"> · 承認待ち</span>
+            <div class="withlog-notice-person-row">
+              ${withlogNoticeAvatar(u, u.username)}
+              <div class="withlog-notice-person-main">
+                <button type="button" class="withlog-notification-user" data-notification-user="${escapeHtml(u.username)}">${escapeHtml(u.display_name || u.username)}</button>
+                <span class="withlog-social-person-handle">@${escapeHtml(u.username)} · 承認待ち</span>
+              </div>
+            </div>
           </div>
         `).join('') : '<p class="text-slate-400 py-2">送信中の申請はありません</p>';
 
         sharedEl.innerHTML = sharedInvites.length ? sharedInvites.map(item => `
           <div class="shared-with-invite-card" data-shared-invite="${escapeHtml(item.id)}">
-            <div class="font-black text-slate-800">${escapeHtml(item.owner_display_name || item.owner_username)} <span class="font-normal text-slate-400">@${escapeHtml(item.owner_username)}</span></div>
-            <div class="shared-with-note mt-1">「${escapeHtml(item.spot_name || '思い出')}」を2人の思い出にしよう</div>
-            ${item.status === 'pending' ? `
-              <div class="shared-with-invite-actions">
-                <button type="button" class="accept" onclick="decideSharedWithInvite('${escapeHtml(item.id)}','accept',this)">参加する</button>
-                <button type="button" class="decline" onclick="decideSharedWithInvite('${escapeHtml(item.id)}','decline',this)">今回はやめる</button>
+            <div class="withlog-notice-person-row">
+              ${withlogNoticeAvatar({username:item.owner_username, display_name:item.owner_display_name, avatar_url:item.owner_avatar_url}, item.owner_username)}
+              <div class="withlog-notice-person-main">
+                <button type="button" class="withlog-notification-user" data-notification-user="${escapeHtml(item.owner_username)}">${escapeHtml(item.owner_display_name || item.owner_username)}</button>
+                <span class="withlog-social-person-handle">@${escapeHtml(item.owner_username)}</span>
+                <div class="shared-with-note mt-1">「${escapeHtml(item.spot_name || '思い出')}」を2人の思い出にしよう</div>
+                ${item.status === 'pending' ? `
+                  <div class="shared-with-invite-actions">
+                    <button type="button" class="accept" onclick="decideSharedWithInvite('${escapeHtml(item.id)}','accept',this)">参加する</button>
+                    <button type="button" class="decline" onclick="decideSharedWithInvite('${escapeHtml(item.id)}','decline',this)">今回はやめる</button>
+                  </div>
+                ` : `
+                  <div class="shared-with-invite-actions">
+                    ${item.has_contribution ? `<span class="shared-with-note">SHARED WITH 完成済み</span>` : `<button type="button" class="accept" onclick="openSharedWithContributeModal('${escapeHtml(item.spot_id)}')">思い出を追加</button>`}
+                    <button type="button" class="decline" onclick="cancelSharedWith('${escapeHtml(item.spot_id)}',this)">キャンセル</button>
+                  </div>
+                `}
               </div>
-            ` : `
-              <div class="shared-with-invite-actions">
-                ${item.has_contribution ? `<span class="shared-with-note">SHARED WITH 完成済み</span>` : `<button type="button" class="accept" onclick="openSharedWithContributeModal('${escapeHtml(item.spot_id)}')">思い出を追加</button>`}
-                <button type="button" class="decline" onclick="cancelSharedWith('${escapeHtml(item.spot_id)}',this)">キャンセル</button>
-              </div>
-            `}
+            </div>
           </div>
         `).join('') : '<p class="text-slate-400 py-2">SHARED WITHの招待はありません</p>';
 
@@ -6226,9 +6356,12 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
             ? `<button type="button" class="withlog-notification-user" data-notification-user="${escapeHtml(username)}">@${escapeHtml(username)}</button>`
             : '';
           return `
-            <div class="py-3 ${n.is_read ? 'opacity-70' : ''}">
-              <div class="withlog-notification-message font-semibold text-slate-700">${escapeHtml(before)}${userButton}${escapeHtml(after)}</div>
-              <div class="text-[9px] text-slate-400 mt-1">${n.created_at ? new Date(n.created_at).toLocaleString() : ''}</div>
+            <div class="withlog-notice-entry ${n.is_read ? 'opacity-70' : ''}">
+              ${withlogNoticeAvatar({username:username, avatar_url:n.sender_avatar_url}, username)}
+              <div class="withlog-notice-entry-copy">
+                <div class="withlog-notification-message font-semibold text-slate-700">${escapeHtml(before)}${userButton}${escapeHtml(after)}</div>
+                <div class="withlog-notice-entry-time">${n.created_at ? new Date(n.created_at).toLocaleString() : ''}</div>
+              </div>
             </div>`;
         }).join('') : '<p class="text-slate-400 py-2">通知はありません</p>';
 
@@ -7388,23 +7521,27 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
           listEl.innerHTML = users.map(u => {
             const unread = Number(unreadBySender[String(u.username || '').toLowerCase()] || 0);
             return `
-              <div class="p-3 flex items-center justify-between hover:bg-slate-50 transition cursor-pointer" onclick="closeConversationsModal(); openDmChat('${u.username}');">
-                <div class="flex items-center gap-2.5 min-w-0">
-                  <div class="w-8 h-8 rounded-lg bg-slate-200 bg-cover bg-center border border-slate-400 flex items-center justify-center font-bold text-xs shrink-0" ${u.avatar_url ? `style="background-image: url('${u.avatar_url}')"` : ''}>
-                    ${!u.avatar_url ? (u.display_name || u.username).charAt(0).toUpperCase() : ''}
-                  </div>
-                  <div class="min-w-0">
-                    <p class="font-bold text-slate-900 leading-none truncate">${escapeHtml(u.display_name || u.username)}</p>
-                    <p class="text-[10px] text-slate-400 font-mono mt-0.5 truncate">@${u.username}</p>
-                  </div>
-                </div>
-                <div class="flex items-center gap-2 shrink-0">
+              <button type="button" class="withlog-social-person-row" data-dm-username="${escapeHtml(u.username)}" aria-label="@${escapeHtml(u.username)} とのメッセージを開く">
+                <span class="withlog-social-person-main">
+                  ${withlogSocialAvatar(u)}
+                  <span class="withlog-social-person-copy">
+                    <span class="withlog-social-person-name">${escapeHtml(u.display_name || u.username)}</span>
+                    <span class="withlog-social-person-handle">@${escapeHtml(u.username)}</span>
+                  </span>
+                </span>
+                <span class="flex items-center gap-2 shrink-0">
                   ${unread > 0 ? `<span class="withlog-conversation-unread">${unread > 99 ? '99+' : unread}</span>` : ''}
-                  <span class="text-[10px] text-slate-800 font-bold">OPEN ↗</span>
-                </div>
-              </div>
+                  <span class="withlog-social-person-action">OPEN ↗</span>
+                </span>
+              </button>
             `;
           }).join('');
+          listEl.querySelectorAll('[data-dm-username]').forEach(row => {
+            row.addEventListener('click', () => {
+              closeConversationsModal();
+              openDmChat(row.dataset.dmUsername);
+            });
+          });
         }
       }
 
