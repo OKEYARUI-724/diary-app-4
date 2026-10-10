@@ -5261,6 +5261,64 @@ html.withlog-dark .withlog-elegant-username {
 }
 </style>
 
+<style id="withlog-own-profile-edit-action-v1">
+/* Larger, accessible edit control matching WITHLOG's mauve/rose palette. */
+#profileActionContainer .withlog-edit-profile-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 46px;
+  min-width: 174px;
+  max-width: 100%;
+  padding: 11px 16px;
+  border: 1px solid rgba(255, 255, 255, .26);
+  border-radius: 999px;
+  background: linear-gradient(120deg, #7f68c3 0%, #b976aa 100%);
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: .025em;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .16s ease, filter .16s ease;
+}
+#profileActionContainer .withlog-edit-profile-button svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+#profileActionContainer .withlog-edit-profile-button:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+#profileActionContainer .withlog-edit-profile-button:active {
+  transform: scale(.98);
+}
+#profileActionContainer .withlog-edit-profile-button:focus-visible {
+  outline: 3px solid #c4a3e6;
+  outline-offset: 3px;
+}
+html.withlog-dark #profileActionContainer .withlog-edit-profile-button {
+  background: linear-gradient(120deg, #65548e 0%, #98637f 100%);
+  color: #fff;
+  border-color: rgba(255,255,255,.12);
+}
+@media (max-width: 350px) {
+  #profileActionContainer .withlog-edit-profile-button {
+    min-width: 0;
+    padding-inline: 12px;
+    font-size: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #profileActionContainer .withlog-edit-profile-button { transition: none; }
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -9551,7 +9609,7 @@ html.withlog-dark .withlog-elegant-username {
       if (darkToggle) darkToggle.checked = withlogIsDarkMode();
 
       if (isOwnProfile) {
-        act.innerHTML = `<button onclick="openEditProfile()" class="navy-btn-outline text-[10px] font-bold px-3 py-1 rounded-full">EDIT PROFILE</button>`;
+        act.innerHTML = `<button type="button" onclick="openEditProfile()" class="withlog-edit-profile-button" aria-label="プロフィールを編集"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4L16.5 3.5Z"/></svg><span>プロフィールを編集</span></button>`;
       } else {
         const status = user.follow_status || (user.is_following ? 'following' : 'none');
         const label = status === 'following' ? 'フォロー中' : status === 'pending' ? '申請済み・取り消す' : user.is_private ? 'フォロー申請' : 'フォロー';
