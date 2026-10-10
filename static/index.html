@@ -5187,6 +5187,32 @@ html.withlog-dark .withlog-following-new-count { background: #43374f; color: #e5
 }
 </style>
 
+
+<style id="withlog-elegant-username-typography">
+/* Post/profile handles: a clean, rounded typeface rather than typewriter monospace. */
+.withlog-elegant-username {
+  display: inline-block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+  font-family: 'Plus Jakarta Sans', 'Noto Sans JP', system-ui, sans-serif !important;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.025em;
+  color: #85758f;
+}
+html.withlog-dark .withlog-elegant-username {
+  color: #c4b5d5;
+}
+#profileUsername.withlog-elegant-username {
+  font-size: 12px;
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -5542,7 +5568,7 @@ html.withlog-dark .withlog-following-new-count { background: #43374f; color: #e5
             
             <div class="flex-1 min-w-0">
               <h2 id="profileDisplayName" class="text-base font-extrabold text-slate-900 leading-tight truncate"></h2>
-              <p id="profileUsername" class="text-[11px] text-slate-400 font-mono mt-0.5"></p>
+              <p id="profileUsername" class="withlog-elegant-username mt-0.5"></p>
               
               <!-- アクションボタン（フォロー / 編集 / DM） -->
               <div id="profileActionContainer" class="mt-2 flex gap-1.5"></div>
@@ -8769,7 +8795,7 @@ html.withlog-dark .withlog-following-new-count { background: #43374f; color: #e5
                   <div>
                     <div class="flex items-center gap-1.5">
                       <span class="text-xs font-bold text-slate-900 leading-none">${escapeHtml(s.display_name || s.username)}</span>
-                      <span class="text-[10px] text-slate-400 font-mono">@${escapeHtml(s.username || '')}</span>
+                      <span class="withlog-elegant-username">@${escapeHtml(s.username || '')}</span>
                     </div>
                     <h2 class="font-bold text-xs text-slate-800 tracking-wide mt-1">今日のWITH</h2>
                   </div>
@@ -8844,7 +8870,7 @@ html.withlog-dark .withlog-following-new-count { background: #43374f; color: #e5
                 <div>
                   <div class="flex items-center gap-1.5">
                     <span class="text-xs font-bold text-slate-900 leading-none">${escapeHtml(s.display_name || s.username)}</span>
-                    <span class="text-[10px] text-slate-400 font-mono">@${s.username}</span>
+                    <span class="withlog-elegant-username">@${escapeHtml(s.username || '')}</span>
                   </div>
                   ${String(s.name ?? '').trim() ? `<h2 class="font-bold text-xs text-slate-800 tracking-wide mt-1">${escapeHtml(String(s.name).trim())}</h2>` : ''}
 
