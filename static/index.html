@@ -4769,62 +4769,103 @@ html.withlog-dark #newsPage .news-empty { background:#34323d; color:#b9aeba; }
 
 
 <style id="withlog-visible-post-places">
-/* Show a locality and town/neighborhood on separate lines where available. */
+/* The post's map link is a discreet pill UNDER its photo / music player.
+   This keeps the author header small and works with SHARED WITH carousels. */
+.tl-post-card .withlog-post-place-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  max-width: 100%;
+  margin: 0 0 11px;
+  min-width: 0;
+}
 .tl-post-card .withlog-post-place {
   display: inline-flex !important;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   width: fit-content;
-  max-width: min(100%, 440px);
+  max-width: min(100%, 320px);
   min-height: 34px;
-  margin-top: 7px;
-  padding: 7px 11px !important;
-  border: 1px solid rgba(125, 108, 164, .15) !important;
-  border-radius: 14px !important;
-  background: rgba(232, 222, 250, .62) !important;
-  color: #685581 !important;
-  font-size: 11px !important;
-  font-weight: 750 !important;
-  line-height: 1.4;
+  margin: 0 !important;
+  padding: 6px 10px !important;
+  border: 1px solid rgba(134, 114, 164, .13) !important;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, .86) !important;
+  color: #625275 !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  line-height: 1.3;
   text-align: left;
   box-shadow: none !important;
   cursor: pointer;
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+  transition: background-color .16s ease, transform .16s ease !important;
 }
-.tl-post-card .withlog-post-place svg { width: 15px; height: 15px; flex: 0 0 auto; }
-.tl-post-card .withlog-post-place-lines { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.tl-post-card .withlog-post-place svg {
+  width: 20px;
+  height: 20px;
+  padding: 3px;
+  flex: 0 0 20px;
+  border-radius: 50%;
+  background: #f0e9fa;
+  color: #806cb0;
+}
+.tl-post-card .withlog-post-place-lines {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.tl-post-card .withlog-post-place-text,
+.tl-post-card .withlog-post-place-detail {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .tl-post-card .withlog-post-place-text {
-  display: block; min-width: 0; font-size: 11px; font-weight: 800;
-  overflow-wrap: anywhere; white-space: normal;
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1.3;
 }
 .tl-post-card .withlog-post-place-detail {
-  display: block; min-width: 0; font-size: 10px; line-height: 1.4;
-  color: #857198; font-weight: 650; overflow-wrap: anywhere; white-space: normal;
+  font-size: 9px;
+  font-weight: 550;
+  line-height: 1.3;
+  color: #91849e;
 }
 .tl-post-card .withlog-post-place-detail:empty { display: none; }
 .tl-post-card .withlog-post-place.is-gsi .withlog-post-place-detail::after {
-  content: " · 出典：国土地理院";
-  color: #9a88ab;
+  content: " · 国土地理院";
   font-size: 8px;
-  font-weight: 500;
+  color: #9a8eaa;
 }
-.tl-post-card .withlog-post-place-arrow { font-size: 12px; opacity: .72; flex-shrink: 0; margin-left: 2px; }
-.tl-post-card .withlog-post-place:hover { background: rgba(216, 199, 245, .84) !important; }
-.tl-post-card .withlog-post-place:focus-visible { outline: 2px solid #9274cf !important; outline-offset: 2px; }
+.tl-post-card .withlog-post-place-arrow {
+  font-size: 12px;
+  opacity: .67;
+  flex: 0 0 auto;
+  margin-left: 1px;
+}
+.tl-post-card .withlog-post-place:hover { background: #f5effc !important; }
+.tl-post-card .withlog-post-place:focus-visible { outline: 2px solid #9274cf !important; outline-offset: 3px; }
 html.withlog-dark .tl-post-card .withlog-post-place {
-  background: rgba(116, 96, 153, .34) !important;
-  color: #e8dafa !important;
-  border-color: rgba(189, 166, 223, .16) !important;
+  background: rgba(62, 57, 74, .93) !important;
+  color: #e8ddf3 !important;
+  border-color: rgba(194, 177, 218, .16) !important;
 }
-html.withlog-dark .tl-post-card .withlog-post-place-detail { color: #c6b5d9; }
-html.withlog-dark .tl-post-card .withlog-post-place:hover { background: rgba(116, 96, 153, .50) !important; }
-/* Do not let long neighborhood names push the menu button outside the post. */
-.tl-post-card > div:first-child > div:first-child { min-width: 0; }
-.tl-post-card > div:first-child > div:first-child > div:last-child { min-width: 0; }
+html.withlog-dark .tl-post-card .withlog-post-place svg {
+  background: #51465f;
+  color: #d6c5ef;
+}
+html.withlog-dark .tl-post-card .withlog-post-place-detail { color: #bdb0ca; }
+html.withlog-dark .tl-post-card .withlog-post-place:hover { background: #50455b !important; }
 @media (max-width: 560px) {
-  .tl-post-card .withlog-post-place { max-width: min(100%, 240px); }
+  .tl-post-card .withlog-post-place { max-width: min(100%, 280px); }
 }
 @media (max-width: 360px) {
-  .tl-post-card .withlog-post-place { max-width: min(100%, 195px); }
+  .tl-post-card .withlog-post-place { max-width: min(100%, 245px); }
 }
 </style>
 
@@ -8128,17 +8169,7 @@ html.withlog-dark .tl-post-card .withlog-post-place:hover { background: rgba(116
                     <span class="text-[10px] text-slate-400 font-mono">@${s.username}</span>
                   </div>
                   ${String(s.name ?? '').trim() ? `<h2 class="font-bold text-xs text-slate-800 tracking-wide mt-1">${escapeHtml(String(s.name).trim())}</h2>` : ''}
-                  ${s.google_map_url ? `
-                    <button type="button" class="withlog-post-place" data-spot-place="${escapeHtml(String(s.id))}"
-                      onclick="event.stopPropagation(); openSpotMap('${s.id}')" aria-label="投稿した場所をGoogleマップで見る" title="Googleマップで場所を確認">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21s6-5.35 6-11a6 6 0 1 0-12 0c0 5.65 6 11 6 11Z"/><circle cx="12" cy="10" r="2"/></svg>
-                      <span class="withlog-post-place-lines">
-                        <span class="withlog-post-place-text">場所を確認</span>
-                        <span class="withlog-post-place-detail"></span>
-                      </span>
-                      <span class="withlog-post-place-arrow" aria-hidden="true">↗</span>
-                    </button>
-                  ` : ''}
+
                 </div>
               </div>
 
@@ -8188,6 +8219,20 @@ html.withlog-dark .tl-post-card .withlog-post-place:hover { background: rgba(116
             ) : ''}
 
             <div class="p-4 bg-white">
+              ${ownerSongFallback}
+              ${s.google_map_url ? `
+                <div class="withlog-post-place-row">
+                    <button type="button" class="withlog-post-place" data-spot-place="${escapeHtml(String(s.id))}"
+                      onclick="event.stopPropagation(); openSpotMap('${s.id}')" aria-label="投稿した場所をGoogleマップで見る" title="Googleマップで場所を確認">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21s6-5.35 6-11a6 6 0 1 0-12 0c0 5.65 6 11 6 11Z"/><circle cx="12" cy="10" r="2"/></svg>
+                      <span class="withlog-post-place-lines">
+                        <span class="withlog-post-place-text">場所を確認</span>
+                        <span class="withlog-post-place-detail"></span>
+                      </span>
+                      <span class="withlog-post-place-arrow" aria-hidden="true">↗</span>
+                    </button>
+                </div>
+              ` : ''}
               <div class="flex items-center justify-between mb-2 gap-2">
                 <div class="withlog-post-actions-left">
                   <button data-like-spot="${s.id}" onclick="toggleSpotLike('${s.id}', this)" class="flex items-center gap-1.5 text-xs text-slate-700 hover:text-slate-950">
@@ -8204,7 +8249,6 @@ html.withlog-dark .tl-post-card .withlog-post-place:hover { background: rgba(116
                 </div>
                 <span class="text-[10px] text-slate-400 font-mono shrink-0">${dateText} ${timeText}</span>
               </div>
-              ${ownerSongFallback}
               ${parsedMemo.memo ? `<p class="text-xs text-slate-600 leading-relaxed">${escapeHtml(parsedMemo.memo).replace(/\n/g, '<br>')}</p>` : ''}
               <div data-shared-with-spot="${s.id}" hidden></div>
               <div id="comments-${s.id}" class="withlog-comments-panel hidden" data-comments-loaded="false">
