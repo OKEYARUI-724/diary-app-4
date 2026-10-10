@@ -4035,6 +4035,34 @@ html.withlog-dark .withlog-follower-avatar{
 }
 html.withlog-dark .withlog-follower-name{color:#f4f1f5;}
 html.withlog-dark .withlog-follower-id{color:#aaa4b2;}
+/* Followers / following: do not draw connected gray cards behind each account. */
+#userListContent{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+#userListContent > .withlog-follower-row,
+html.withlog-dark #userListContent > .withlog-follower-row{
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  padding:7px 0!important;
+}
+#userListContent .withlog-follower-view,
+#userListContent .withlog-follower-view:hover,
+html.withlog-dark #userListContent .withlog-follower-view,
+html.withlog-dark #userListContent .withlog-follower-view:hover{
+  background:transparent!important;
+}
+#userListContent .withlog-follower-view:hover .withlog-follower-name{
+  text-decoration:underline;
+  text-decoration-color:rgba(145,117,193,.6);
+  text-underline-offset:3px;
+}
+#userListContent .withlog-follower-view:focus-visible{
+  outline:2px solid #9d82d0!important;
+  outline-offset:1px;
+}
 @media(max-width:560px){
   .withlog-follower-avatar{
     width:46px;
