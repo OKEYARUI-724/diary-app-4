@@ -6011,6 +6011,368 @@ html #appView #withlogPrimaryActions #openModalBtn > span {color:#141a1f!importa
   box-sizing:border-box!important;
 }
 </style>
+
+<style id="withlog-ember-orange-dm-ui-v2">
+/* Visual-only redesign. No existing IDs, routes, events or messaging behavior changed. */
+:root {
+  --wl-bg:#fff7f1;
+  --wl-paper:#fffaf6;
+  --wl-surface:rgba(255,249,244,.93);
+  --wl-glass:rgba(255,248,240,.24);
+  --wl-ink:#2b1d17;
+  --wl-muted:#927e73;
+  --wl-border:rgba(159,78,32,.16);
+  --wl-chip:rgba(245,137,53,.12);
+  --wl-accent:#d96920;
+  --wl-mint:#ea8738;
+  --wl-warm:#e97725;
+  --wl-hero:linear-gradient(126deg,#efc39d 0%,#f9e5d9 46%,#fff6ef 100%);
+  --wl-ember:#f77f20;
+  --wl-ember-hot:#ff9e32;
+}
+html.withlog-dark {
+  --wl-bg:#08090b;
+  --wl-paper:#141013;
+  --wl-surface:rgba(25,19,19,.94);
+  --wl-glass:rgba(20,11,9,.23);
+  --wl-ink:#fcf4f0;
+  --wl-muted:#bba9a3;
+  --wl-border:rgba(255,144,79,.19);
+  --wl-chip:rgba(255,139,48,.14);
+  --wl-accent:#ff9742;
+  --wl-mint:#ff9b4c;
+  --wl-warm:#ffae62;
+  --wl-hero:linear-gradient(125deg,#542006 0%,#2c120f 47%,#0e0c0e 100%);
+}
+/* Orange glow in the overall app, while keeping light mode usable. */
+html body {
+  background:
+    radial-gradient(circle at 2% 5%,rgba(246,163,89,.20),transparent 35%),
+    radial-gradient(circle at 96% 54%,rgba(225,113,52,.12),transparent 32%),
+    var(--wl-bg)!important;
+}
+html.withlog-dark body {
+  background:
+    radial-gradient(circle at 5% -4%,rgba(134,42,4,.36),transparent 38%),
+    radial-gradient(circle at 93% 54%,rgba(112,41,9,.24),transparent 35%),
+    radial-gradient(circle at 60% 110%,rgba(116,39,7,.15),transparent 30%),
+    var(--wl-bg)!important;
+}
+#appView > header {
+  border-color:var(--wl-border)!important;
+  background:var(--wl-glass)!important;
+  -webkit-backdrop-filter:blur(25px) saturate(132%)!important;
+  backdrop-filter:blur(25px) saturate(132%)!important;
+}
+#appView > #withlogFeedTabBar {background:var(--wl-glass)!important;border-color:var(--wl-border)!important;}
+#appView #feed .tl-post-card:not(.with-daily-post),
+#appView #storiesSection .tl-filter-card,
+#withlogDesktopRail .wl-rail-card {
+  background:var(--wl-surface)!important;
+  border-color:var(--wl-border)!important;
+}
+#appView #withlogFeedTabBar :is(#tabAll,#tabFollowing).border-b-2,
+#appView.withlog-iss-active #withlogFeedTabBar #tabISS,
+#appView.withlog-flights-active #withlogFeedTabBar #tabFlights,
+#appView.withlog-weather-active #withlogFeedTabBar #tabWeather,
+#appView.withlog-news-active #withlogFeedTabBar #tabNews {
+  color:var(--wl-ink)!important;
+  background:rgba(242,132,50,.20)!important;
+  border-color:rgba(255,145,79,.25)!important;
+}
+#appView #withlogFeedTabBar :is(#tabAll,#tabFollowing).border-b-2::after,
+#appView.withlog-iss-active #withlogFeedTabBar #tabISS::after,
+#appView.withlog-flights-active #withlogFeedTabBar #tabFlights::after,
+#appView.withlog-weather-active #withlogFeedTabBar #tabWeather::after,
+#appView.withlog-news-active #withlogFeedTabBar #tabNews::after {
+  background:var(--wl-ember)!important;
+}
+#appView #withlogDesktopRail .wl-rail-feature {background:var(--wl-hero)!important;}
+#appView #flightsPage :is(.flight-region,.flight-continent)[aria-pressed="true"],
+#appView #newsPage .news-filter[aria-pressed="true"] {
+  background:linear-gradient(120deg,#f69b32,#e35c12)!important;color:#fff!important;
+}
+/* More transparent dock background; icons stay on individual readable buttons. */
+html #appView #withlogPrimaryActions {
+  background:rgba(255,242,229,.19)!important;
+  border:1px solid rgba(222,128,78,.27)!important;
+  -webkit-backdrop-filter:blur(36px) saturate(145%)!important;
+  backdrop-filter:blur(36px) saturate(145%)!important;
+  box-shadow:none!important;
+}
+html.withlog-dark #appView #withlogPrimaryActions {
+  background:rgba(15,10,10,.21)!important;
+  border-color:rgba(255,174,111,.26)!important;
+}
+html #appView #withlogPrimaryActions :is(button[title],button.withlog-account-icon):not(#openModalBtn) {
+  --withlog-action-fill:rgba(255,255,255,.37)!important;
+  background:rgba(255,255,255,.38)!important;
+  background-image:none!important;
+  color:var(--wl-ink)!important;
+  border:1px solid rgba(196,106,46,.10)!important;
+  border-radius:50%!important;
+}
+html.withlog-dark #appView #withlogPrimaryActions :is(button[title],button.withlog-account-icon):not(#openModalBtn) {
+  --withlog-action-fill:rgba(255,255,255,.095)!important;
+  background:rgba(255,255,255,.10)!important;
+  border-color:rgba(255,186,133,.15)!important;
+  color:#fff7f2!important;
+}
+html.withlog-dark #appView #withlogPrimaryActions :is(button[title],button.withlog-account-icon) svg {
+  color:#fff3ea!important;stroke:currentColor!important;
+}
+html #appView #withlogPrimaryActions :is(button[title],button.withlog-account-icon):not(#openModalBtn):hover {
+  background:rgba(255,162,75,.21)!important;
+}
+html #appView #withlogPrimaryActions #openModalBtn {
+  --withlog-action-fill:linear-gradient(135deg,#ffb74c 0%,#ff7b16 100%)!important;
+  --withlog-action-ink:#20100c!important;
+  background:linear-gradient(135deg,#ffb74c 0%,#ff7b16 100%)!important;
+  background-image:linear-gradient(135deg,#ffb74c 0%,#ff7b16 100%)!important;
+  color:#20100c!important;
+  border:1px solid rgba(255,195,103,.65)!important;
+}
+html #appView #withlogPrimaryActions #openModalBtn > span {color:#20100c!important;}
+@media(max-width:640px){
+  html #appView #withlogPrimaryActions.withlog-mobile-bottom-nav {
+    background:rgba(251,232,211,.19)!important;
+    border:1px solid rgba(254,166,106,.30)!important;
+    -webkit-backdrop-filter:blur(34px) saturate(155%)!important;
+    backdrop-filter:blur(34px) saturate(155%)!important;
+  }
+  html.withlog-dark #appView #withlogPrimaryActions.withlog-mobile-bottom-nav {
+    background:rgba(17,10,9,.19)!important;
+    border-color:rgba(255,180,123,.29)!important;
+  }
+  html #appView #withlogPrimaryActions.withlog-mobile-bottom-nav :is(button[title],button.withlog-account-icon):not(#openModalBtn) {
+    background:rgba(255,255,255,.36)!important;
+    border:1px solid rgba(202,126,67,.12)!important;
+  }
+  html.withlog-dark #appView #withlogPrimaryActions.withlog-mobile-bottom-nav :is(button[title],button.withlog-account-icon):not(#openModalBtn) {
+    background:rgba(255,255,255,.11)!important;
+    border-color:rgba(255,184,118,.17)!important;
+  }
+  html #appView #withlogPrimaryActions.withlog-mobile-bottom-nav #openModalBtn {
+    background:linear-gradient(135deg,#ffba57,#ff811c)!important;
+    background-image:linear-gradient(135deg,#ffba57,#ff811c)!important;
+  }
+}
+/* Chat windows: permanent charcoal & copper, independent of theme mode. */
+html body #conversationsModal,html body #dmModal {
+  background:rgba(4,5,8,.77)!important;
+  -webkit-backdrop-filter:blur(13px)!important;backdrop-filter:blur(13px)!important;
+}
+html body #conversationsModal > div,
+html body #dmModal > div,
+html.withlog-dark body #conversationsModal > div.bg-white,
+html.withlog-dark body #dmModal > div.bg-white {
+  background:
+    radial-gradient(circle at 100% 0%,rgba(183,68,10,.24),transparent 50%),
+    linear-gradient(150deg,#181113 0%,#100d10 48%,#09090b 100%)!important;
+  background-color:#100d10!important;
+  color:#fff7f2!important;
+  border:1px solid rgba(255,156,83,.25)!important;
+  box-shadow:0 26px 90px rgba(0,0,0,.48)!important;
+  overflow:hidden!important;box-sizing:border-box!important;
+}
+html body #conversationsModal > div {
+  display:flex!important;flex-direction:column!important;
+  width:min(470px,100%)!important;max-width:470px!important;
+  height:min(670px,calc(100dvh - 36px))!important;
+  max-height:calc(100dvh - 36px)!important;
+  padding:0!important;border-radius:31px!important;
+}
+html body #dmModal > div {
+  width:min(560px,100%)!important;max-width:560px!important;
+  height:min(725px,calc(100dvh - 32px))!important;
+  max-height:calc(100dvh - 32px)!important;
+  padding:0!important;border-radius:31px!important;
+}
+html body #conversationsModal .wl-ember-dm-list-heading,
+html body #dmModal .wl-ember-dm-thread-heading,
+html.withlog-dark body #dmModal .wl-ember-dm-thread-heading.bg-slate-50 {
+  background:linear-gradient(113deg,rgba(25,16,16,.94),rgba(100,36,8,.70))!important;
+  border:0!important;border-bottom:1px solid rgba(255,159,77,.27)!important;
+  flex:0 0 auto!important;
+  padding:22px 22px 19px!important;
+  margin:0!important;
+  gap:12px!important;
+  min-height:110px;
+}
+html body #dmModal .wl-ember-dm-thread-heading {
+  min-height:98px!important;padding:19px 20px!important;
+}
+.wl-ember-dm-heading-copy {min-width:0;}
+html body #conversationsModal .wl-ember-dm-heading-copy h2 {
+  display:flex;align-items:center;gap:10px;
+  color:#fff8f3!important;font-size:26px!important;
+  line-height:1.2!important;letter-spacing:-.025em!important;
+  text-transform:none!important;font-weight:850!important;
+  margin:5px 0 4px!important;
+}
+.wl-ember-dm-kicker {display:block;font-size:9px;letter-spacing:.22em;font-weight:850;color:#ffa654;line-height:1.5;}
+.wl-ember-dm-heading-hint {margin:4px 0 0;color:#cbb4a7;font-size:11px;line-height:1.5;}
+.wl-ember-dm-heading-dot {width:7px;height:7px;border-radius:50%;background:#ff992e;display:inline-block;}
+html body :is(#dmModal,#conversationsModal) .withlog-modal-close {
+  flex-shrink:0!important;
+  background:rgba(255,255,255,.095)!important;
+  color:#fff1e9!important;
+  border:1px solid rgba(255,159,77,.23)!important;
+}
+html body :is(#dmModal,#conversationsModal) .withlog-modal-close:hover {
+  background:rgba(255,133,47,.20)!important;color:#fff!important;
+}
+/* Inbox list inherits the existing avatar/name/unread JSX and click handlers. */
+html body #conversationsList {
+  flex:1 1 auto!important;min-height:0!important;
+  max-height:none!important;
+  overflow-y:auto!important;
+  scrollbar-width:thin;scrollbar-color:rgba(255,161,85,.4) transparent;
+  padding:15px 14px 24px!important;
+  background:transparent!important;
+  color:#fff0e8!important;
+}
+html body #conversationsList > p {color:#bca99e!important;font-size:12px!important;line-height:1.8!important;}
+html body #conversationsList .withlog-social-person-row {
+  display:flex!important;min-height:77px!important;
+  padding:11px 13px!important;border:1px solid transparent!important;
+  border-radius:19px!important;background:transparent!important;
+  color:#fff8f3!important;transition:background .18s ease,border-color .18s ease;
+}
+html body #conversationsList .withlog-social-person-row + .withlog-social-person-row {margin-top:5px!important;}
+html body #conversationsList .withlog-social-person-row:hover,
+html body #conversationsList .withlog-social-person-row:focus-visible {
+  background:rgba(252,129,34,.105)!important;
+  border-color:rgba(255,155,70,.20)!important;
+  outline:none!important;
+}
+html body #conversationsList .withlog-social-avatar {
+  width:49px!important;height:49px!important;min-width:49px!important;
+  border:2px solid rgba(255,151,54,.52)!important;
+  background-color:#463029!important;
+}
+html body #conversationsList .withlog-social-person-name {
+  color:#fff8f3!important;font-size:13px!important;font-weight:800!important;
+}
+html body #conversationsList .withlog-social-person-handle {
+  color:#b4a09a!important;font-size:10px!important;
+}
+html body #conversationsList .withlog-social-person-action {
+  display:inline-flex;align-items:center;gap:3px;
+  color:#ffa75e!important;font-weight:800!important;font-size:9px!important;
+}
+html body #conversationsList .withlog-conversation-unread {
+  background:linear-gradient(140deg,#ffaa35,#f16816)!important;
+  color:#1b0e08!important;min-width:24px;height:24px;
+}
+/* Chat header and bubbles. Keep #dmPartnerTitle so activeDmPartner still updates it. */
+html body #dmModal .wl-ember-dm-contact {gap:12px!important;min-width:0;}
+html body #dmModal .wl-ember-dm-contact-copy {display:flex;flex-direction:column;min-width:0;gap:4px;}
+html body #dmModal #dmPartnerTitle {
+  display:block;color:#fff7f0!important;font-size:13px!important;
+  font-weight:850!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.wl-ember-dm-contact-mark {
+  flex:0 0 42px;width:42px;height:42px;display:grid;place-items:center;
+  border:1px solid rgba(255,170,83,.55);border-radius:50%;
+  color:#ffd1a7;background:linear-gradient(135deg,#7d2e0a,#30140e);
+}
+.wl-ember-dm-contact-mark svg {width:21px;height:21px;}
+html body #dmModal #dmMessageList {
+  flex:1 1 auto!important;min-height:0!important;
+  background:radial-gradient(circle at 95% 8%,rgba(116,43,9,.13),transparent 42%),#0e0c0f!important;
+  padding:23px 19px!important;
+  overflow-y:auto!important;
+  scrollbar-width:thin;scrollbar-color:rgba(255,153,78,.36) transparent;
+}
+html body #dmModal #dmMessageList .withlog-dm-bubble {
+  display:inline-block!important;
+  max-width:min(82%,390px)!important;
+  padding:11px 15px!important;
+  border-radius:19px!important;
+  font-size:12px!important;line-height:1.7!important;
+  letter-spacing:.004em;
+  white-space:pre-wrap;word-break:break-word;
+}
+html body #dmModal #dmMessageList .withlog-dm-bubble.is-me,
+html.withlog-dark body #dmModal #dmMessageList .withlog-dm-bubble.is-me {
+  background:linear-gradient(135deg,#ff9c22 0%,#f07712 48%,#d94e0d 100%)!important;
+  color:#fff!important;border:1px solid rgba(255,191,96,.60)!important;
+  border-bottom-right-radius:6px!important;
+}
+html body #dmModal #dmMessageList .withlog-dm-bubble.is-other,
+html.withlog-dark body #dmModal #dmMessageList .withlog-dm-bubble.is-other {
+  background:linear-gradient(145deg,rgba(67,42,35,.94),rgba(39,27,29,.97))!important;
+  color:#fff0e5!important;border:1px solid rgba(255,181,116,.16)!important;
+  border-bottom-left-radius:6px!important;
+}
+html body #dmModal #dmMessageList .withlog-dm-bubble.is-me *,
+html body #dmModal #dmMessageList .withlog-dm-bubble.is-other *,
+html.withlog-dark body #dmModal #dmMessageList .withlog-dm-bubble.is-me *,
+html.withlog-dark body #dmModal #dmMessageList .withlog-dm-bubble.is-other * {color:inherit!important;}
+html body #dmModal #dmMessageList button[onclick*="deleteDmMessage"] {
+  color:#bb9d8d!important;font-size:10px!important;
+  padding:4px 8px!important;
+}
+html body #dmModal #dmMessageList button[onclick*="deleteDmMessage"]:hover {color:#ffc395!important;}
+/* The existing form still sends messages through the same API. */
+html body #dmModal #dmSendForm {
+  flex:0 0 auto!important;display:flex!important;align-items:center!important;
+  background:linear-gradient(90deg,rgba(44,23,17,.91),rgba(60,26,11,.83))!important;
+  border:0!important;border-top:1px solid rgba(255,175,116,.20)!important;
+  padding:13px 16px calc(13px + env(safe-area-inset-bottom))!important;gap:10px!important;
+}
+html body #dmModal #dmInput {
+  min-width:0!important;flex:1 1 auto!important;
+  background:rgba(255,255,255,.095)!important;
+  color:#fff9f3!important;
+  border:1px solid rgba(255,179,115,.20)!important;
+  border-radius:999px!important;
+  min-height:46px!important;padding:10px 17px!important;
+  font-size:12px!important;
+}
+html body #dmModal #dmInput::placeholder {color:#b9a29a!important;}
+html body #dmModal #dmInput:focus-visible {outline:2px solid #ff9b36!important;outline-offset:1px!important;}
+html body #dmModal #dmSendForm button[type="submit"] {
+  flex:0 0 auto!important;min-width:66px!important;min-height:45px!important;
+  border:1px solid rgba(255,190,115,.55)!important;
+  border-radius:999px!important;
+  background:linear-gradient(135deg,#ffaf41,#f27519)!important;
+  color:#26120a!important;font-size:12px!important;font-weight:900!important;
+}
+html body #dmModal #dmSendForm button[type="submit"]:hover {background:linear-gradient(135deg,#ffbe5c,#f4872e)!important;}
+@media(max-width:640px){
+  html body #conversationsModal,
+  html body #dmModal {padding:0!important;align-items:stretch!important;justify-content:stretch!important;}
+  html body #conversationsModal > div,
+  html body #dmModal > div {
+    width:100%!important;max-width:none!important;
+    height:100dvh!important;max-height:100dvh!important;
+    border:0!important;border-radius:0!important;
+    margin:0!important;
+  }
+  html body #conversationsModal .wl-ember-dm-list-heading {padding:26px 20px 20px!important;}
+  html body #dmModal .wl-ember-dm-thread-heading {padding:17px 16px!important;}
+  html body #conversationsList {padding:12px 10px calc(112px + env(safe-area-inset-bottom))!important;}
+  html body #dmModal #dmMessageList {padding:19px 13px!important;}
+  html body #dmModal #dmSendForm {padding:10px 12px calc(12px + env(safe-area-inset-bottom))!important;}
+  /* Keep dock visible above inbox, but not over the chat input. */
+  html body #conversationsModal {z-index:110!important;}
+  html body #dmModal {z-index:210!important;}
+  body:has(#dmModal:not(.hidden)) #appView #withlogPrimaryActions.withlog-mobile-bottom-nav {
+    opacity:0!important;pointer-events:none!important;
+  }
+  /* While inbox is visible, dock remains more translucent than its individual buttons. */
+  body:has(#conversationsModal:not(.hidden)) #appView #withlogPrimaryActions.withlog-mobile-bottom-nav {
+    background:rgba(27,14,11,.22)!important;
+    border-color:rgba(255,172,92,.25)!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  html body #conversationsList .withlog-social-person-row {transition:none!important;}
+}
+</style>
+
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -6888,8 +7250,12 @@ html #appView #withlogPrimaryActions #openModalBtn > span {color:#141a1f!importa
     <!-- DM 会話一覧モーダル -->
     <div id="conversationsModal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
       <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl p-5 ">
-        <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
-          <h2 class="text-xs font-bold tracking-widest text-slate-900 uppercase">Messages</h2>
+        <div class="wl-ember-dm-list-heading flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
+          <div class="wl-ember-dm-heading-copy">
+            <span class="wl-ember-dm-kicker">WITHLOG / DIRECT MESSAGES</span>
+            <h2 class="text-xs font-bold tracking-widest text-slate-900 uppercase">Messages<span class="wl-ember-dm-heading-dot" aria-hidden="true"></span></h2>
+            <p class="wl-ember-dm-heading-hint">大切な人との会話をここに。</p>
+          </div>
           <button type="button" onclick="closeConversationsModal()" class="withlog-modal-close" aria-label="メッセージ一覧を閉じる">×</button>
         </div>
         <div id="conversationsList" class="max-h-72 overflow-y-auto divide-y divide-slate-100 text-xs">
@@ -6901,9 +7267,10 @@ html #appView #withlogPrimaryActions #openModalBtn > span {color:#141a1f!importa
     <!-- DM チャットモーダル -->
     <div id="dmModal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
       <div class="bg-white border-2 border-slate-900 w-full max-w-sm rounded-3xl h-[520px] flex flex-col  overflow-hidden">
-        <div class="px-4 py-3 border-b border-slate-900 flex items-center justify-between bg-slate-50">
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-bold text-slate-900" id="dmPartnerTitle">Chat</span>
+        <div class="wl-ember-dm-thread-heading px-4 py-3 border-b border-slate-900 flex items-center justify-between bg-slate-50">
+          <div class="wl-ember-dm-contact flex items-center gap-2">
+            <span class="wl-ember-dm-contact-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8.5h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H9l-5 2v-11a2 2 0 0 1 1-2Z"/><path d="M8 13.5h8M8 16.5h5"/></svg></span>
+            <span class="wl-ember-dm-contact-copy"><span class="wl-ember-dm-kicker">WITHLOG / CHAT</span><span class="text-xs font-bold text-slate-900" id="dmPartnerTitle">Chat</span></span>
           </div>
           <button type="button" onclick="closeDmModal()" class="withlog-modal-close withlog-modal-close-sm" aria-label="チャットを閉じる">×</button>
         </div>
