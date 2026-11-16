@@ -12580,6 +12580,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const isOpen = () => app.classList.contains('withlog-flights-active') && !app.classList.contains('hidden');
   let area = 'tokyo';
   let flights = [];
+  const flightSnapshots = new Map(); // Last successful dataset per region, in this browser tab.
   let selected = null;
   let map = null;
   let layer = null;
@@ -12599,6 +12600,11 @@ document.addEventListener("DOMContentLoaded", function () {
     node.classList.toggle('is-error', error);
   }
   function resetVisible() {
+    const cached = flightSnapshots.get(area);
+    if (cached) {
+      showFlights(cached.data, true);
+      return;
+    }
     flights = [];
     selected = null;
     el('flightsCount').textContent = '--';
@@ -12709,31 +12715,49 @@ document.addEventListener("DOMContentLoaded", function () {
       const p=document.createElement('p');p.className='flights-empty';p.textContent=`ほかに${filtered.length-25}機あります。検索で絞り込めます。`;list.appendChild(p);
     }
   }
+  function showFlights(data, fromCache = false) {
+    flights = Array.isArray(data.flights) ? data.flights : [];
+    if (!flights.some(f=>f.icao===selected)) selected=null;
+    el('flightsCount').textContent=number(flights.length);
+    el('flightsAirborne').textContent=number(flights.filter(f=>!f.on_ground).length);
+    const stamp=data.updated_at ? new Date(data.updated_at) : null;
+    el('flightsUpdated').textContent=stamp && !Number.isNaN(stamp.getTime())
+      ? stamp.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}) : '--:--';
+    redrawMarkers();renderList();updateDetails();
+    if(fromCache || data.stale) {
+      status('前回取得した航空機の位置を表示しています。最新の位置ではありません。',true);
+    } else {
+      status(`${data.region_name || '周辺'}の航空機 ${flights.length} 機を表示中。約90秒ごとに更新します。`);
+    }
+  }
   async function loadFlights() {
     if (!isOpen() || document.hidden || request) return;
     const seq=++generation;
     const controller=new AbortController();request=controller;
     const timeout=window.setTimeout(()=>controller.abort(),14500);
     el('flightsRefreshBtn').disabled=true;
-    status('航空機の位置を取得しています…');
+    if (!flights.length) status('航空機の位置を取得しています…');
     try {
       const res=await fetch(`/api/flights?region=${encodeURIComponent(area)}`,{signal:controller.signal,cache:'no-store'});
       if (!res.ok) throw Error('flight api');
       const data=await res.json();
       if (!isOpen() || seq!==generation || data.region!==area) return;
-      flights=Array.isArray(data.flights) ? data.flights : [];
-      if (!flights.some(f=>f.icao===selected)) selected=null;
-      el('flightsCount').textContent=number(flights.length);
-      el('flightsAirborne').textContent=number(flights.filter(f=>!f.on_ground).length);
-      const stamp=data.updated_at ? new Date(data.updated_at) : null;
-      el('flightsUpdated').textContent=stamp && !Number.isNaN(stamp.getTime()) ? stamp.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}) : '--:--';
-      redrawMarkers();renderList();updateDetails();
+      if (data.stale && !data.updated_at) {
+        const cached=flightSnapshots.get(area);
+        if (cached) showFlights(cached.data,true);
+        status(data.warning || '航空機データを取得できません。再取得してください。',true);
+      } else {
+        if (!data.stale) flightSnapshots.set(area,{data,receivedAt:Date.now()});
+        showFlights(data);
+        if (data.warning) status(data.warning,true);
+      }
       latestAt=Date.now();
-      status(data.warning || `${data.region_name || '周辺'}の航空機 ${flights.length} 機を表示中。位置情報は約90秒ごとに再取得します。`,!!data.warning);
     } catch(error) {
       if (!isOpen() || seq!==generation || controller.signal.aborted) return;
       latestAt=Date.now();
-      status('航空機データを取得できませんでした。通信状態を確認し、更新を押してください。',true);
+      const cached=flightSnapshots.get(area);
+      if (cached) showFlights(cached.data,true);
+      status(cached ? '更新に失敗しました。前回の位置情報を表示中です。' : '航空機データを取得できませんでした。しばらくしてから再取得してください。',true);
     } finally {
       window.clearTimeout(timeout);
       if (request===controller) request=null;

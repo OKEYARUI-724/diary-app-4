@@ -2821,7 +2821,9 @@ _FLIGHT_REGIONS = {
     "auckland": {"name": "オークランド", "latitude": -37.0082, "longitude": 174.785, "radius_nm": 120},
 }
 _FLIGHT_TTL = 90.0  # Prevent each browser/session from making an upstream call.
-_FLIGHT_ERROR_TTL = 50.0
+_FLIGHT_ERROR_TTL = 20.0
+_FLIGHT_STALE_MAX_AGE = 60 * 60
+_flight_provider_pause_until = 0.0
 _flight_cache = {}
 _flight_locks = {key: threading.Lock() for key in _FLIGHT_REGIONS}
 
@@ -2888,6 +2890,7 @@ def _flight_parse_aircraft(data, region):
 
 
 def _flight_fetch(region):
+    """Read public ADS-B data. A 429 is not retried to respect provider limits."""
     url = ("https://api.adsb.lol/v2/point/"
            f"{region['latitude']}/{region['longitude']}/{region['radius_nm']}")
     req = _flight_request.Request(url, headers={
@@ -2904,42 +2907,62 @@ def _flight_fetch(region):
 
 @app.get("/api/flights")
 def get_withlog_flights(region: str = Query("tokyo", max_length=20)):
-    """Nearby recent aircraft positions, never a flight schedule/route predictor."""
+    """Nearby aircraft. Keep last known positions when the upstream is unavailable."""
+    global _flight_provider_pause_until
     if region not in _FLIGHT_REGIONS:
         raise HTTPException(status_code=400, detail="対応していないエリアです")
     area = _FLIGHT_REGIONS[region]
-    now = time.monotonic()
     with _flight_locks[region]:
+        now = time.monotonic()
         entry = _flight_cache.get(region)
         if entry and now < entry["expires"]:
             return dict(entry["payload"])
-        try:
-            flights = _flight_fetch(area)
-            payload = {
-                "region": region, "region_name": area["name"],
-                "center": {"latitude": area["latitude"], "longitude": area["longitude"]},
-                "radius_nm": area["radius_nm"], "flights": flights,
-                "updated_at": datetime.now(timezone.utc).isoformat(),
-                "stale": False, "warning": None, "provider": "ADSB.lol",
-            }
-            _flight_cache[region] = {"payload": payload, "expires": time.monotonic() + _FLIGHT_TTL}
-            return payload
-        except Exception as exc:
-            # Do not leak provider exception bodies or URLs to clients.
-            print(f"[Flight data unavailable] {type(exc).__name__}", flush=True)
-            if entry and entry["payload"].get("flights") is not None:
-                payload = dict(entry["payload"])
-                payload["stale"] = True
-                payload["warning"] = "航空機データを更新できません。前回取得した情報を表示しています。"
-                _flight_cache[region] = {"payload": payload, "expires": time.monotonic() + _FLIGHT_ERROR_TTL}
+
+        # Don't hammer an upstream that has explicitly rejected our requests.
+        can_fetch = now >= _flight_provider_pause_until
+        if can_fetch:
+            try:
+                flights = _flight_fetch(area)
+                payload = {
+                    "region": region, "region_name": area["name"],
+                    "center": {"latitude": area["latitude"], "longitude": area["longitude"]},
+                    "radius_nm": area["radius_nm"], "flights": flights,
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                    "stale": False, "warning": None, "provider": "ADSB.lol",
+                }
+                _flight_cache[region] = {
+                    "payload": payload, "expires": time.monotonic() + _FLIGHT_TTL,
+                    "success_at": time.monotonic(),
+                }
                 return payload
-            payload = {
-                "region": region, "region_name": area["name"],
-                "center": {"latitude": area["latitude"], "longitude": area["longitude"]},
-                "radius_nm": area["radius_nm"], "flights": [],
-                "updated_at": None, "stale": True,
-                "warning": "航空機データを取得できませんでした。しばらくしてから更新してください。",
-                "provider": "ADSB.lol",
-            }
-            _flight_cache[region] = {"payload": payload, "expires": time.monotonic() + _FLIGHT_ERROR_TTL}
+            except _flight_error.HTTPError as exc:
+                # 429 = rate limited; avoid making the limit worse for all regions.
+                if exc.code == 429:
+                    retry = exc.headers.get("Retry-After", "")
+                    try:
+                        delay = max(60, min(300, int(retry)))
+                    except (ValueError, TypeError):
+                        delay = 90
+                    _flight_provider_pause_until = max(_flight_provider_pause_until, time.monotonic() + delay)
+                print(f"[Flight upstream HTTP] status={exc.code} region={region}", flush=True)
+            except Exception as exc:
+                print(f"[Flight unavailable] {type(exc).__name__} region={region}", flush=True)
+
+        if entry and entry.get("success_at") is not None and now - entry["success_at"] <= _FLIGHT_STALE_MAX_AGE:
+            payload = dict(entry["payload"])
+            payload["stale"] = True
+            payload["warning"] = "最新データを取得できないため、前回受信した航空機の位置を表示しています（現在位置ではありません）。"
+            _flight_cache[region] = {**entry, "payload": payload, "expires": time.monotonic() + _FLIGHT_ERROR_TTL}
             return payload
+
+        payload = {
+            "region": region, "region_name": area["name"],
+            "center": {"latitude": area["latitude"], "longitude": area["longitude"]},
+            "radius_nm": area["radius_nm"], "flights": [],
+            "updated_at": None, "stale": True,
+            "warning": "航空機の位置情報サービスに一時的に接続できません。少し時間をおいて再取得してください。",
+            "provider": "ADSB.lol",
+        }
+        # Don't treat a failure as a successful empty region.
+        _flight_cache[region] = {"payload": payload, "expires": time.monotonic() + _FLIGHT_ERROR_TTL}
+        return payload
