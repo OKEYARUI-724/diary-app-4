@@ -5471,6 +5471,15 @@ html.withlog-dark #flightsPage .flight-row-icon {background:#594a69;color:#f3e0f
 html.withlog-dark #flightsPage .flights-search {background:#3d3645!important;border-color:#574e63!important;color:#f3ebf8!important}
 html.withlog-dark #flightsPage .flight-row-distance {color:#d4bbe9}
 html.withlog-dark #flightsPage .leaflet-tile {filter:brightness(.74) saturate(.78)!important}
+
+/* Global flight tracker: one continent at a time, preserving location chips. */
+#flightsPage .flights-continent-tabs { display:flex; flex-wrap:wrap; gap:8px; padding:16px 0 2px; }
+#flightsPage .flight-continent { padding:9px 14px; border:0; border-radius:999px; background:#eee9f5; color:#766789; font-size:11px; font-weight:800; white-space:nowrap; }
+#flightsPage .flight-continent[aria-pressed="true"] { background:linear-gradient(135deg,#8569d3,#c37ba8); color:#fff; }
+#flightsPage .flight-region[hidden] { display:none!important; }
+#flightsPage .flight-continent:focus-visible { outline:2px solid #8569d3; outline-offset:3px; }
+html.withlog-dark #flightsPage .flight-continent { background:#37333f; color:#bfb1ce; }
+html.withlog-dark #flightsPage .flight-continent[aria-pressed="true"] { background:linear-gradient(135deg,#6655a5,#a05b80);color:#fff; }
 </style>
 
 </head>
@@ -5695,13 +5704,36 @@ html.withlog-dark #flightsPage .leaflet-tile {filter:brightness(.74) saturate(.7
           <div class="flights-stat"><span>UPDATED / 更新</span><strong id="flightsUpdated">--:--</strong></div>
         </div>
       </div>
+      <div class="flights-continent-tabs" aria-label="大陸を選択">
+        <button type="button" class="flight-continent" data-flight-continent="asia" aria-pressed="true">アジア</button>
+        <button type="button" class="flight-continent" data-flight-continent="europe" aria-pressed="false">ヨーロッパ</button>
+        <button type="button" class="flight-continent" data-flight-continent="northamerica" aria-pressed="false">北米</button>
+        <button type="button" class="flight-continent" data-flight-continent="southamerica" aria-pressed="false">南米</button>
+        <button type="button" class="flight-continent" data-flight-continent="africa" aria-pressed="false">アフリカ</button>
+        <button type="button" class="flight-continent" data-flight-continent="oceania" aria-pressed="false">オセアニア</button>
+      </div>
       <div class="flights-location" aria-label="航空機を探す地域">
-        <button type="button" class="flight-region" data-flight-region="tokyo" aria-pressed="true">東京</button>
-        <button type="button" class="flight-region" data-flight-region="osaka" aria-pressed="false">大阪</button>
-        <button type="button" class="flight-region" data-flight-region="chitose" aria-pressed="false">新千歳</button>
-        <button type="button" class="flight-region" data-flight-region="seoul" aria-pressed="false">ソウル</button>
-        <button type="button" class="flight-region" data-flight-region="busan" aria-pressed="false">釜山</button>
-        <button type="button" class="flight-region" data-flight-region="okinawa" aria-pressed="false">沖縄</button>
+        <button type="button" class="flight-region" data-flight-group="asia" data-flight-region="tokyo" aria-pressed="true">東京</button>
+        <button type="button" class="flight-region" data-flight-group="asia" data-flight-region="osaka" aria-pressed="false">大阪</button>
+        <button type="button" class="flight-region" data-flight-group="asia" data-flight-region="chitose" aria-pressed="false">新千歳</button>
+        <button type="button" class="flight-region" data-flight-group="asia" data-flight-region="seoul" aria-pressed="false">ソウル</button>
+        <button type="button" class="flight-region" data-flight-group="asia" data-flight-region="busan" aria-pressed="false">釜山</button>
+        <button type="button" class="flight-region" data-flight-group="asia" data-flight-region="okinawa" aria-pressed="false">沖縄</button>
+        <button type="button" class="flight-region" data-flight-group="europe" data-flight-region="london" aria-pressed="false" hidden>ロンドン</button>
+        <button type="button" class="flight-region" data-flight-group="europe" data-flight-region="paris" aria-pressed="false" hidden>パリ</button>
+        <button type="button" class="flight-region" data-flight-group="europe" data-flight-region="frankfurt" aria-pressed="false" hidden>フランクフルト</button>
+        <button type="button" class="flight-region" data-flight-group="europe" data-flight-region="istanbul" aria-pressed="false" hidden>イスタンブール</button>
+        <button type="button" class="flight-region" data-flight-group="northamerica" data-flight-region="newyork" aria-pressed="false" hidden>ニューヨーク</button>
+        <button type="button" class="flight-region" data-flight-group="northamerica" data-flight-region="losangeles" aria-pressed="false" hidden>ロサンゼルス</button>
+        <button type="button" class="flight-region" data-flight-group="northamerica" data-flight-region="chicago" aria-pressed="false" hidden>シカゴ</button>
+        <button type="button" class="flight-region" data-flight-group="northamerica" data-flight-region="toronto" aria-pressed="false" hidden>トロント</button>
+        <button type="button" class="flight-region" data-flight-group="southamerica" data-flight-region="saopaulo" aria-pressed="false" hidden>サンパウロ</button>
+        <button type="button" class="flight-region" data-flight-group="southamerica" data-flight-region="buenosaires" aria-pressed="false" hidden>ブエノスアイレス</button>
+        <button type="button" class="flight-region" data-flight-group="africa" data-flight-region="johannesburg" aria-pressed="false" hidden>ヨハネスブルグ</button>
+        <button type="button" class="flight-region" data-flight-group="africa" data-flight-region="cairo" aria-pressed="false" hidden>カイロ</button>
+        <button type="button" class="flight-region" data-flight-group="oceania" data-flight-region="sydney" aria-pressed="false" hidden>シドニー</button>
+        <button type="button" class="flight-region" data-flight-group="oceania" data-flight-region="melbourne" aria-pressed="false" hidden>メルボルン</button>
+        <button type="button" class="flight-region" data-flight-group="oceania" data-flight-region="auckland" aria-pressed="false" hidden>オークランド</button>
       </div>
       <div class="flights-map-card">
         <div class="flights-map-top">
@@ -12527,7 +12559,22 @@ document.addEventListener("DOMContentLoaded", function () {
   if (!app || !page || !tab) return;
   const center = {
     tokyo: [35.65,139.81], osaka: [34.60,135.25], chitose: [42.79,141.69],
-    seoul: [37.48,126.67], busan: [35.18,128.94], okinawa: [26.21,127.67]
+    seoul: [37.48,126.67], busan: [35.18,128.94], okinawa: [26.21,127.67],
+    london: [51.47,-0.4543],
+    paris: [49.0097,2.5479],
+    frankfurt: [50.0379,8.5622],
+    istanbul: [41.2753,28.7519],
+    newyork: [40.6413,-73.7781],
+    losangeles: [33.9416,-118.4085],
+    chicago: [41.9742,-87.9073],
+    toronto: [43.6777,-79.6248],
+    saopaulo: [-23.4356,-46.4731],
+    buenosaires: [-34.8222,-58.5358],
+    johannesburg: [-26.1392,28.246],
+    cairo: [30.1219,31.4056],
+    sydney: [-33.9399,151.1753],
+    melbourne: [-37.669,144.841],
+    auckland: [-37.0082,174.785],
   };
   const el = id => document.getElementById(id);
   const isOpen = () => app.classList.contains('withlog-flights-active') && !app.classList.contains('hidden');
@@ -12717,6 +12764,15 @@ document.addEventListener("DOMContentLoaded", function () {
     app.classList.remove('withlog-flights-active');tab.removeAttribute('aria-current');
     (previousFeed==='following'?el('tabFollowing'):el('tabAll')).classList.add('border-b-2');
   };
+  page.querySelectorAll('[data-flight-continent]').forEach(btn => btn.addEventListener('click', () => {
+    const group = btn.dataset.flightContinent;
+    page.querySelectorAll('[data-flight-continent]').forEach(item =>
+      item.setAttribute('aria-pressed', String(item === btn)));
+    const choices = [...page.querySelectorAll('[data-flight-region]')];
+    choices.forEach(item => { item.hidden = item.dataset.flightGroup !== group; });
+    const current = choices.find(item => item.dataset.flightRegion === area);
+    if (!current || current.hidden) choices.find(item => item.dataset.flightGroup === group)?.click();
+  }));
   page.querySelectorAll('[data-flight-region]').forEach(btn=>btn.addEventListener('click',()=>{
     if(area===btn.dataset.flightRegion) return;
     stop();area=btn.dataset.flightRegion;latestAt=0;el('flightsSearch').value='';

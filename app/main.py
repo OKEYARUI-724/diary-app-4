@@ -2804,6 +2804,21 @@ _FLIGHT_REGIONS = {
     "seoul": {"name": "ソウル・仁川／金浦", "latitude": 37.48, "longitude": 126.67, "radius_nm": 120},
     "busan": {"name": "釜山・金海", "latitude": 35.18, "longitude": 128.94, "radius_nm": 120},
     "okinawa": {"name": "沖縄・那覇", "latitude": 26.21, "longitude": 127.67, "radius_nm": 120},
+    "london": {"name": "ロンドン・ヒースロー", "latitude": 51.47, "longitude": -0.4543, "radius_nm": 120},
+    "paris": {"name": "パリ・シャルル・ド・ゴール", "latitude": 49.0097, "longitude": 2.5479, "radius_nm": 120},
+    "frankfurt": {"name": "フランクフルト", "latitude": 50.0379, "longitude": 8.5622, "radius_nm": 120},
+    "istanbul": {"name": "イスタンブール", "latitude": 41.2753, "longitude": 28.7519, "radius_nm": 120},
+    "newyork": {"name": "ニューヨーク・JFK", "latitude": 40.6413, "longitude": -73.7781, "radius_nm": 120},
+    "losangeles": {"name": "ロサンゼルス・LAX", "latitude": 33.9416, "longitude": -118.4085, "radius_nm": 120},
+    "chicago": {"name": "シカゴ・オヘア", "latitude": 41.9742, "longitude": -87.9073, "radius_nm": 120},
+    "toronto": {"name": "トロント・ピアソン", "latitude": 43.6777, "longitude": -79.6248, "radius_nm": 120},
+    "saopaulo": {"name": "サンパウロ・グアルーリョス", "latitude": -23.4356, "longitude": -46.4731, "radius_nm": 120},
+    "buenosaires": {"name": "ブエノスアイレス・エセイサ", "latitude": -34.8222, "longitude": -58.5358, "radius_nm": 120},
+    "johannesburg": {"name": "ヨハネスブルグ・ORタンボ", "latitude": -26.1392, "longitude": 28.246, "radius_nm": 120},
+    "cairo": {"name": "カイロ", "latitude": 30.1219, "longitude": 31.4056, "radius_nm": 120},
+    "sydney": {"name": "シドニー", "latitude": -33.9399, "longitude": 151.1753, "radius_nm": 120},
+    "melbourne": {"name": "メルボルン", "latitude": -37.669, "longitude": 144.841, "radius_nm": 120},
+    "auckland": {"name": "オークランド", "latitude": -37.0082, "longitude": 174.785, "radius_nm": 120},
 }
 _FLIGHT_TTL = 90.0  # Prevent each browser/session from making an upstream call.
 _FLIGHT_ERROR_TTL = 50.0
