@@ -5482,6 +5482,535 @@ html.withlog-dark #flightsPage .flight-continent { background:#37333f; color:#bf
 html.withlog-dark #flightsPage .flight-continent[aria-pressed="true"] { background:linear-gradient(135deg,#6655a5,#a05b80);color:#fff; }
 </style>
 
+<style id="withlog-premium-responsive-ui-v1">
+/* WITHLOG Studio redesign: CSS-only visual skin, all original controls retained. */
+:root {
+  --wl-bg:#f7f4f5;
+  --wl-paper:#fffcfc;
+  --wl-surface:rgba(255,251,253,.9);
+  --wl-glass:rgba(255,250,252,.68);
+  --wl-ink:#382c39;
+  --wl-muted:#887988;
+  --wl-border:rgba(75,41,73,.12);
+  --wl-chip:#f0e8ee;
+  --wl-accent:#815574;
+  --wl-mint:#258b89;
+  --wl-warm:#b97550;
+  --wl-hero:linear-gradient(130deg,#f3d7d3 0%,#f4e2ed 47%,#e5edec 100%);
+}
+html.withlog-dark {
+  --wl-bg:#0d0b0e;
+  --wl-paper:#171418;
+  --wl-surface:rgba(31,26,32,.91);
+  --wl-glass:rgba(23,19,24,.62);
+  --wl-ink:#f8f0ee;
+  --wl-muted:#b0a4ad;
+  --wl-border:rgba(245,213,218,.12);
+  --wl-chip:rgba(255,255,255,.075);
+  --wl-accent:#e6ad9e;
+  --wl-mint:#b4f2e9;
+  --wl-warm:#e7b977;
+  --wl-hero:linear-gradient(124deg,#49170e 0%,#290f12 43%,#171316 100%);
+}
+html,body {margin:0!important;}
+html body {
+  color:var(--wl-ink)!important;
+  background:
+    radial-gradient(circle at 8% 0%,rgba(238,192,207,.47),transparent 32%),
+    radial-gradient(circle at 96% 30%,rgba(178,199,197,.35),transparent 33%),
+    var(--wl-bg)!important;
+  background-attachment:fixed!important;
+  overflow-x:hidden;
+}
+html.withlog-dark body {
+  color:var(--wl-ink)!important;
+  background:
+    radial-gradient(circle at 8% 0%,rgba(102,21,18,.53),transparent 32%),
+    radial-gradient(circle at 92% 25%,rgba(64,20,31,.27),transparent 34%),
+    radial-gradient(circle at 50% 94%,rgba(54,29,30,.18),transparent 40%),
+    var(--wl-bg)!important;
+  background-attachment:fixed!important;
+}
+
+/* The application must remain hidden until its existing auth logic reveals it. */
+#appView.hidden {display:none!important;}
+#appView:not(.hidden) {box-sizing:border-box;min-width:0;color:var(--wl-ink);}
+#appView > header {
+  isolation:isolate;
+  position:sticky!important;top:0!important;z-index:45!important;
+  min-height:76px!important;box-sizing:border-box!important;
+  border:1px solid var(--wl-border)!important;
+  background:var(--wl-glass)!important;
+  -webkit-backdrop-filter:blur(27px) saturate(135%)!important;
+  backdrop-filter:blur(27px) saturate(135%)!important;
+  box-shadow:none!important;
+}
+#appView > header .withlog-header-brand-link {
+  border-radius:12px!important;
+}
+#withlogHeaderBrushLogo {max-width:174px;filter:drop-shadow(0 0 0 transparent)}
+
+/* The requested functional bar: translucent on desktop AND mobile. */
+#appView #withlogPrimaryActions {
+  border:1px solid var(--wl-border)!important;
+  border-radius:999px!important;
+  padding:6px 9px!important;
+  background:var(--wl-glass)!important;
+  backdrop-filter:blur(27px) saturate(145%)!important;
+  -webkit-backdrop-filter:blur(27px) saturate(145%)!important;
+  box-shadow:none!important;
+}
+#appView #withlogPrimaryActions button[title="\30e6\30fc\30b6\30fc\3092\63a2\3059"],
+#appView #withlogPrimaryActions button[title="\901a\77e5"],
+#appView #withlogPrimaryActions button[title="\30e1\30c3\30bb\30fc\30b8"],
+#appView #withlogPrimaryActions .withlog-account-icon {
+  background:transparent!important;color:var(--wl-ink)!important;
+  border:0!important;border-radius:50%!important;
+}
+#appView #withlogPrimaryActions button:hover,
+#appView #withlogPrimaryActions .withlog-account-icon:hover {
+  background:var(--wl-chip)!important;
+  color:var(--wl-ink)!important;
+}
+#appView #withlogPrimaryActions #openModalBtn {
+  border:0!important;
+  border-radius:50%!important;
+  background:linear-gradient(135deg,#b4f8ef,#c9e8f7)!important;
+  color:#151a20!important;
+  font-size:23px!important;
+}
+#appView #withlogPrimaryActions #openModalBtn > span {color:#151a20!important}
+#appView #withlogPrimaryActions .withlog-alert-badge {border-color:var(--wl-paper)!important}
+
+/* All navigation actions keep their original IDs and click handlers. */
+#appView > #withlogFeedTabBar {
+  border:1px solid var(--wl-border)!important;
+  background:var(--wl-glass)!important;
+  -webkit-backdrop-filter:blur(20px) saturate(130%)!important;
+  backdrop-filter:blur(20px) saturate(130%)!important;
+  box-shadow:none!important;
+}
+#appView #withlogFeedTabBar :is(#tabAll,#tabFollowing,#tabISS,#tabFlights,#tabWeather,#tabNews) {
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  gap:10px!important;flex:0 0 auto;
+  min-height:42px!important;
+  padding:11px 15px!important;
+  border:1px solid transparent!important;
+  border-radius:17px!important;
+  background:transparent!important;
+  color:var(--wl-muted)!important;
+  letter-spacing:.02em!important;
+  font-weight:850!important;
+  transition:background-color .18s,color .18s!important;
+}
+#appView #withlogFeedTabBar :is(#tabAll,#tabFollowing,#tabISS,#tabFlights,#tabWeather,#tabNews):hover {
+  background:var(--wl-chip)!important;
+  color:var(--wl-ink)!important;
+}
+#appView #withlogFeedTabBar :is(#tabAll,#tabFollowing).border-b-2,
+#appView.withlog-iss-active #withlogFeedTabBar #tabISS,
+#appView.withlog-flights-active #withlogFeedTabBar #tabFlights,
+#appView.withlog-weather-active #withlogFeedTabBar #tabWeather,
+#appView.withlog-news-active #withlogFeedTabBar #tabNews {
+  color:var(--wl-ink)!important;
+  background:var(--wl-chip)!important;
+  border-color:var(--wl-border)!important;
+}
+#appView #withlogFeedTabBar :is(#tabAll,#tabFollowing).border-b-2::after,
+#appView.withlog-iss-active #withlogFeedTabBar #tabISS::after,
+#appView.withlog-flights-active #withlogFeedTabBar #tabFlights::after,
+#appView.withlog-weather-active #withlogFeedTabBar #tabWeather::after,
+#appView.withlog-news-active #withlogFeedTabBar #tabNews::after {
+  content:"";height:6px;width:6px;flex:0 0 auto;
+  border-radius:50%;background:var(--wl-mint);
+}
+
+/* Give the media feed a polished editorial rhythm without cropping images. */
+#appView > main,#appView > #storiesSection {min-width:0!important;}
+#appView #feed {display:grid;gap:20px!important;max-width:100%;min-width:0;}
+#appView #feed > * {margin-top:0!important;min-width:0;}
+#appView #storiesSection .tl-filter-card {
+  border:1px solid var(--wl-border)!important;
+  background:var(--wl-surface)!important;
+  border-radius:26px!important;
+  padding:16px!important;
+}
+#appView #storiesBar {scrollbar-width:thin;}
+#appView #feed .tl-post-card:not(.with-daily-post) {
+  border:1px solid var(--wl-border)!important;
+  border-radius:26px!important;
+  background:var(--wl-surface)!important;
+  box-shadow:none!important;
+  overflow:hidden!important;
+}
+#appView #feed .tl-post-card:not(.with-daily-post)::before {display:none!important;}
+#appView #feed .tl-post-card:not(.with-daily-post) > div:first-child {
+  margin:0!important;
+  background:var(--wl-surface)!important;
+  border:0!important;
+  border-radius:26px 26px 0 0!important;
+}
+#appView #feed .tl-post-card:not(.with-daily-post) .post-media-frame {
+  width:calc(100% - 16px)!important;
+  margin:8px!important;padding:0!important;
+  border:1px solid var(--wl-border)!important;
+  border-radius:21px!important;
+  background:#171319!important;
+  overflow:hidden!important;
+}
+#appView #feed .tl-post-card:not(.with-daily-post) .post-media-frame > img,
+#appView #feed .tl-post-card:not(.with-daily-post) .post-media-frame > video {
+  width:100%!important;max-height:650px;
+  margin:0!important;
+  border:0!important;
+  border-radius:20px!important;
+  object-fit:contain!important;
+}
+#appView #feed .tl-post-card:not(.with-daily-post) > div:last-child {
+  margin:0 8px 8px!important;
+  border:0!important;
+  border-radius:0 0 22px 22px!important;
+  background:transparent!important;
+}
+#appView #feed .tl-post-card:not(.with-daily-post) > div:first-child .text-xs.font-bold,
+#appView #feed .tl-post-card:not(.with-daily-post) > div:first-child h2,
+#appView #feed .tl-post-card:not(.with-daily-post) > div:last-child .text-slate-900 {
+  color:var(--wl-ink)!important;
+}
+#appView #feed .tl-post-card:not(.with-daily-post) .withlog-comment-toggle,
+#appView #feed .tl-post-card:not(.with-daily-post) [data-like-spot] {
+  background:var(--wl-chip)!important;
+  color:var(--wl-ink)!important;
+  border:1px solid var(--wl-border)!important;
+}
+#appView #feed .tl-post-card:not(.with-daily-post) .post-action-btn {
+  background:var(--wl-chip)!important;
+  color:var(--wl-ink)!important;
+}
+#appView #feed .with-daily-post {
+  border:1px solid var(--wl-border)!important;
+  border-radius:27px!important;
+}
+html.withlog-dark #appView #feed .with-daily-post {
+  background:linear-gradient(135deg,#3f1616,#35202f 50%,#23332f)!important;
+}
+
+/* Unified palette for ISS / Weather / Flights / News - no API changes. */
+#appView > :is(#issTrackerPage,#flightsPage,#weatherPage,#newsPage) {min-width:0!important;}
+#appView #flightsPage .flights-hero,
+#appView #weatherPage .wx-hero,
+#appView #newsPage .news-hero,
+#appView #issTrackerPage .iss-stage {
+  background:var(--wl-hero)!important;
+  border:1px solid var(--wl-border)!important;
+  border-radius:29px!important;
+  box-shadow:none!important;
+}
+#appView #flightsPage :is(.flights-map-card,.flights-detail,.flights-list-panel),
+#appView #weatherPage .wx-panel,
+#appView #issTrackerPage .iss-map-card,
+#appView #newsPage .news-card {
+  background:var(--wl-surface)!important;
+  border:1px solid var(--wl-border)!important;
+  border-radius:23px!important;
+  box-shadow:none!important;
+}
+#appView #flightsPage :is(.flights-title,.flights-map-title,.flights-list-heading,.flights-detail-title),
+#appView #weatherPage :is(.wx-title,.wx-panel-heading),
+#appView #newsPage :is(.news-title,.news-card-title),
+#appView #issTrackerPage :is(.iss-title,.iss-map-title) {color:var(--wl-ink)!important;}
+#appView #flightsPage :is(.flight-region,.flight-continent,.flight-tool,.flight-row),
+#appView #newsPage :is(.news-filter,.news-refresh),
+#appView #weatherPage .wx-btn,
+#appView #issTrackerPage .iss-tool {
+  border:1px solid var(--wl-border)!important;
+  background:var(--wl-chip)!important;
+  color:var(--wl-ink)!important;
+  border-radius:999px!important;
+}
+#appView #flightsPage :is(.flight-region,.flight-continent)[aria-pressed="true"],
+#appView #newsPage .news-filter[aria-pressed="true"] {
+  background:linear-gradient(135deg,#6b414b,#91516c)!important;
+  color:#fff!important;
+}
+#appView #flightsPage .flights-detail-grid div {background:var(--wl-chip)!important;}
+#appView #flightsPage :is(.flights-detail-grid strong,.flight-row-meta strong) {color:var(--wl-ink)!important;}
+#appView #flightsPage .flights-stat {background:var(--wl-glass)!important;border-color:var(--wl-border)!important;}
+#appView #flightsPage .flights-stat strong {color:var(--wl-ink)!important;}
+#appView #weatherPage .wx-stat {background:var(--wl-chip)!important;border-color:var(--wl-border)!important;}
+#appView #weatherPage .wx-stat-value {color:var(--wl-ink)!important;}
+#appView #newsPage .news-grid {gap:14px!important;}
+/* Preserve Leaflet map contrast and click handling. */
+#appView :is(#flightsMap,#issMap) {isolation:isolate;}
+#appView .leaflet-control-zoom a {cursor:pointer!important;}
+
+/* Desktop right rail is decorative + calls existing page functions only. */
+#withlogDesktopRail {display:none;min-width:0;}
+#withlogDesktopRail .wl-rail-card {
+  position:relative;overflow:hidden;
+  padding:19px 18px;border:1px solid var(--wl-border);border-radius:24px;
+  background:var(--wl-surface);margin-bottom:14px;
+}
+#withlogDesktopRail .wl-rail-eyebrow {
+  margin:0 0 12px;font-size:10px;font-weight:900;letter-spacing:.18em;
+  color:var(--wl-muted);
+}
+#withlogDesktopRail .wl-rail-title {font-size:19px;line-height:1.28;font-weight:900;color:var(--wl-ink);letter-spacing:-.035em;}
+#withlogDesktopRail .wl-rail-copy {margin-top:11px;font-size:11px;line-height:1.8;color:var(--wl-muted);}
+#withlogDesktopRail .wl-rail-feature {
+  min-height:170px;display:flex;flex-direction:column;justify-content:space-between;
+  background:var(--wl-hero);
+}
+#withlogDesktopRail .wl-rail-symbol {width:42px;height:42px;display:grid;place-items:center;border-radius:15px;background:rgba(255,255,255,.20);color:var(--wl-ink);font-size:26px;}
+#withlogDesktopRail .wl-rail-links {display:grid;gap:4px;margin-top:9px;}
+#withlogDesktopRail .wl-rail-link {
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  width:100%;padding:11px 9px;border-radius:12px;border:0;
+  background:transparent;color:var(--wl-ink);text-align:left;
+  font-size:11px;font-weight:750;
+}
+#withlogDesktopRail .wl-rail-link:hover {background:var(--wl-chip);}
+#withlogDesktopRail .wl-rail-arrow {color:var(--wl-muted);}
+#withlogDesktopRail .wl-rail-note {font-size:10px;line-height:1.8;color:var(--wl-muted);padding:1px 9px;}
+
+/* Wide desktop: left navigation, expansive content, right context rail. */
+@media (min-width:900px) {
+  html body #appView:not(.hidden) {
+    width:min(calc(100% - 44px),1450px)!important;
+    max-width:1450px!important;
+    margin:0 auto!important;
+    display:grid!important;
+    grid-template-columns:208px minmax(0,1fr)!important;
+    grid-template-rows:auto min-content 1fr!important;
+    gap:0 20px!important;
+    align-items:start!important;
+    align-content:start!important;
+    padding:14px 0 55px!important;
+  }
+  #appView:not(.hidden):has(:is(#newsPage,#issTrackerPage,#weatherPage,#flightsPage):not(.hidden)) {max-width:1450px!important;}
+  #appView > header {
+    grid-column:1/-1!important;grid-row:1!important;
+    margin:0 0 22px!important;padding:12px 22px!important;
+    border-radius:24px!important;
+  }
+  #appView > #withlogFeedTabBar {
+    grid-column:1!important;grid-row:2 / span 2!important;
+    position:sticky!important;top:104px!important;z-index:24!important;
+    display:flex!important;flex-direction:column!important;align-items:stretch!important;
+    gap:5px!important;
+    align-self:start!important;
+    width:100%!important;min-width:0!important;
+    padding:15px 11px!important;
+    border-radius:24px!important;
+    overflow:visible!important;
+  }
+  #appView > #withlogFeedTabBar::before {
+    content:"EXPLORE";display:block;
+    margin:5px 11px 11px;color:var(--wl-muted);font-size:9px;font-weight:900;letter-spacing:.24em;
+  }
+  #appView #withlogFeedTabBar :is(#tabAll,#tabFollowing,#tabISS,#tabFlights,#tabWeather,#tabNews) {
+    width:100%!important;justify-content:flex-start!important;
+    font-size:12px!important;
+    padding:13px 14px!important;
+  }
+  #appView #withlogFeedTabBar #tabAll::before,
+  #appView #withlogFeedTabBar #tabFollowing::before {
+    display:inline-grid;place-items:center;width:17px;height:17px;flex:0 0 auto;
+    color:inherit;font-size:16px;
+  }
+  #appView #withlogFeedTabBar #tabAll::before {content:"\2302";}
+  #appView #withlogFeedTabBar #tabFollowing::before {content:"\2661";}
+  #appView > #storiesSection {grid-column:2!important;grid-row:2!important;padding:0 0 16px!important;}
+  #appView > main {grid-column:2!important;grid-row:3!important;min-width:0!important;padding:0 0 20px!important;}
+  #appView > :is(#newsPage,#issTrackerPage,#weatherPage,#flightsPage):not(.hidden) {
+    grid-column:2!important;grid-row:2 / span 2!important;min-width:0!important;
+    padding:0 0 28px!important;margin:0!important;
+  }
+  #appView > #withlogPrimaryActions.withlog-mobile-bottom-nav {display:none!important;}
+}
+@media (min-width:1280px) {
+  html body #appView:not(.hidden) {
+    grid-template-columns:214px minmax(0,1fr) 264px!important;
+    gap:0 22px!important;
+  }
+  #appView > #withlogDesktopRail {
+    grid-column:3!important;grid-row:2 / span 2!important;
+    display:block!important;
+    position:sticky!important;top:104px!important;
+    align-self:start!important;
+  }
+  #appView:is(.withlog-iss-active,.withlog-weather-active,.withlog-flights-active,.withlog-news-active) > #withlogDesktopRail {
+    display:none!important;
+  }
+  #appView > :is(#newsPage,#issTrackerPage,#weatherPage,#flightsPage):not(.hidden) {grid-column:2 / 4!important;}
+  #appView > main {padding:0!important;}
+  #appView > #storiesSection {padding-bottom:15px!important;}
+}
+
+/* Tablet / small laptops: horizontal navigation remains easy to use. */
+@media (min-width:641px) and (max-width:899px) {
+  html body #appView:not(.hidden) {display:flex!important;flex-direction:column!important;max-width:790px!important;width:calc(100% - 24px)!important;padding:12px 0 38px!important;}
+  #appView > header {width:100%!important;margin:0 0 12px!important;border-radius:21px!important;padding:12px 16px!important;}
+  #appView > #withlogFeedTabBar {position:sticky!important;top:78px!important;z-index:26!important;width:100%;border-radius:19px!important;overflow-x:auto!important;flex-wrap:nowrap!important;gap:6px!important;padding:10px!important;}
+  #appView > #storiesSection {padding:15px 8px 0!important;width:100%;}
+  #appView > main {padding:15px 8px 30px!important;width:100%;}
+  #appView > :is(#newsPage,#issTrackerPage,#weatherPage,#flightsPage) {width:100%!important;}
+}
+
+/* Mobile: immersive, edge-friendly feed + floating frosted dock. */
+@media (max-width:640px) {
+  html body #appView:not(.hidden) {
+    display:flex!important;flex-direction:column!important;
+    width:100%!important;max-width:100%!important;
+    min-height:100dvh!important;
+    padding:0 0 calc(112px + env(safe-area-inset-bottom))!important;
+    margin:0!important;
+  }
+  #appView > header {
+    width:100%!important;min-height:66px!important;
+    margin:0!important;padding:11px 16px!important;
+    border:0!important;border-bottom:1px solid var(--wl-border)!important;
+    border-radius:0 0 20px 20px!important;
+    background:var(--wl-glass)!important;
+  }
+  #withlogHeaderBrushLogo {width:min(172px,58vw)!important;}
+  #appView > #withlogFeedTabBar {
+    position:sticky!important;top:66px!important;z-index:27!important;
+    width:100%!important;min-width:0!important;
+    display:flex!important;flex-wrap:nowrap!important;gap:7px!important;
+    overflow-x:auto!important;overscroll-behavior-x:contain;
+    scrollbar-width:none!important;-webkit-overflow-scrolling:touch;
+    padding:9px 13px 10px!important;
+    border:0!important;border-bottom:1px solid var(--wl-border)!important;
+    border-radius:0!important;
+  }
+  #appView > #withlogFeedTabBar::-webkit-scrollbar {display:none;}
+  #appView #withlogFeedTabBar :is(#tabAll,#tabFollowing,#tabISS,#tabFlights,#tabWeather,#tabNews) {
+    min-height:38px!important;padding:9px 12px!important;
+    border-radius:999px!important;font-size:10px!important;
+    letter-spacing:.02em!important;
+  }
+  #appView #withlogFeedTabBar :is(#tabISS,#tabFlights,#tabWeather,#tabNews) svg {width:15px;height:15px;}
+  #appView > #storiesSection {width:100%!important;padding:14px 10px 0!important;}
+  #appView #storiesSection .tl-filter-card {border-radius:22px!important;padding:12px!important;}
+  #appView > main {width:100%!important;padding:13px 9px 25px!important;}
+  #appView #feed {gap:13px!important;}
+  #appView #feed .tl-post-card:not(.with-daily-post) {border-radius:23px!important;}
+  #appView #feed .tl-post-card:not(.with-daily-post) > div:first-child {border-radius:23px 23px 0 0!important;}
+  #appView #feed .tl-post-card:not(.with-daily-post) .post-media-frame {width:calc(100% - 12px)!important;margin:6px!important;border-radius:20px!important;}
+  #appView #feed .tl-post-card:not(.with-daily-post) .post-media-frame > img,
+  #appView #feed .tl-post-card:not(.with-daily-post) .post-media-frame > video {border-radius:19px!important;}
+  #appView > :is(#newsPage,#issTrackerPage,#weatherPage,#flightsPage) {width:100%!important;max-width:100%!important;padding:14px 10px 28px!important;}
+  #appView #flightsPage .flights-hero,
+  #appView #weatherPage .wx-hero,
+  #appView #newsPage .news-hero,
+  #appView #issTrackerPage .iss-stage {border-radius:24px!important;}
+  #appView #withlogPrimaryActions.withlog-mobile-bottom-nav {
+    position:fixed!important;z-index:120!important;
+    left:50%!important;right:auto!important;
+    bottom:calc(10px + env(safe-area-inset-bottom))!important;
+    transform:translateX(-50%)!important;
+    width:calc(100% - 26px)!important;max-width:466px!important;
+    min-height:66px!important;
+    display:grid!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    align-items:center!important;justify-items:center!important;
+    gap:0!important;
+    padding:7px 8px!important;
+    border:1px solid rgba(255,255,255,.21)!important;
+    border-radius:28px!important;
+    background:rgba(255,250,253,.64)!important;
+    backdrop-filter:blur(30px) saturate(155%)!important;
+    -webkit-backdrop-filter:blur(30px) saturate(155%)!important;
+    box-shadow:none!important;
+  }
+  html.withlog-dark #appView #withlogPrimaryActions.withlog-mobile-bottom-nav {
+    background:rgba(24,22,29,.64)!important;
+    border-color:rgba(255,255,255,.22)!important;
+  }
+  #appView #withlogPrimaryActions.withlog-mobile-bottom-nav #authStatusContainer,
+  #appView #withlogPrimaryActions.withlog-mobile-bottom-nav #authStatusContainer > div {
+    display:contents!important;
+  }
+  #appView #withlogPrimaryActions.withlog-mobile-bottom-nav button[title],
+  #appView #withlogPrimaryActions.withlog-mobile-bottom-nav .withlog-account-icon,
+  #appView #withlogPrimaryActions.withlog-mobile-bottom-nav #openModalBtn {
+    width:47px!important;height:47px!important;
+    min-width:47px!important;min-height:47px!important;
+    max-width:47px!important;max-height:47px!important;
+    border-radius:50%!important;justify-self:center!important;
+    align-self:center!important;
+  }
+  #appView #withlogPrimaryActions.withlog-mobile-bottom-nav #openModalBtn {
+    background:linear-gradient(135deg,#b3fff4,#c5e6fa)!important;
+    color:#141a1f!important;
+    border:1px solid rgba(255,255,255,.6)!important;
+    font-size:25px!important;
+  }
+  #appView #withlogPrimaryActions.withlog-mobile-bottom-nav #openModalBtn > span {color:#141a1f!important;}
+  #appView #withlogPrimaryActions.withlog-mobile-bottom-nav button[title]:not(#openModalBtn),
+  #appView #withlogPrimaryActions.withlog-mobile-bottom-nav .withlog-account-icon {
+    color:var(--wl-ink)!important;background:transparent!important;
+  }
+  #appView #withlogPrimaryActions.withlog-mobile-bottom-nav button:focus-visible {
+    outline:2px solid var(--wl-mint)!important;outline-offset:2px!important;
+  }
+  #withlogDesktopRail {display:none!important;}
+}
+@media (max-width:365px) {
+  #appView #withlogPrimaryActions.withlog-mobile-bottom-nav {width:calc(100% - 16px)!important;padding:6px 3px!important;}
+  #appView #withlogPrimaryActions.withlog-mobile-bottom-nav button[title],
+  #appView #withlogPrimaryActions.withlog-mobile-bottom-nav .withlog-account-icon,
+  #appView #withlogPrimaryActions.withlog-mobile-bottom-nav #openModalBtn {
+    width:42px!important;height:42px!important;
+    min-width:42px!important;min-height:42px!important;
+    max-width:42px!important;max-height:42px!important;
+  }
+}
+@media (prefers-reduced-motion:reduce) {
+  #appView #withlogFeedTabBar button,#appView #withlogPrimaryActions button {transition:none!important;}
+}
+
+/* Override the legacy per-icon gradients as well as their background-image longhands. */
+html #appView #withlogPrimaryActions :is(button[title],button.withlog-account-icon) {
+  --withlog-action-fill:none!important;
+  --withlog-action-ink:var(--wl-ink)!important;
+  background:transparent!important;
+  background-image:none!important;
+  color:var(--wl-ink)!important;
+  border:0!important;
+}
+html #appView #withlogPrimaryActions :is(button[title],button.withlog-account-icon) svg {
+  color:var(--wl-ink)!important;
+  stroke:currentColor!important;
+}
+html #appView #withlogPrimaryActions #openModalBtn {
+  --withlog-action-fill:linear-gradient(135deg,#b3fff4,#c5e6fa)!important;
+  --withlog-action-ink:#141a1f!important;
+  background:linear-gradient(135deg,#b3fff4,#c5e6fa)!important;
+  background-image:linear-gradient(135deg,#b3fff4,#c5e6fa)!important;
+  color:#141a1f!important;
+  border:1px solid rgba(255,255,255,.25)!important;
+}
+html #appView #withlogPrimaryActions #openModalBtn > span {color:#141a1f!important;}
+@media (max-width:640px) {
+  html #appView #withlogPrimaryActions.withlog-mobile-bottom-nav :is(button[title],button.withlog-account-icon) {
+    background:transparent!important;
+    background-image:none!important;
+    border:0!important;
+  }
+  html #appView #withlogPrimaryActions.withlog-mobile-bottom-nav #openModalBtn {
+    background-image:linear-gradient(135deg,#b3fff4,#c5e6fa)!important;
+  }
+}
+
+/* Guard against horizontal overflow in stripped-down and older browser CSS. */
+#appView, #appView > header, #appView > #withlogFeedTabBar,
+#appView > #storiesSection, #appView > main, #appView > #withlogDesktopRail,
+#appView > :is(#newsPage,#issTrackerPage,#weatherPage,#flightsPage) {
+  box-sizing:border-box!important;
+}
+</style>
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -5628,6 +6157,28 @@ html.withlog-dark #flightsPage .flight-continent[aria-pressed="true"] { backgrou
         <p class="text-center text-xs text-slate-400 py-12 tracking-widest uppercase font-medium">Loading...</p>
       </div>
     </main>
+
+    <!-- Desktop layout only; every action reuses an existing WITHLOG function. -->
+    <aside id="withlogDesktopRail" aria-label="WITHLOG quick access">
+      <div class="wl-rail-card wl-rail-feature">
+        <div class="wl-rail-symbol" aria-hidden="true">&#10022;</div>
+        <div>
+          <p class="wl-rail-eyebrow">YOUR WORLD. YOUR STORY.</p>
+          <p class="wl-rail-title">Collect the moments that matter.</p>
+          <p class="wl-rail-copy">A photo, a place, a soundtrack. Keep it all together on WITHLOG.</p>
+        </div>
+      </div>
+      <div class="wl-rail-card">
+        <p class="wl-rail-eyebrow">EXPLORE MORE</p>
+        <div class="wl-rail-links">
+          <button type="button" class="wl-rail-link" onclick="openIssTracker()"><span>ISS Tracker</span><span class="wl-rail-arrow" aria-hidden="true">&#8599;</span></button>
+          <button type="button" class="wl-rail-link" onclick="openFlightTracker()"><span>Flight Tracker</span><span class="wl-rail-arrow" aria-hidden="true">&#8599;</span></button>
+          <button type="button" class="wl-rail-link" onclick="openWeatherPage()"><span>Local Weather</span><span class="wl-rail-arrow" aria-hidden="true">&#8599;</span></button>
+          <button type="button" class="wl-rail-link" onclick="openNewsPage()"><span>Today's News</span><span class="wl-rail-arrow" aria-hidden="true">&#8599;</span></button>
+        </div>
+      </div>
+      <p class="wl-rail-note">WITHLOG &middot; Moments in motion.</p>
+    </aside>
 
     <!-- 国内ニュース＋海外の主要ニュース：報道機関の配信元へリンク -->
     <section id="newsPage" class="hidden" aria-label="日本・世界の最新ニュース" aria-hidden="true">
