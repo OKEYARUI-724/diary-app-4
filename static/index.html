@@ -4629,6 +4629,27 @@ html.withlog-dark #appView.withlog-weather-active #tabWeather {
   min-width:0; flex:1 1 auto; width:100%; min-height:42px; border-radius:999px !important;
   padding:9px 15px; color:#514368 !important; font-size:16px; }
 #weatherPage .wx-city-form button { flex:0 0 auto; }
+
+#weatherPage .wx-city-suggestions { margin-top:9px; padding:5px; border:1px solid #e6dcf2;
+  border-radius:19px; background:#fffdfb; max-height:300px; overflow-y:auto; }
+#weatherPage .wx-city-suggestions[hidden] { display:none !important; }
+#weatherPage .wx-city-option { display:flex; align-items:center; gap:10px; width:100%;
+  min-height:53px; padding:10px 12px; text-align:left; background:transparent !important;
+  border:0 !important; border-radius:13px !important; color:#514368 !important; cursor:pointer; }
+#weatherPage .wx-city-option:hover, #weatherPage .wx-city-option:focus-visible { background:#f4eefb !important; outline:none; }
+#weatherPage .wx-city-option-pin { flex:none; color:#8972af; }
+#weatherPage .wx-city-option-info { min-width:0; flex:1; }
+#weatherPage .wx-city-option-name { display:block; font-size:12px; font-weight:850; }
+#weatherPage .wx-city-option-detail { display:block; margin-top:3px; font-size:10px; color:#8b8098; }
+#weatherPage .wx-city-option-arrow { flex:none; color:#a596b8; }
+#weatherPage .wx-city-message { padding:12px 13px; font-size:11px; color:#82748f; line-height:1.5; }
+html.withlog-dark #weatherPage .wx-city-suggestions { background:#34313c; border-color:#5a5266; }
+html.withlog-dark #weatherPage .wx-city-option { color:#f3eaf8 !important; }
+html.withlog-dark #weatherPage .wx-city-option:hover,
+html.withlog-dark #weatherPage .wx-city-option:focus-visible { background:#484052 !important; }
+html.withlog-dark #weatherPage .wx-city-option-detail,
+html.withlog-dark #weatherPage .wx-city-message { color:#c4b6d0; }
+
 #weatherPage .wx-footnote { margin:13px 5px 0; line-height:1.8; color:#8a7c94; font-size:10px; }
 #weatherPage .wx-footnote a { text-decoration:underline; text-underline-offset:2px; color:#775eaa; }
 @media (min-width:641px) {
@@ -5745,6 +5766,7 @@ html.withlog-dark #flightsPage .leaflet-tile {filter:brightness(.74) saturate(.7
           <input id="wxCityInput" type="search" maxlength="60" placeholder="例：東京、札幌、ソウル" autocomplete="off" aria-label="天気を調べる都市名">
           <button class="wx-btn" type="submit" id="wxCitySearchBtn">検索</button>
         </form>
+        <div id="wxCitySuggestions" class="wx-city-suggestions" role="listbox" aria-label="地名の検索候補" aria-live="polite" hidden></div>
       </section>
       <p class="wx-footnote">データ提供：<a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>。住所の推定：<a href="https://www.bigdatacloud.com/" target="_blank" rel="noopener noreferrer">BigDataCloud</a>。表示される住所は現在地の座標から推定した地域名です（番地などは表示できない場合があります）。現在地を取得すると、天気・住所照会サービスへ座標が送信されます。WITHLOGには保存しません。</p>
     </section>
@@ -11821,6 +11843,11 @@ document.addEventListener("DOMContentLoaded", function () {
   let lastFetched = 0;
   let lastLocationRequest = 0;
   let previousWeatherFeed = 'all';
+  let cityController = null;
+  let cityDebounce = null;
+  let citySequence = 0;
+  let cityOptions = [];
+  let cityActiveIndex = -1;
 
   const val = (number, digits = 0) => {
     const n = Number(number);
@@ -11917,7 +11944,37 @@ document.addEventListener("DOMContentLoaded", function () {
     el('wxStatus').textContent = message;
     el('wxStatus').classList.toggle('is-error', error);
   }
+  function closeCitySuggestions() {
+    const list = el('wxCitySuggestions');
+    list.hidden = true;
+    list.replaceChildren();
+    cityOptions = [];
+    cityActiveIndex = -1;
+    el('wxCityInput').setAttribute('aria-expanded','false');
+    el('wxCityInput').removeAttribute('aria-activedescendant');
+  }
+  function cancelCitySearch() {
+    ++citySequence;
+    if (cityDebounce) window.clearTimeout(cityDebounce);
+    cityDebounce = null;
+    if (cityController) cityController.abort();
+    cityController = null;
+  }
+  function cityMessage(message) {
+    const list = el('wxCitySuggestions');
+    list.replaceChildren();
+    const item = document.createElement('p');
+    item.className = 'wx-city-message';
+    item.textContent = message;
+    list.append(item);
+    list.hidden = false;
+    el('wxCityInput').setAttribute('aria-expanded','true');
+    cityOptions = [];
+    cityActiveIndex = -1;
+  }
   function stop() {
+    cancelCitySearch();
+    closeCitySuggestions();
     ++generation;
     if (abortController) abortController.abort();
     abortController = null;
@@ -12040,36 +12097,105 @@ document.addEventListener("DOMContentLoaded", function () {
       setStatus(message,true);
     }, {enableHighAccuracy:false,timeout:13000,maximumAge:5*60*1000});
   }
-  async function searchCity(event) {
-    event.preventDefault();
-    const query = el('wxCityInput').value.trim();
-    if (query.length < 2 || query.length > 60) {
-      setStatus('都市名を2～60文字で入力してください。', true); return;
-    }
-    const gen = ++generation;
-    if (abortController) abortController.abort();
-    const controller = new AbortController();
-    abortController = controller;
+  function chooseCity(place) {
+    if (!place || !isOpen()) return;
+    cancelCitySearch();
+    closeCitySuggestions();
+    el('wxCityInput').value = place.name;
     el('wxLocateBtn').disabled = false;
-    el('wxCitySearchBtn').disabled = true;
-    setStatus(`「${query}」を検索中…`);
-    const timeout = window.setTimeout(() => controller.abort(), 12000);
+    const parts = [place.name, place.admin2, place.admin1, place.country].filter(Boolean);
+    const unique = [...new Set(parts)];
+    usePlace({lat:place.latitude,lon:place.longitude,label:`📍 ${unique.join('・')}`,source:'city'});
+  }
+  function renderCitySuggestions(results) {
+    cityOptions = results.filter(place => Number.isFinite(Number(place.latitude)) && Number.isFinite(Number(place.longitude)))
+      .slice(0,5).map(place => ({...place,latitude:Number(place.latitude),longitude:Number(place.longitude)}));
+    cityActiveIndex = -1;
+    if (!cityOptions.length) {
+      cityMessage('該当する地名が見つかりません。別の名前で検索してください。');
+      return;
+    }
+    const list = el('wxCitySuggestions');
+    list.replaceChildren();
+    cityOptions.forEach((place,index) => {
+      const option = document.createElement('button');
+      option.type='button';
+      option.className='wx-city-option';
+      option.id=`wxCitySuggestion${index}`;
+      option.setAttribute('role','option');
+      option.setAttribute('aria-selected','false');
+      const pin=document.createElement('span');
+      pin.className='wx-city-option-pin'; pin.textContent='📍';
+      const info=document.createElement('span'); info.className='wx-city-option-info';
+      const name=document.createElement('strong');
+      name.className='wx-city-option-name'; name.textContent=place.name;
+      const detail=document.createElement('span');
+      detail.className='wx-city-option-detail';
+      detail.textContent=[place.admin2,place.admin1,place.country].filter(Boolean).filter((p,i,a)=>a.indexOf(p)===i).join(' ・ ');
+      const arrow=document.createElement('span');
+      arrow.className='wx-city-option-arrow'; arrow.textContent='›';
+      info.append(name,detail); option.append(pin,info,arrow);
+      option.addEventListener('click',()=>chooseCity(place));
+      list.append(option);
+    });
+    list.hidden=false;
+    el('wxCityInput').setAttribute('aria-expanded','true');
+  }
+  async function fetchCitySuggestions(query) {
+    if (!isOpen()) return;
+    cancelCitySearch();
+    if (query.length < 2 || query.length > 60) {
+      closeCitySuggestions();
+      return;
+    }
+    const seq = citySequence;
+    const controller = new AbortController();
+    cityController=controller;
+    cityMessage('地名を検索しています…');
+    const timeout=window.setTimeout(()=>controller.abort(),12000);
     try {
-      const params = new URLSearchParams({name:query,count:'5',language:'ja',format:'json'});
-      const response = await fetch(`${CITY_API}?${params}`, {signal:controller.signal});
-      if (!response.ok) throw new Error('検索エラー');
-      const json = await response.json();
-      if (!isOpen() || gen !== generation) return;
-      const found = (json.results || []).find(p => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
-      if (!found) { setStatus('該当する都市がありませんでした。別の名前で検索してください。',true); return; }
-      usePlace({lat: found.latitude, lon: found.longitude, label:`📍 ${found.name}${found.admin1 ? '・'+found.admin1 : ''}${found.country ? '（'+found.country+'）' : ''}`});
-    } catch (err) {
-      if (!isOpen() || gen !== generation) return;
-      setStatus('都市検索に失敗しました。通信を確認して再試行してください。',true);
+      const params=new URLSearchParams({name:query,count:'10',language:'ja',format:'json'});
+      const response=await fetch(`${CITY_API}?${params}`,{signal:controller.signal});
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data=await response.json();
+      if (seq!==citySequence || !isOpen() || el('wxCityInput').value.trim()!==query) return;
+      renderCitySuggestions(data.results || []);
+    } catch (error) {
+      if (seq!==citySequence || !isOpen()) return;
+      cityMessage(controller.signal.aborted
+        ? '検索がタイムアウトしました。もう一度お試しください。'
+        : '候補を取得できませんでした。通信を確認してもう一度お試しください。');
     } finally {
       window.clearTimeout(timeout);
-      if (abortController === controller) abortController = null;
-      el('wxCitySearchBtn').disabled = false;
+      if (cityController===controller) cityController=null;
+    }
+  }
+  function searchCity(event) {
+    event.preventDefault();
+    const query=el('wxCityInput').value.trim();
+    if (query.length<2 || query.length>60) {
+      cityMessage('地名を2～60文字で入力してください。');
+      return;
+    }
+    if (cityOptions.length && cityActiveIndex>=0) {
+      chooseCity(cityOptions[cityActiveIndex]);
+      return;
+    }
+    if (cityOptions.length) {
+      // 検索ボタンでは勝手に先頭を選ばず、候補から明示的に選択してもらう。
+      el('wxCitySuggestions').hidden=false;
+      return;
+    }
+    void fetchCitySuggestions(query);
+  }
+  function updateCitySelection(index) {
+    const items=el('wxCitySuggestions').querySelectorAll('.wx-city-option');
+    cityActiveIndex=index;
+    items.forEach((item,i)=>item.setAttribute('aria-selected',String(i===index)));
+    const active=items[index];
+    if (active) {
+      el('wxCityInput').setAttribute('aria-activedescendant',active.id);
+      active.scrollIntoView({block:'nearest'});
     }
   }
   window.openWeatherPage = () => {
@@ -12107,6 +12233,33 @@ document.addEventListener("DOMContentLoaded", function () {
   };
   el('wxLocateBtn').addEventListener('click',getLocation);
   el('wxCityForm').addEventListener('submit',searchCity);
+  const cityInput=el('wxCityInput');
+  cityInput.setAttribute('role','combobox');
+  cityInput.setAttribute('aria-autocomplete','list');
+  cityInput.setAttribute('aria-controls','wxCitySuggestions');
+  cityInput.setAttribute('aria-expanded','false');
+  cityInput.addEventListener('input',()=>{
+    cancelCitySearch();
+    closeCitySuggestions();
+    const query=cityInput.value.trim();
+    if (query.length>=2) cityDebounce=window.setTimeout(()=>void fetchCitySuggestions(query),320);
+  });
+  cityInput.addEventListener('keydown',event=>{
+    if (event.key==='Escape') {
+      cancelCitySearch();closeCitySuggestions();return;
+    }
+    if (!cityOptions.length || el('wxCitySuggestions').hidden) return;
+    if (event.key==='ArrowDown') {
+      event.preventDefault();updateCitySelection((cityActiveIndex+1)%cityOptions.length);
+    } else if (event.key==='ArrowUp') {
+      event.preventDefault();updateCitySelection((cityActiveIndex+cityOptions.length-1)%cityOptions.length);
+    }
+  });
+  document.addEventListener('pointerdown',event=>{
+    if (!el('wxCityForm').contains(event.target) && !el('wxCitySuggestions').contains(event.target)) {
+      cancelCitySearch();closeCitySuggestions();
+    }
+  });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden && abortController) abortController.abort();
     if (!document.hidden && isOpen() && currentPlace && Date.now()-lastFetched > 10*60*1000) usePlace(currentPlace);
