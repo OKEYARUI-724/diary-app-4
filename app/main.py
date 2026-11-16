@@ -3012,7 +3012,7 @@ def get_withlog_flights(region: str = Query("tokyo", max_length=20)):
             "center": {"latitude": area["latitude"], "longitude": area["longitude"]},
             "radius_nm": area["radius_nm"], "flights": [],
             "updated_at": None, "stale": True,
-            "warning": "航空機データ提供元に接続できません。Renderログの [Flight upstream HTTP] を確認してください。HTTP 429 は利用上限、401/403 はアクセス制限の可能性があります。",
+            "warning": "航空機の位置情報を取得できませんでした。しばらくしてから再度お試しください。",
             "provider": "ADSB.lol",
             "provider_errors": errors,
         }

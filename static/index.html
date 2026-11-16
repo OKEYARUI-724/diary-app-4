@@ -12746,11 +12746,11 @@ document.addEventListener("DOMContentLoaded", function () {
       if (data.stale && !data.updated_at) {
         const cached=flightSnapshots.get(area);
         if (cached) showFlights(cached.data,true);
-        status(data.warning || '航空機データを取得できません。再取得してください。',true);
+        status('航空機の位置情報を取得できませんでした。しばらくしてから再度お試しください。',true);
       } else {
         if (!data.stale) flightSnapshots.set(area,{data,receivedAt:Date.now()});
         showFlights(data);
-        if (data.warning) status(data.warning,true);
+        if (data.warning) status(data.stale ? '最新の航空機データを取得できませんでした。前回の位置情報を表示しています。' : '航空機データの更新が一時的に遅れています。',true);
       }
       latestAt=Date.now();
     } catch(error) {
