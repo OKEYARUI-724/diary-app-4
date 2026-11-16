@@ -11229,6 +11229,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const target = event.target.closest("button, a");
     if (!target) return;
 
+    // Leaflet map controls use "+" for zoom. Never redirect a map click
+    // to the post composer: the redirect applies to app add-post actions only.
+    if (target.closest('.leaflet-container, .leaflet-control, #flightsMap, #issMap, #pickerMap')) return;
+
     const text = (target.textContent || "")
       .replace(/\s+/g, "")
       .toUpperCase();
@@ -11238,7 +11242,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const title = (target.getAttribute("title") || "").toLowerCase();
 
     const isAddButton =
-      text === "+" ||
+      (text === "+" && target.id === "openModalBtn") ||
       text === "+ADD" ||
       text === "ADD" ||
       id === "addbtn" ||
