@@ -5755,7 +5755,7 @@ html.withlog-dark #flightsPage .flight-continent[aria-pressed="true"] { backgrou
         </div>
         <div id="flightsList" class="flights-rows" aria-live="off"><p class="flights-empty">データを読み込んでいます…</p></div>
       </section>
-      <p class="flights-source">データ提供：<a href="https://www.adsb.lol/docs/open-data/api/" target="_blank" rel="noopener noreferrer">ADSB.lol</a>（ODbL 1.0）。取得できる航空機は受信状況により異なり、機体識別や速度は遅延・欠損する場合があります。取得間隔は約90秒で、複数ユーザー間でキャッシュを共有します。運航・安全判断には使用しないでください。</p>
+      <p class="flights-source">データ提供：<a href="https://www.adsb.lol/docs/open-data/api/" target="_blank" rel="noopener noreferrer">ADSB.lol</a>（ODbL 1.0）。非商用バックアップ設定時：<a href="https://adsb.fi/" target="_blank" rel="noopener noreferrer">adsb.fi</a>。取得できる航空機は受信状況により異なり、位置・機体情報は遅延・欠損する場合があります。サーバー側の更新は最短約3分で、複数ユーザー間でキャッシュを共有します。運航・安全判断には使用しないでください。</p>
     </section>
 
     <!-- 現在地の天気：ブラウザー位置情報に同意した場合のみAPI呼び出し -->
@@ -12591,7 +12591,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let generation = 0;
   let previousFeed = 'all';
   let latestAt = 0;
-  const RELOAD_INTERVAL = 90000;
+  const RELOAD_INTERVAL = 180000;
   const number = value => Number(value).toLocaleString('ja-JP');
 
   function status(message, error = false) {
@@ -12727,7 +12727,8 @@ document.addEventListener("DOMContentLoaded", function () {
     if(fromCache || data.stale) {
       status('前回取得した航空機の位置を表示しています。最新の位置ではありません。',true);
     } else {
-      status(`${data.region_name || '周辺'}の航空機 ${flights.length} 機を表示中。約90秒ごとに更新します。`);
+      const source = data.provider === 'adsb.fi' ? 'adsb.fi' : 'ADSB.lol';
+      status(`${data.region_name || '周辺'}の航空機 ${flights.length} 機を表示中（${source}）。約3分ごとに更新します。`);
     }
   }
   async function loadFlights() {

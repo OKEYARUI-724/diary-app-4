@@ -2820,10 +2820,14 @@ _FLIGHT_REGIONS = {
     "melbourne": {"name": "メルボルン", "latitude": -37.669, "longitude": 144.841, "radius_nm": 120},
     "auckland": {"name": "オークランド", "latitude": -37.0082, "longitude": 174.785, "radius_nm": 120},
 }
-_FLIGHT_TTL = 90.0  # Prevent each browser/session from making an upstream call.
+_FLIGHT_TTL = 180.0  # 3-minute shared cache reduces IP-based provider quota usage.
 _FLIGHT_ERROR_TTL = 20.0
 _FLIGHT_STALE_MAX_AGE = 60 * 60
 _flight_provider_pause_until = 0.0
+_flight_backup_pause_until = 0.0
+_flight_provider_lock = threading.Lock()
+_flight_next_request_at = 0.0
+_flight_backup_next_request_at = 0.0
 _flight_cache = {}
 _flight_locks = {key: threading.Lock() for key in _FLIGHT_REGIONS}
 
@@ -2889,20 +2893,64 @@ def _flight_parse_aircraft(data, region):
     return flights[:250]
 
 
-def _flight_fetch(region):
-    """Read public ADS-B data. A 429 is not retried to respect provider limits."""
-    url = ("https://api.adsb.lol/v2/point/"
-           f"{region['latitude']}/{region['longitude']}/{region['radius_nm']}")
-    req = _flight_request.Request(url, headers={
-        "Accept": "application/json", "User-Agent": "WITHLOG-flight-tracker/1.0"
-    })
-    with _flight_request.urlopen(req, timeout=9) as response:
+def _flight_fetch(region, provider="ADSB.lol"):
+    """Fetch from a documented feed; a backup is strictly opt-in."""
+    if provider == "adsb.fi":
+        # adsb.fi is PERSONAL/NONCOMMERCIAL ONLY and requires attribution.
+        # Enable only after verifying that the deployment satisfies its terms.
+        url = ("https://opendata.adsb.fi/api/v3/lat/"
+               f"{region['latitude']}/lon/{region['longitude']}/dist/{region['radius_nm']}")
+    else:
+        url = ("https://api.adsb.lol/v2/point/"
+               f"{region['latitude']}/{region['longitude']}/{region['radius_nm']}")
+    headers = {"Accept": "application/json", "User-Agent": "WITHLOG-flight-tracker/1.1"}
+    if provider == "ADSB.lol":
+        key = os.getenv("ADSB_LOL_API_KEY", "").strip()
+        if key:
+            headers["x-api-key"] = key
+    req = _flight_request.Request(url, headers=headers)
+    with _flight_request.urlopen(req, timeout=11) as response:
         if response.status != 200:
             raise ValueError("Unexpected flight provider status")
         raw = response.read(4000001)
     if len(raw) > 4000000:
         raise ValueError("Flight response too large")
-    return _flight_parse_aircraft(json.loads(raw), region)
+    data = json.loads(raw)
+    if isinstance(data, dict) and "ac" not in data and isinstance(data.get("aircraft"), list):
+        data = {"ac": data["aircraft"]}
+    return _flight_parse_aircraft(data, region)
+
+
+def _flight_throttled_fetch(region, provider):
+    """Serialize upstream calls across ALL regions, not just within one city."""
+    global _flight_next_request_at, _flight_backup_next_request_at
+    with _flight_provider_lock:
+        now = time.monotonic()
+        next_at = (_flight_backup_next_request_at if provider == "adsb.fi"
+                   else _flight_next_request_at)
+        if now < next_at:
+            time.sleep(next_at - now)
+            now = time.monotonic()
+        if provider == "adsb.fi":
+            _flight_backup_next_request_at = now + 2.0
+        else:
+            _flight_next_request_at = now + 2.0
+    return _flight_fetch(region, provider)
+
+
+def _flight_http_pause(exc, provider):
+    global _flight_provider_pause_until, _flight_backup_pause_until
+    if exc.code not in (401, 403, 429):
+        return
+    retry = exc.headers.get("Retry-After", "")
+    try:
+        seconds = max(120, min(1800, int(retry)))
+    except (TypeError, ValueError):
+        seconds = 900 if exc.code in (401, 403) else 300
+    if provider == "adsb.fi":
+        _flight_backup_pause_until = max(_flight_backup_pause_until, time.monotonic() + seconds)
+    else:
+        _flight_provider_pause_until = max(_flight_provider_pause_until, time.monotonic() + seconds)
 
 
 @app.get("/api/flights")
@@ -2918,17 +2966,26 @@ def get_withlog_flights(region: str = Query("tokyo", max_length=20)):
         if entry and now < entry["expires"]:
             return dict(entry["payload"])
 
-        # Don't hammer an upstream that has explicitly rejected our requests.
-        can_fetch = now >= _flight_provider_pause_until
-        if can_fetch:
+        # Respect provider limits. An independent backup must be explicitly
+        # enabled only for PERSONAL, NONCOMMERCIAL deployments of WITHLOG.
+        providers = ["ADSB.lol"]
+        if os.getenv("WITHLOG_ADSBFI_NONCOMMERCIAL", "").strip() == "1":
+            providers.append("adsb.fi")
+        errors = []
+        for provider in providers:
+            pause_until = (_flight_backup_pause_until if provider == "adsb.fi"
+                           else _flight_provider_pause_until)
+            if time.monotonic() < pause_until:
+                errors.append(f"{provider}: paused")
+                continue
             try:
-                flights = _flight_fetch(area)
+                flights = _flight_throttled_fetch(area, provider)
                 payload = {
                     "region": region, "region_name": area["name"],
                     "center": {"latitude": area["latitude"], "longitude": area["longitude"]},
                     "radius_nm": area["radius_nm"], "flights": flights,
                     "updated_at": datetime.now(timezone.utc).isoformat(),
-                    "stale": False, "warning": None, "provider": "ADSB.lol",
+                    "stale": False, "warning": None, "provider": provider,
                 }
                 _flight_cache[region] = {
                     "payload": payload, "expires": time.monotonic() + _FLIGHT_TTL,
@@ -2936,17 +2993,12 @@ def get_withlog_flights(region: str = Query("tokyo", max_length=20)):
                 }
                 return payload
             except _flight_error.HTTPError as exc:
-                # 429 = rate limited; avoid making the limit worse for all regions.
-                if exc.code == 429:
-                    retry = exc.headers.get("Retry-After", "")
-                    try:
-                        delay = max(60, min(300, int(retry)))
-                    except (ValueError, TypeError):
-                        delay = 90
-                    _flight_provider_pause_until = max(_flight_provider_pause_until, time.monotonic() + delay)
-                print(f"[Flight upstream HTTP] status={exc.code} region={region}", flush=True)
+                _flight_http_pause(exc, provider)
+                errors.append(f"{provider}: HTTP {exc.code}")
+                print(f"[Flight upstream HTTP] provider={provider} status={exc.code} region={region}", flush=True)
             except Exception as exc:
-                print(f"[Flight unavailable] {type(exc).__name__} region={region}", flush=True)
+                errors.append(f"{provider}: {type(exc).__name__}")
+                print(f"[Flight unavailable] provider={provider} {type(exc).__name__} region={region}", flush=True)
 
         if entry and entry.get("success_at") is not None and now - entry["success_at"] <= _FLIGHT_STALE_MAX_AGE:
             payload = dict(entry["payload"])
@@ -2960,8 +3012,9 @@ def get_withlog_flights(region: str = Query("tokyo", max_length=20)):
             "center": {"latitude": area["latitude"], "longitude": area["longitude"]},
             "radius_nm": area["radius_nm"], "flights": [],
             "updated_at": None, "stale": True,
-            "warning": "航空機の位置情報サービスに一時的に接続できません。少し時間をおいて再取得してください。",
+            "warning": "航空機データ提供元に接続できません。Renderログの [Flight upstream HTTP] を確認してください。HTTP 429 は利用上限、401/403 はアクセス制限の可能性があります。",
             "provider": "ADSB.lol",
+            "provider_errors": errors,
         }
         # Don't treat a failure as a successful empty region.
         _flight_cache[region] = {"payload": payload, "expires": time.monotonic() + _FLIGHT_ERROR_TTL}
