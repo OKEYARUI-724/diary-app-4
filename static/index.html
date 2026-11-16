@@ -12141,6 +12141,43 @@ document.addEventListener("DOMContentLoaded", function () {
     list.hidden=false;
     el('wxCityInput').setAttribute('aria-expanded','true');
   }
+  // Open-Meteo uses exact matching for two-character Japanese names.
+  // Try common aliases, then full municipality/prefecture names when needed.
+  const cityAliases = {
+    '東京':['Tokyo','東京都'], '札幌':['Sapporo','札幌市'],
+    '大阪':['Osaka','大阪市'], '京都':['Kyoto','京都市'],
+    '千歳':['Chitose','千歳市'], '横浜':['Yokohama','横浜市'],
+    '名古屋':['Nagoya','名古屋市'], '福岡':['Fukuoka','福岡市'],
+    '仙台':['Sendai','仙台市'], '神戸':['Kobe','神戸市'],
+    '那覇':['Naha','那覇市'], '広島':['Hiroshima','広島市'],
+    '函館':['Hakodate','函館市'], '旭川':['Asahikawa','旭川市'],
+    '小樽':['Otaru','小樽市'], '恵庭':['Eniwa','恵庭市'],
+    '帯広':['Obihiro','帯広市'], '釧路':['Kushiro','釧路市'],
+    '北見':['Kitami','北見市'], '苫小牧':['Tomakomai','苫小牧市'],
+    '沖縄':['Okinawa','沖縄県'], '北海道':['Hokkaido'],
+    'ソウル':['Seoul','서울특별시'], '釜山':['Busan','부산광역시'],
+    'ニューヨーク':['New York'], 'ロンドン':['London'],
+    'パリ':['Paris'], '台北':['Taipei'], 'バンコク':['Bangkok']
+  };
+  function citySearchTerms(raw) {
+    const query = raw.trim().normalize('NFKC');
+    const terms = [query];
+    const known = cityAliases[query];
+    if (known) terms.push(...known);
+    // For Japanese place names, the indexed name may include a suffix such as 市/県.
+    if (/[\u3040-\u30ff\u3400-\u9fff]/u.test(query) &&
+        !/[都道府県市区町村]$/u.test(query)) {
+      terms.push(query+'市',query+'区',query+'町',query+'村',query+'県');
+    }
+    return [...new Set(terms)].slice(0,8);
+  }
+  async function requestCityMatches(term, signal) {
+    const params = new URLSearchParams({name:term,count:'10',language:'ja',format:'json'});
+    const response = await fetch(`${CITY_API}?${params}`,{signal,cache:'no-store'});
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    return Array.isArray(data.results) ? data.results : [];
+  }
   async function fetchCitySuggestions(query) {
     if (!isOpen()) return;
     cancelCitySearch();
@@ -12150,16 +12187,34 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     const seq = citySequence;
     const controller = new AbortController();
-    cityController=controller;
+    cityController = controller;
     cityMessage('地名を検索しています…');
-    const timeout=window.setTimeout(()=>controller.abort(),12000);
+    const timeout = window.setTimeout(()=>controller.abort(),16000);
     try {
-      const params=new URLSearchParams({name:query,count:'10',language:'ja',format:'json'});
-      const response=await fetch(`${CITY_API}?${params}`,{signal:controller.signal});
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data=await response.json();
+      const terms = citySearchTerms(query);
+      const found = [];
+      const seen = new Set();
+      const addMatches = matches => {
+        for (const place of matches) {
+          if (!Number.isFinite(Number(place.latitude)) || !Number.isFinite(Number(place.longitude))) continue;
+          const key = place.id != null ? `id:${place.id}` :
+            `${Number(place.latitude).toFixed(4)}:${Number(place.longitude).toFixed(4)}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          found.push(place);
+        }
+      };
+      // Search the exact text first; do not alter the user's intended location.
+      addMatches(await requestCityMatches(terms[0],controller.signal));
+      // Also check the known alias for more familiar locations (Tokyo, Sapporo, etc.).
+      // Stop at five when enough candidates are available.
+      for (let i=1; i<terms.length && found.length<5; i++) {
+        if (controller.signal.aborted) break;
+        try { addMatches(await requestCityMatches(terms[i],controller.signal)); }
+        catch (error) { if (controller.signal.aborted) throw error; }
+      }
       if (seq!==citySequence || !isOpen() || el('wxCityInput').value.trim()!==query) return;
-      renderCitySuggestions(data.results || []);
+      renderCitySuggestions(found);
     } catch (error) {
       if (seq!==citySequence || !isOpen()) return;
       cityMessage(controller.signal.aborted
