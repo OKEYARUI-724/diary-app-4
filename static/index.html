@@ -7065,6 +7065,9 @@ html body #appView #withlogFeedTabBar #tabMemoryMap:focus-visible {
       <button id="tabNews" type="button" onclick="openNewsPage()" aria-label="NEWS 最新ニュースを開く">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2" stroke-width="1.7"/><path d="M8 8h8M8 12h8M8 16h5" stroke-width="1.7" stroke-linecap="round"/></svg> NEWS
       </button>
+      <button id="tabMusicTrends" type="button" onclick="openMusicTrendsPage()" aria-label="MUSIC TRENDS 人気の音楽を開く">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="8.3"/><circle cx="12" cy="12" r="2.1"/><path d="M15 5.4 19.2 3v4.6" stroke-linecap="round" stroke-linejoin="round"/></svg> MUSIC
+      </button>
       <button id="tabTrends" type="button" onclick="openTrendsPage()" aria-label="LIVE TRENDS 急上昇トレンドを開く">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 17l6-6 4 4 8-9M16 6h5v5" stroke-linecap="round" stroke-linejoin="round"/></svg> TRENDS
       </button>
@@ -7153,6 +7156,24 @@ html body #appView #withlogFeedTabBar #tabMemoryMap:focus-visible {
     </section>
 
     <!-- LIVE TRENDS: public Google Trends RSS by selected country. -->
+
+    <!-- MUSIC TRENDS — official country-specific public chart metadata -->
+    <section id="musicTrendsPage" class="hidden" aria-label="MUSIC TRENDS 人気の音楽" aria-hidden="true">
+      <header class="mt-hero">
+        <div class="mt-kicker">WITHLOG / SOUND DISCOVERY <span class="mt-tag">TOP 50</span></div>
+        <h2>MUSIC <span>TRENDS</span></h2>
+        <p>今、人気の音楽をチェック。お気に入りの一曲を、あなたの思い出に。</p>
+        <div class="mt-hero-bottom"><span id="mtUpdated">ランキングを取得します</span><button id="mtRefresh" type="button">↻ 更新</button></div>
+      </header>
+      <div class="mt-countries" role="group" aria-label="ランキング地域">
+        <button type="button" data-mt-region="JP" aria-pressed="true">日本</button>
+        <button type="button" data-mt-region="KR" aria-pressed="false">韓国</button>
+        <button type="button" data-mt-region="US" aria-pressed="false">アメリカ</button>
+      </div>
+      <p id="mtStatus" class="mt-status" aria-live="polite">ランキングを読み込みます。</p>
+      <div id="mtTracks" class="mt-tracks" aria-label="人気楽曲一覧"></div>
+      <p class="mt-footnote">出典：Apple Musicの地域別「Most Played」チャート。順位はApple Music内の集計で、全サービスの総合順位ではありません。チャートの更新は配信元に依存します。楽曲を投稿に追加する場合は、投稿画面のYouTube検索結果から動画を選択してください。</p>
+    </section>
     <section id="trendsPage" class="hidden" aria-label="LIVE TRENDS 急上昇トピック" aria-hidden="true">
       <div class="trends-hero">
         <div class="trends-kicker"><span class="trends-pulse" aria-hidden="true"></span> WITHLOG / DISCOVER</div>
@@ -14849,6 +14870,133 @@ html body #appView #withlogFeedTabBar > #tabTrends::after{display:none!important
   }));
   $('trendsRefresh').addEventListener('click',()=>void load(true));
   document.addEventListener('visibilitychange',()=>{if(!document.hidden&&isOpen()&&Date.now()-fetchedAt>=600000)void load()});
+})();
+</script>
+
+<style id="withlog-music-trends-style">
+#appView.withlog-music-trends-active > main,#appView.withlog-music-trends-active > #storiesSection{display:none!important}
+#appView #tabMusicTrends{display:flex;align-items:center;gap:11px}
+#appView #tabMusicTrends svg{width:18px;height:18px;min-width:18px;flex:0 0 18px}
+html body #appView #withlogFeedTabBar > #tabMusicTrends{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:11px!important;min-height:46px!important;width:auto;min-width:0;box-sizing:border-box!important;padding:12px 14px!important;text-align:left!important;font-size:12px!important;font-weight:800!important;letter-spacing:.015em!important;white-space:nowrap!important;background:transparent!important;color:var(--wl-muted)!important;border:1px solid transparent!important;border-radius:16px!important;opacity:1!important}
+html body #appView.withlog-music-trends-active #withlogFeedTabBar > #tabMusicTrends{background:linear-gradient(115deg,rgba(236,128,51,.28),rgba(236,128,51,.13))!important;border-color:rgba(220,125,62,.45)!important;color:var(--wl-ink)!important}
+html body #appView #withlogFeedTabBar > #tabMusicTrends::after{display:none!important;content:none!important}
+#musicTrendsPage{min-width:0;width:100%;padding:0 0 90px;color:var(--wl-ink)}
+#musicTrendsPage.hidden{display:none!important}
+#musicTrendsPage .mt-hero{background:radial-gradient(ellipse at 90% 13%,rgba(255,137,42,.32),transparent 55%),linear-gradient(135deg,#191112,#42261e)!important;border:1px solid rgba(240,150,83,.3)!important;border-radius:var(--wl-radius,28px)!important;padding:clamp(22px,4vw,39px);overflow:hidden;color:#fff0e5!important}
+#musicTrendsPage .mt-kicker{color:#f7b880;font-size:10px;font-weight:900;letter-spacing:.15em;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#musicTrendsPage .mt-tag{border:1px solid rgba(255,169,100,.4);padding:5px 9px;border-radius:99px;letter-spacing:.08em}
+#musicTrendsPage .mt-hero h2{font-size:clamp(32px,5vw,53px);font-weight:900;letter-spacing:-.055em;line-height:1.15;margin:19px 0 10px;color:#fff0e5!important}
+#musicTrendsPage .mt-hero h2 span{color:#ff9d51}
+#musicTrendsPage .mt-hero p{font-size:12px;line-height:1.8;color:#ead0bd!important}
+#musicTrendsPage .mt-hero-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:20px;font-size:11px;color:#dcb8a4}
+#musicTrendsPage #mtRefresh{border-radius:999px!important;border:1px solid rgba(255,177,116,.3)!important;background:rgba(255,154,72,.17)!important;color:#fff!important;padding:9px 16px;font-weight:800}
+#musicTrendsPage #mtRefresh:disabled{opacity:.5}
+#musicTrendsPage .mt-countries{display:flex;gap:9px;flex-wrap:wrap;margin:19px 0 12px}
+#musicTrendsPage .mt-countries button{border:1px solid var(--wl-border)!important;background:var(--wl-surface)!important;color:var(--wl-ink)!important;padding:10px 17px!important;border-radius:999px!important;font-size:12px;font-weight:800}
+#musicTrendsPage .mt-countries button[aria-pressed="true"]{color:white!important;border-color:transparent!important;background:linear-gradient(115deg,#f48d36,#d15c22)!important}
+#musicTrendsPage .mt-status{min-height:20px;margin:10px 2px;color:var(--wl-muted);font-size:11px}
+#musicTrendsPage .mt-tracks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#musicTrendsPage .mt-track{display:flex;align-items:center;gap:12px;min-width:0;border:1px solid var(--wl-border);border-radius:20px;padding:12px;background:var(--wl-surface);color:var(--wl-ink)}
+#musicTrendsPage .mt-rank{font-weight:900;color:var(--wl-accent);font-size:15px;min-width:27px;text-align:center;font-variant-numeric:tabular-nums}
+#musicTrendsPage .mt-art{width:66px;height:66px;flex:0 0 66px;object-fit:cover;border-radius:14px;background:var(--wl-chip)}
+#musicTrendsPage .mt-track-body{min-width:0;flex:1;display:flex;flex-direction:column;gap:4px}
+#musicTrendsPage .mt-name{font-size:13px;font-weight:850;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+#musicTrendsPage .mt-artist{font-size:11px;color:var(--wl-muted);white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+#musicTrendsPage .mt-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:5px}
+#musicTrendsPage .mt-actions button,#musicTrendsPage .mt-actions a{min-height:30px;padding:7px 10px;font-size:10px;font-weight:800;border-radius:99px!important;text-decoration:none;white-space:nowrap}
+#musicTrendsPage .mt-actions button{background:linear-gradient(120deg,#f48d36,#cb5e23)!important;color:#fff!important;border:none!important}
+#musicTrendsPage .mt-actions a{background:var(--wl-chip)!important;color:var(--wl-ink)!important;border:1px solid var(--wl-border)!important}
+#musicTrendsPage .mt-empty{grid-column:1/-1;padding:28px;color:var(--wl-muted);border-radius:20px;background:var(--wl-surface);text-align:center;font-size:12px}
+#musicTrendsPage .mt-footnote{margin:19px 2px;color:var(--wl-muted);font-size:10px;line-height:1.85}
+@media(min-width:900px){#appView.withlog-music-trends-active > #musicTrendsPage{grid-column:2!important;grid-row:2/span 2!important}}
+@media(min-width:1280px){#appView.withlog-music-trends-active > #musicTrendsPage{grid-column:2/4!important}#appView.withlog-music-trends-active > #withlogDesktopRail{display:none!important}}
+@media(min-width:641px) and (max-width:899px){#appView > #musicTrendsPage{width:100%!important}}
+@media(max-width:640px){html body #appView #withlogFeedTabBar > #tabMusicTrends{min-height:38px!important;padding:9px 12px!important;border-radius:999px!important;font-size:10px!important}#appView #tabMusicTrends svg{width:15px;height:15px;min-width:15px;flex-basis:15px}#musicTrendsPage{padding:8px 10px calc(105px + env(safe-area-inset-bottom))}#musicTrendsPage .mt-tracks{grid-template-columns:1fr}#musicTrendsPage .mt-track{padding:10px;gap:9px}#musicTrendsPage .mt-art{width:56px;height:56px;flex-basis:56px}#musicTrendsPage .mt-actions button,#musicTrendsPage .mt-actions a{font-size:10px}}
+</style>
+
+<script id="withlog-music-trends-script">
+(() => {
+ 'use strict';
+ const app=document.getElementById('appView'),page=document.getElementById('musicTrendsPage'),tab=document.getElementById('tabMusicTrends');
+ if(!app||!page||!tab)return;
+ const $=id=>document.getElementById(id);
+ const countries=new Set(['JP','KR','US']);
+ let region='JP',lastFetch=0,items=[],controller=null,requestId=0,timer=null,previousFeed='all';
+ const isOpen=()=>!page.classList.contains('hidden')&&app.classList.contains('withlog-music-trends-active');
+ const node=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e};
+ const safeAppleUrl=url=>typeof url==='string'&&/^https:\/\/(music\.apple\.com|itunes\.apple\.com)\//i.test(url)?url:null;
+ const safeArt=url=>typeof url==='string'&&/^https:\/\/[^/]*(mzstatic\.com|apple\.com)\//i.test(url)?url:null;
+ const stamp=t=>{if(!t)return '';const d=new Date(t);return Number.isNaN(+d)?'':d.toLocaleString('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});};
+ function render(){
+   const root=$('mtTracks');root.replaceChildren();
+   if(!items.length){root.append(node('p','mt-empty','現在、ランキングを取得できません。時間をおいて更新してください。'));return;}
+   for(const track of items){
+     const row=node('article','mt-track');
+     row.append(node('span','mt-rank',String(track.rank||'—').padStart(2,'0')));
+     const art=node('img','mt-art');art.alt='';art.loading='lazy';art.referrerPolicy='no-referrer';
+     const cover=safeArt(track.artwork_url);if(cover)art.src=cover;
+     row.append(art);
+     const body=node('div','mt-track-body');body.append(node('div','mt-name',track.title||''));body.append(node('div','mt-artist',track.artist||''));
+     const actions=node('div','mt-actions');
+     const choose=node('button','','投稿で使う');choose.type='button';choose.addEventListener('click',()=>{
+       const q=[track.title,track.artist].filter(Boolean).join(' ');
+       window.location.assign('/static/add.html?music='+encodeURIComponent(q));
+     });actions.append(choose);
+     const url=safeAppleUrl(track.apple_music_url);
+     if(url){const a=node('a','','Apple Music');a.href=url;a.rel='noopener noreferrer';a.target='_blank';actions.append(a);}
+     body.append(actions);row.append(body);root.append(row);
+   }
+ }
+ async function load(force=false){
+   if(!isOpen())return;
+   if(!force&&items.length&&Date.now()-lastFetch<1800000){render();return;}
+   controller?.abort();controller=new AbortController();const ctrl=controller,id=++requestId,requestedRegion=region;
+   $('mtStatus').textContent='音楽ランキングを取得中…';$('mtRefresh').disabled=true;
+   const timeout=setTimeout(()=>ctrl.abort(),17000);
+   try{
+     const response=await fetch('/api/music/trending?region='+encodeURIComponent(requestedRegion),{signal:ctrl.signal,cache:'no-store'});
+     if(!response.ok)throw new Error('Ranking API error');
+     const data=await response.json();
+     if(id!==requestId||!isOpen()||region!==requestedRegion)return;
+     items=Array.isArray(data.items)?data.items.filter(t=>t&&typeof t.title==='string'&&typeof t.artist==='string').slice(0,50):[];
+     lastFetch=items.length?Date.now():0;render();
+     $('mtUpdated').textContent=data.updated_at?'取得：'+stamp(data.updated_at)+'（日本時間）':'ランキング取得待ち';
+     $('mtStatus').textContent=!items.length?'ランキングを取得できませんでした。しばらくしてからお試しください。':data.stale?'前回取得したランキングを表示しています。':'Apple Musicの地域別人気曲を表示しています。';
+   }catch(err){
+     if(id!==requestId||!isOpen())return;
+     $('mtStatus').textContent='音楽ランキングを取得できませんでした。しばらくしてから更新してください。';
+     if(!items.length)render();
+   }finally{clearTimeout(timeout);if(ctrl===controller){controller=null;$('mtRefresh').disabled=false;}}
+ }
+ function close(){
+   if(!isOpen())return;
+   ++requestId;controller?.abort();controller=null;clearInterval(timer);timer=null;
+   app.classList.remove('withlog-music-trends-active');page.classList.add('hidden');page.setAttribute('aria-hidden','true');tab.removeAttribute('aria-current');
+   const other=['withlog-news-active','withlog-iss-active','withlog-weather-active','withlog-flights-active','withlog-memory-map-active','withlog-trends-active'];
+   if(!other.some(c=>app.classList.contains(c)))$(previousFeed==='following'?'tabFollowing':'tabAll')?.classList.add('border-b-2');
+ }
+ window.closeMusicTrendsPage=close;
+ window.openMusicTrendsPage=()=>{
+   if(app.classList.contains('hidden')||isOpen())return;
+   previousFeed=$('tabFollowing').classList.contains('border-b-2')?'following':'all';
+   for(const fn of ['closeMemoryMap','closeIssTracker','closeWeatherPage','closeFlightTracker','closeNewsPage','closeTrendsPage'])window[fn]?.();
+   page.classList.remove('hidden');page.setAttribute('aria-hidden','false');app.classList.add('withlog-music-trends-active');tab.setAttribute('aria-current','page');
+   $('tabAll').classList.remove('border-b-2');$('tabFollowing').classList.remove('border-b-2');
+   timer=setInterval(()=>{if(isOpen()&&!document.hidden&&Date.now()-lastFetch>=1800000)void load();},60000);
+   void load();
+ };
+ for(const name of ['switchFeedTab','openMemoryMap','openIssTracker','openWeatherPage','openFlightTracker','openNewsPage','openTrendsPage']){
+   const fn=window[name];if(typeof fn!=='function')continue;
+   window[name]=function(...args){close();return fn.apply(this,args)};
+ }
+ page.querySelectorAll('[data-mt-region]').forEach(btn=>btn.addEventListener('click',()=>{
+   const value=btn.dataset.mtRegion;if(!countries.has(value)||value===region)return;
+   ++requestId;controller?.abort();controller=null;region=value;items=[];lastFetch=0;
+   page.querySelectorAll('[data-mt-region]').forEach(b=>b.setAttribute('aria-pressed',String(b===btn)));
+   render();void load(true);
+ }));
+ $('mtRefresh').addEventListener('click',()=>void load(true));
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&isOpen()&&Date.now()-lastFetch>=1800000)void load();});
 })();
 </script>
 

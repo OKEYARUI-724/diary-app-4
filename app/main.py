@@ -3106,3 +3106,87 @@ def get_live_trends(region: str = "JP"):
             ttl = 90
         _trends_cache[region] = {"payload": payload, "expires": time.monotonic() + ttl}
         return payload
+
+
+# --- WITHLOG MUSIC TRENDS: public Apple Music Marketing Tools charts. ---
+# Country-specific Apple Music rankings, not a global/all-platform ranking.
+# Cache upstream responses to avoid excessive requests and preserve last good data.
+_MUSIC_CHART_REGIONS = {"JP": "日本", "KR": "韓国", "US": "アメリカ"}
+_music_chart_lock = threading.Lock()
+_music_chart_cache = {}
+
+
+def _fetch_music_chart(region: str):
+    country = region.lower()
+    url = f"https://rss.marketingtools.apple.com/api/v2/{country}/music/most-played/50/songs.json"
+    req = _news_urlrequest.Request(url, headers={
+        "User-Agent": "Mozilla/5.0 (compatible; WITHLOG/1.0; music chart reader)",
+        "Accept": "application/json",
+    })
+    with _news_urlrequest.urlopen(req, timeout=12) as response:
+        body = response.read(1200001)
+    if len(body) > 1200000:
+        raise ValueError("Music chart exceeds size limit")
+    source = json.loads(body.decode("utf-8"))
+    tracks = (source.get("feed") or {}).get("results") or []
+    items = []
+    for entry in tracks[:50]:
+        title = str(entry.get("name") or "").strip()[:180]
+        artist = str(entry.get("artistName") or "").strip()[:180]
+        if not title or not artist:
+            continue
+        link = str(entry.get("url") or "").strip()
+        artwork = str(entry.get("artworkUrl100") or "").strip()
+        # Only expose HTTPS Apple-owned destinations and image CDN URLs.
+        if not (link.startswith("https://music.apple.com/") or link.startswith("https://itunes.apple.com/")):
+            link = ""
+        artwork_host = (_news_urlsplit(artwork).hostname or "").lower() if artwork.startswith("https://") else ""
+        if not (artwork_host == "mzstatic.com" or artwork_host.endswith(".mzstatic.com")
+                or artwork_host == "apple.com" or artwork_host.endswith(".apple.com")):
+            artwork = ""
+        items.append({
+            "rank": len(items) + 1,
+            "title": title,
+            "artist": artist,
+            "artwork_url": artwork,
+            "apple_music_url": link,
+            "album": str(entry.get("collectionName") or "").strip()[:180],
+            "release_date": str(entry.get("releaseDate") or "")[:20],
+        })
+    return items
+
+
+@app.get("/api/music/trending")
+def get_music_trending(region: str = "JP"):
+    region = (region or "JP").upper().strip()
+    if region not in _MUSIC_CHART_REGIONS:
+        raise HTTPException(status_code=400, detail="地域を選択してください。")
+    now = time.monotonic()
+    with _music_chart_lock:
+        prior = _music_chart_cache.get(region)
+        if prior and now < prior["expires"]:
+            return prior["payload"]
+        try:
+            tracks = _fetch_music_chart(region)
+            if not tracks:
+                raise ValueError("Empty Apple Music chart")
+            payload = {
+                "region": region, "region_name": _MUSIC_CHART_REGIONS[region],
+                "items": tracks, "updated_at": datetime.now(timezone.utc).isoformat(),
+                "stale": False, "source": "Apple Music Marketing Tools RSS",
+            }
+            ttl = 1800
+        except Exception as exc:
+            print(f"[Music charts unavailable] {region}: {type(exc).__name__}", flush=True)
+            if prior and prior["payload"].get("items"):
+                payload = dict(prior["payload"])
+                payload["stale"] = True
+            else:
+                payload = {
+                    "region": region, "region_name": _MUSIC_CHART_REGIONS[region],
+                    "items": [], "updated_at": None, "stale": True,
+                    "source": "Apple Music Marketing Tools RSS",
+                }
+            ttl = 120
+        _music_chart_cache[region] = {"payload": payload, "expires": time.monotonic() + ttl}
+        return payload

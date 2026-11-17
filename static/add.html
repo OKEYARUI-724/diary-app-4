@@ -2134,5 +2134,22 @@ function escapeHtml(value) {
 // Demo feed disabled. Real posts are shown on the WITHLOG home page.
 
 </script>
+
+<script id="withlog-music-trends-post-prefill">
+(() => {
+  const params=new URLSearchParams(window.location.search);
+  const query=(params.get('music')||'').trim().slice(0,180);
+  if(!query)return;
+  // The user still chooses a matching YouTube result; no media auto-selection.
+  const input=document.getElementById('musicQuery');
+  const button=document.getElementById('searchMusic');
+  if(!input||!button)return;
+  input.value=query;
+  window.setTimeout(()=>button.click(),100);
+  params.delete('music');
+  const rest=params.toString();
+  window.history.replaceState(null,'',window.location.pathname+(rest?'?'+rest:'')+window.location.hash);
+})();
+</script>
 </body>
 </html>
