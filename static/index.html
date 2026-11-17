@@ -6914,7 +6914,16 @@ html body #appView #withlogFeedTabBar #tabMemoryMap:focus-visible {
   outline:2px solid #ff993a!important;outline-offset:3px!important;
 }
 @media(min-width:900px){
-  html body #appView #withlogFeedTabBar #tabMemoryMap {color:#f0d5c6!important;}
+  /* Align MEMORY MAP with the other Explore rows: full width, same left inset. */
+  html body #appView #withlogFeedTabBar #tabMemoryMap {
+    width:100%!important;
+    justify-content:flex-start!important;
+    padding:13px 14px!important;
+    font-size:12px!important;
+    box-sizing:border-box!important;
+    text-align:left!important;
+    color:#f0d5c6!important;
+  }
   html body #appView.withlog-memory-map-active #withlogFeedTabBar #tabMemoryMap,
   html body #appView #withlogFeedTabBar #tabMemoryMap[aria-current="page"] {
     background:linear-gradient(115deg,rgba(241,139,60,.40),rgba(185,75,34,.30))!important;
@@ -7043,7 +7052,7 @@ html body #appView #withlogFeedTabBar #tabMemoryMap:focus-visible {
     <div id="withlogFeedTabBar" class="px-4 flex items-center gap-4 text-xs font-bold tracking-wider border-b border-slate-200" aria-label="ページ切り替え">
       <button id="tabAll" onclick="switchFeedTab('all')" class="pb-2 text-slate-900 border-b-2 border-slate-900">ALL</button>
       <button id="tabFollowing" onclick="switchFeedTab('following')" class="pb-2 text-slate-400 hover:text-slate-700">FOLLOWING</button>
-      <button id="tabMemoryMap" type="button" onclick="openMemoryMap()" aria-label="思い出マップを開く"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20V6.5Z" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 4v13.5M15 6.5V20" stroke-width="1.6" stroke-linecap="round"/></svg> MEMORY MAP</button>
+      <button id="tabMemoryMap" type="button" onclick="openMemoryMap()" aria-label="思い出マップを開く"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20V6.5Z" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 4v13.5M15 6.5V20" stroke-width="1.6" stroke-linecap="round"/></svg>MEMORY MAP</button>
       <button id="tabISS" type="button" onclick="openIssTracker()" aria-label="ISS TRACKER ページを開く">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M8 10l6 6M5 14l5 5M14 5l5 5M10 3l11 11-7 7L3 10l7-7z" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg> ISS
       </button>
