@@ -6760,6 +6760,117 @@ html body .withlog-settings-link {background:var(--wl-chip)!important;}
 @media(min-width:1280px){#appView.withlog-memory-map-active > #memoryMapPage{grid-column:2 / 4!important}}
 @media(max-width:640px){#memoryMapPage{padding:8px 10px calc(110px + env(safe-area-inset-bottom))}#memoryMapPage .mm-hero{border-radius:25px;padding:21px}#memoryMapPage #memoryMapCanvas{height:56vh;min-height:360px}#memoryMapPage .mm-tools{gap:9px}#memoryMapPage .mm-filters{width:100%}#memoryMapPage .mm-filters button{flex:1}#memoryMapPage .mm-map-hint{font-size:10px}#appView #tabMemoryMap{font-size:10px!important}}
 </style>
+
+<style id="withlog-memory-map-contrast-fix-20261117">
+/* Scoped visual-only repairs: protect MEMORY MAP from global header, text and button themes. */
+html body #appView #memoryMapPage > header.mm-hero,
+html.withlog-dark body #appView #memoryMapPage > header.mm-hero {
+  background:radial-gradient(ellipse 70% 100% at 100% 0%,rgba(243,116,37,.23),transparent 75%),linear-gradient(135deg,#171417 0%,#281c1d 53%,#493027 100%)!important;
+  color:#fff4e9!important;
+  border:1px solid rgba(255,169,107,.26)!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  opacity:1!important;
+}
+html body #appView #memoryMapPage .mm-hero h2,
+html.withlog-dark body #appView #memoryMapPage .mm-hero h2 {
+  color:#fff6ed!important;
+  opacity:1!important;
+  text-shadow:none!important;
+}
+html body #appView #memoryMapPage .mm-hero h2 span {color:#ff9c46!important;}
+html body #appView #memoryMapPage .mm-hero .mm-kicker {color:#ffbd8c!important;}
+html body #appView #memoryMapPage .mm-hero .mm-badge {
+  color:#ffd4ab!important;
+  background:rgba(244,132,54,.16)!important;
+  border:1px solid rgba(255,181,120,.21)!important;
+}
+html body #appView #memoryMapPage .mm-hero > p {color:#e4c6b6!important;opacity:1!important;}
+html body #appView #memoryMapPage .mm-summary > span {
+  background:rgba(255,255,255,.095)!important;
+  border:1px solid rgba(255,255,255,.13)!important;
+  color:#ffe0c9!important;
+  opacity:1!important;
+}
+html body #appView #memoryMapPage .mm-summary strong {color:#fffaf4!important;opacity:1!important;}
+html body #appView #memoryMapPage .mm-summary button {
+  background:rgba(255,167,95,.17)!important;
+  border:1px solid rgba(255,179,117,.28)!important;
+  color:#fff2e6!important;
+  font-weight:800!important;
+}
+html body #appView #memoryMapPage .mm-summary button:hover {background:rgba(255,156,72,.29)!important;}
+/* Search, filters and location list remain legible in light and dark modes. */
+html body #appView #memoryMapPage .mm-search-wrap {
+  background:rgba(38,27,25,.91)!important;
+  border:1px solid rgba(255,169,108,.32)!important;
+  color:#ffb56c!important;
+}
+html body #appView #memoryMapPage #mmSearch {background:transparent!important;color:#fff2e7!important;outline:none!important;}
+html body #appView #memoryMapPage #mmSearch::placeholder {color:#c6ada0!important;opacity:1!important;}
+html body #appView #memoryMapPage .mm-filters button {
+  background:rgba(61,40,31,.14)!important;
+  border:1px solid rgba(142,91,61,.32)!important;
+  color:#674338!important;
+}
+html.withlog-dark body #appView #memoryMapPage .mm-filters button {
+  background:rgba(255,159,80,.10)!important;
+  color:#f4c3a8!important;
+}
+html body #appView #memoryMapPage .mm-filters button[aria-pressed="true"],
+html.withlog-dark body #appView #memoryMapPage .mm-filters button[aria-pressed="true"] {
+  background:linear-gradient(120deg,#e88a39,#c95921)!important;
+  border-color:transparent!important;
+  color:#fff!important;
+}
+html body #appView #memoryMapPage .mm-status,
+html body #appView #memoryMapPage .mm-list-head span {color:var(--wl-muted,#806c62)!important;}
+html body #appView #memoryMapPage .mm-list-head h3 {color:var(--wl-ink,#34231e)!important;}
+/* Desktop explore rail: boost clarity and make active MEMORY MAP unmistakable. */
+@media (min-width:900px) {
+  html body #appView > #withlogFeedTabBar {
+    background:linear-gradient(160deg,rgba(44,29,27,.91),rgba(31,23,25,.86))!important;
+    border:1px solid rgba(255,172,102,.24)!important;
+    backdrop-filter:blur(24px) saturate(130%)!important;
+    -webkit-backdrop-filter:blur(24px) saturate(130%)!important;
+  }
+  html body #appView > #withlogFeedTabBar::before {color:#d9ab92!important;}
+  html body #appView #withlogFeedTabBar :is(#tabAll,#tabFollowing,#tabMemoryMap,#tabISS,#tabFlights,#tabWeather,#tabNews) {color:#f0d5c6!important;opacity:1!important;}
+  html body #appView #withlogFeedTabBar > button {color:#efd3c4!important;opacity:1!important;}
+  html body #appView #withlogFeedTabBar > button:hover {
+    background:rgba(255,153,73,.17)!important;color:#fff9f2!important;
+  }
+  html body #appView #withlogFeedTabBar > button[aria-current="page"],
+  html body #appView #withlogFeedTabBar > :is(#tabAll,#tabFollowing).border-b-2,
+  html body #appView.withlog-iss-active #withlogFeedTabBar #tabISS,
+  html body #appView.withlog-flights-active #withlogFeedTabBar #tabFlights,
+  html body #appView.withlog-weather-active #withlogFeedTabBar #tabWeather,
+  html body #appView.withlog-news-active #withlogFeedTabBar #tabNews {
+    background:linear-gradient(115deg,rgba(241,139,60,.40),rgba(185,75,34,.30))!important;
+    color:#fff8f0!important;
+    border:1px solid rgba(255,184,125,.45)!important;
+    outline:none!important;
+  }
+}
+@media(max-width:899px) {
+  html body #appView #withlogFeedTabBar #tabMemoryMap[aria-current="page"] {
+    background:linear-gradient(120deg,#e98d3a,#c85a20)!important;color:white!important;
+  }
+}
+@media(max-width:640px) {
+  html body #appView #memoryMapPage > header.mm-hero {padding:22px 19px!important;border-radius:25px!important;}
+  html body #appView #memoryMapPage .mm-hero h2 {font-size:clamp(27px,8vw,39px)!important;overflow-wrap:anywhere;}
+  html body #appView #memoryMapPage .mm-hero-top {gap:8px!important;}
+  html body #appView #memoryMapPage .mm-summary {gap:8px!important;}
+  html body #appView #memoryMapPage .mm-summary > span {padding:10px 12px!important;}
+  html body #appView #memoryMapPage .mm-summary strong {font-size:21px!important;}
+  html body #appView #memoryMapPage .mm-summary button {margin-left:0!important;}
+  html body #appView #memoryMapPage .mm-tools {align-items:stretch!important;}
+  html body #appView #memoryMapPage .mm-search-wrap {flex:1 1 100%!important;}
+  html body #appView #memoryMapPage .mm-filters {display:grid!important;grid-template-columns:1fr 1fr!important;}
+}
+</style>
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
