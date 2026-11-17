@@ -14439,5 +14439,14 @@ document.addEventListener("DOMContentLoaded", function () {
   }));
 })();
 </script>
+<!-- WITHLOG: remove decorative active-tab dots; keep selected backgrounds. -->
+<style id="withlog-explore-active-dot-removal">
+#appView #withlogFeedTabBar :is(#tabAll,#tabFollowing,#tabMemoryMap,#tabISS,#tabFlights,#tabWeather,#tabNews)::after {
+  content: none !important;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+</style>
 </body>
 </html>
