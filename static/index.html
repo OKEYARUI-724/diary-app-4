@@ -14448,5 +14448,234 @@ document.addEventListener("DOMContentLoaded", function () {
   height: 0 !important;
 }
 </style>
+
+
+<style id="withlog-unified-design-system-20261117">
+/* WITHLOG / Unified Design System 2026-11-17
+   Presentation only. Existing DOM IDs, application events and APIs are untouched.
+   This is the authoritative final theme layer for all major surfaces. */
+:root {
+  --wl-bg:#f5e8df;
+  --wl-paper:#fff8f2;
+  --wl-surface:rgba(255,250,245,.91);
+  --wl-glass:rgba(255,250,245,.40);
+  --wl-ink:#32231f;
+  --wl-muted:#7e665c;
+  --wl-border:rgba(100,61,44,.18);
+  --wl-chip:rgba(217,118,52,.12);
+  --wl-accent:#d5682b;
+  --wl-ember:#e97729;
+  --wl-ember-hot:#ffaa57;
+  --wl-mint:#d87938;
+  --wl-warm:#c87949;
+  --wl-hero:linear-gradient(135deg,#543027,#2c1c1d 60%,#161419);
+  --wl-radius:24px;
+  --wl-text-on-hero:#fff5ea;
+}
+html.withlog-dark {
+  --wl-bg:#0d0c0d;
+  --wl-paper:#171313;
+  --wl-surface:rgba(28,23,23,.94);
+  --wl-glass:rgba(30,24,23,.24);
+  --wl-ink:#fff5ee;
+  --wl-muted:#c5a99a;
+  --wl-border:rgba(255,174,113,.18);
+  --wl-chip:rgba(255,145,63,.14);
+  --wl-accent:#ff9b4a;
+  --wl-ember:#ff933c;
+  --wl-ember-hot:#ffc078;
+  --wl-mint:#ffac5a;
+  --wl-warm:#ffae62;
+  --wl-hero:linear-gradient(135deg,#4d2012,#211516 62%,#111013);
+}
+html body,html.withlog-dark body {
+  color:var(--wl-ink)!important;
+  background-color:var(--wl-bg)!important;
+  background-image:
+    var(--wl-grain),
+    radial-gradient(circle at 8% 3%,rgba(241,139,64,.18),transparent 34%),
+    radial-gradient(circle at 92% 30%,rgba(138,77,47,.12),transparent 33%),
+    linear-gradient(150deg,var(--wl-bg),var(--wl-bg))!important;
+  background-size:160px 160px,auto,auto,auto!important;
+  background-repeat:repeat,no-repeat,no-repeat,no-repeat!important;
+  background-attachment:fixed!important;
+}
+html.withlog-dark body {background-image:
+    var(--wl-grain),
+    radial-gradient(circle at 10% 5%,rgba(155,61,15,.28),transparent 36%),
+    radial-gradient(circle at 92% 40%,rgba(108,44,18,.19),transparent 31%),
+    linear-gradient(155deg,#100e10,#08090b)!important;
+  background-size:160px 160px,auto,auto,auto!important;
+  background-repeat:repeat,no-repeat,no-repeat,no-repeat!important;}
+/* Restrict noise to the existing decorative overlay. Never obscure real content. */
+html body #appView,html body #appView > * {min-width:0;}
+html body #appView > header {
+  background:var(--wl-glass)!important;
+  color:var(--wl-ink)!important;
+  border:1px solid var(--wl-border)!important;
+  backdrop-filter:blur(30px) saturate(130%)!important;
+  -webkit-backdrop-filter:blur(30px) saturate(130%)!important;
+}
+/* One navigation shape, one icon rhythm, one selected state across ALL routes. */
+html body #appView > #withlogFeedTabBar {
+  background:var(--wl-glass)!important;
+  border:1px solid var(--wl-border)!important;
+  backdrop-filter:blur(25px) saturate(125%)!important;
+  -webkit-backdrop-filter:blur(25px) saturate(125%)!important;
+}
+html body #appView #withlogFeedTabBar > :is(#tabAll,#tabFollowing,#tabMemoryMap,#tabISS,#tabFlights,#tabWeather,#tabNews) {
+  display:flex!important;align-items:center!important;justify-content:flex-start!important;
+  width:auto;min-width:0;box-sizing:border-box!important;
+  gap:11px!important;padding:12px 14px!important;min-height:46px!important;
+  font-size:12px!important;font-weight:800!important;letter-spacing:.015em!important;
+  white-space:nowrap!important;text-align:left!important;
+  background:transparent!important;color:var(--wl-muted)!important;
+  border:1px solid transparent!important;border-radius:16px!important;
+  opacity:1!important;outline-offset:2px;
+}
+html body #appView #withlogFeedTabBar > :is(#tabAll,#tabFollowing,#tabMemoryMap,#tabISS,#tabFlights,#tabWeather,#tabNews) svg {
+  width:18px!important;height:18px!important;min-width:18px!important;flex:0 0 18px!important;
+}
+html body #appView #withlogFeedTabBar :is(#tabAll,#tabFollowing)::before {
+  width:18px!important;height:18px!important;flex:0 0 18px!important;
+  font-size:19px!important;line-height:1!important;
+}
+html body #appView #withlogFeedTabBar > button:hover {background:var(--wl-chip)!important;color:var(--wl-ink)!important;}
+html body #appView #withlogFeedTabBar > :is(#tabAll,#tabFollowing).border-b-2,
+html body #appView.withlog-memory-map-active #withlogFeedTabBar #tabMemoryMap,
+html body #appView #withlogFeedTabBar #tabMemoryMap[aria-current="page"],
+html body #appView.withlog-iss-active #withlogFeedTabBar #tabISS,
+html body #appView.withlog-flights-active #withlogFeedTabBar #tabFlights,
+html body #appView.withlog-weather-active #withlogFeedTabBar #tabWeather,
+html body #appView.withlog-news-active #withlogFeedTabBar #tabNews {
+  background:linear-gradient(115deg,rgba(236,128,51,.28),rgba(236,128,51,.13))!important;
+  border:1px solid rgba(220,125,62,.45)!important;
+  color:var(--wl-ink)!important;
+}
+html body #appView #withlogFeedTabBar > :is(#tabAll,#tabFollowing,#tabMemoryMap,#tabISS,#tabFlights,#tabWeather,#tabNews)::after,
+html body #appView #withlogFeedTabBar > :is(#tabAll,#tabFollowing,#tabMemoryMap,#tabISS,#tabFlights,#tabWeather,#tabNews).border-b-2::after {content:none!important;display:none!important;}
+/* Dashboard surfaces: identical border/radius/typographic scale. */
+html body #appView #feed .tl-post-card:not(.with-daily-post),
+html body #appView #storiesSection .tl-filter-card,
+html body #appView #withlogDesktopRail .wl-rail-card,
+html body #appView :is(#flightsPage,#weatherPage,#newsPage,#issTrackerPage) :is(.wx-panel,.flight-panel,.news-panel,.iss-panel,.flights-panel),
+html body #appView #memoryMapPage .mm-card {
+  background:var(--wl-surface)!important;
+  border:1px solid var(--wl-border)!important;
+  border-radius:var(--wl-radius)!important;
+  color:var(--wl-ink)!important;
+  box-shadow:none!important;
+}
+html body #appView #feed .tl-post-card:not(.with-daily-post) > div:first-child,
+html body #appView #feed .tl-post-card:not(.with-daily-post) > div:last-child {
+  background:transparent!important;color:var(--wl-ink)!important;
+}
+html body #appView #withlogDesktopRail .wl-rail-feature,
+html body #appView :is(#flightsPage,#weatherPage,#newsPage) :is(.flights-hero,.wx-hero,.news-hero),
+html body #appView #memoryMapPage > header.mm-hero {
+  background:var(--wl-hero)!important;
+  color:var(--wl-text-on-hero)!important;
+  border:1px solid rgba(255,174,113,.22)!important;
+  border-radius:30px!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  isolation:isolate;
+}
+html body #appView #memoryMapPage .mm-hero h2,
+html body #appView #memoryMapPage .mm-hero h2 span,
+html body #appView #memoryMapPage .mm-summary strong {color:var(--wl-text-on-hero)!important;}
+html body #appView #memoryMapPage .mm-hero h2 span {color:#ff9d4f!important;}
+html body #appView #memoryMapPage .mm-hero > p,
+html body #appView #memoryMapPage .mm-summary > span {color:#f6d5c2!important;}
+html body #appView #memoryMapPage .mm-summary > span {
+  background:rgba(255,255,255,.10)!important;border:1px solid rgba(255,255,255,.15)!important;
+}
+html body #appView #memoryMapPage .mm-filters button:not([aria-pressed="true"]) {
+  background:var(--wl-surface)!important;color:var(--wl-ink)!important;
+  border:1px solid var(--wl-border)!important;
+}
+html body #appView #memoryMapPage .mm-search-wrap {
+  background:var(--wl-surface)!important;border:1px solid var(--wl-border)!important;
+  color:var(--wl-accent)!important;
+}
+html body #appView #memoryMapPage #mmSearch {
+  background:transparent!important;color:var(--wl-ink)!important;
+}
+html body #appView #memoryMapPage #mmSearch::placeholder {color:var(--wl-muted)!important;opacity:1!important;}
+html body #appView #memoryMapPage .mm-list-head h3 {color:var(--wl-ink)!important;}
+html body #appView #memoryMapPage .mm-card .mm-card-cta {color:var(--wl-accent)!important;}
+html body #appView #memoryMapPage .mm-card small {color:var(--wl-muted)!important;}
+/* One shared control treatment across all screens, excluding the special DM input. */
+html body #appView :is(#flightsPage,#weatherPage,#newsPage,#memoryMapPage) input:not([type="checkbox"]):not([type="radio"]),
+html body #appView :is(#flightsPage,#weatherPage,#newsPage,#memoryMapPage) select {
+  color:var(--wl-ink)!important;border-color:var(--wl-border)!important;
+}
+html body #appView :is(#flightsPage,#weatherPage,#newsPage,#memoryMapPage) button:focus-visible,
+html body #appView #withlogFeedTabBar button:focus-visible {
+  outline:2px solid var(--wl-ember)!important;outline-offset:3px!important;
+}
+/* Functional bar: glass body is noticeably more transparent than its icons. */
+html body #appView #withlogPrimaryActions,
+html.withlog-dark body #appView #withlogPrimaryActions {
+  background:rgba(71,39,26,.12)!important;
+  border:1px solid rgba(255,169,102,.25)!important;
+  backdrop-filter:blur(34px) saturate(135%)!important;
+  -webkit-backdrop-filter:blur(34px) saturate(135%)!important;
+}
+html.withlog-dark body #appView #withlogPrimaryActions {background:rgba(17,13,14,.18)!important;}
+html body #appView #withlogPrimaryActions :is(button[title],button.withlog-account-icon):not(#openModalBtn) {
+  color:var(--wl-ink)!important;background:var(--wl-surface)!important;
+  border:1px solid var(--wl-border)!important;
+}
+html body #appView #withlogPrimaryActions #openModalBtn {
+  color:#20100a!important;background:linear-gradient(135deg,#ffba63,#ef7b24)!important;
+  border:1px solid rgba(255,199,133,.52)!important;
+}
+html body #appView #withlogPrimaryActions #openModalBtn * {color:#20100a!important;}
+/* The message panels intentionally stay dark in both theme modes. */
+html body :is(#conversationsModal,#dmModal) > div {
+  background:linear-gradient(160deg,#1c1413,#100e10)!important;
+  border:1px solid rgba(255,165,99,.23)!important;
+  color:#fff2e8!important;
+}
+html body #conversationsList .withlog-social-person-name,
+html body #dmModal #dmPartnerTitle {color:#fff7f0!important;}
+html body #dmModal #dmMessageList .withlog-dm-bubble.is-me {background:linear-gradient(130deg,#ffad49,#ed7021)!important;color:#22110d!important;}
+html body #dmModal #dmMessageList .withlog-dm-bubble.is-other {background:#3c2926!important;color:#fff2ea!important;}
+html body #dmModal #dmMessageList .withlog-dm-bubble :is(span,strong,small) {color:inherit!important;}
+html body :is(#conversationsModal,#dmModal) .withlog-modal-close {border-radius:50%!important;}
+/* Keep Leaflet controls above map and below modal overlays. */
+html body #appView .leaflet-control-zoom a {background:#fff9f3!important;color:#34241e!important;border-color:rgba(68,43,34,.12)!important;}
+/* Responsive alignment, including MEMORY MAP which formerly had extra indent. */
+@media(min-width:900px){
+  html body #appView > #withlogFeedTabBar {border-radius:25px!important;padding:15px 12px!important;}
+  html body #appView #withlogFeedTabBar > :is(#tabAll,#tabFollowing,#tabMemoryMap,#tabISS,#tabFlights,#tabWeather,#tabNews) {
+    width:100%!important;justify-content:flex-start!important;padding:12px 14px!important;
+  }
+  html body #appView > #withlogFeedTabBar::before {color:var(--wl-muted)!important;}
+}
+@media(max-width:899px){
+  html body #appView #withlogFeedTabBar > :is(#tabAll,#tabFollowing,#tabMemoryMap,#tabISS,#tabFlights,#tabWeather,#tabNews) {
+    width:auto!important;justify-content:center!important;min-height:39px!important;
+    padding:9px 12px!important;border-radius:999px!important;font-size:10px!important;
+  }
+}
+@media(max-width:640px){
+  html body #appView > header {border-radius:0 0 18px 18px!important;}
+  html body #appView > #withlogFeedTabBar {border-radius:0!important;border-inline:0!important;padding:8px 12px!important;}
+  html body #appView #withlogPrimaryActions.withlog-mobile-bottom-nav {
+    background:rgba(39,24,21,.14)!important;border-radius:28px!important;
+    bottom:calc(11px + env(safe-area-inset-bottom))!important;
+  }
+  html.withlog-dark body #appView #withlogPrimaryActions.withlog-mobile-bottom-nav {background:rgba(16,12,13,.19)!important;}
+  html body #appView :is(#flightsPage,#weatherPage,#newsPage,#memoryMapPage) :is(.flights-hero,.wx-hero,.news-hero,.mm-hero) {border-radius:24px!important;}
+  html body #appView #memoryMapPage {padding-inline:10px!important;}
+  html body :is(#conversationsModal,#dmModal) > div {border:0!important;border-radius:0!important;}
+}
+/* Fixed-width content pages must include their own padding in the width. */
+html body #appView > #memoryMapPage {box-sizing:border-box!important;max-width:100%!important;min-width:0!important;}
+@media(max-width:640px){html body #appView > #memoryMapPage {width:100%!important;}}
+
+</style>
 </body>
 </html>
