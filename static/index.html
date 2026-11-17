@@ -4688,7 +4688,7 @@ html.withlog-dark #weatherPage .wx-footnote a { color:#cdb4ef; }
 
 <style id="withlog-news-page-styles">
 /* News uses the same tab palette as ALL / FOLLOWING / ISS / WEATHER. */
-#appView :is(#tabAll,#tabFollowing,#tabISS,#tabWeather,#tabNews) {
+#appView :is(#tabAll,#tabFollowing,#tabISS,#tabWeather,#tabNews,#tabTrends) {
   min-height: 38px !important; border: 0 !important; border-radius: 9999px !important;
   background: #f1ecf7 !important; color: #998da8 !important;
   font-size: 11px !important; font-weight: 750 !important;
@@ -4701,7 +4701,7 @@ html.withlog-dark #weatherPage .wx-footnote a { color:#cdb4ef; }
   background: linear-gradient(135deg,#8569d3,#cf7ea8) !important;
   color: #fff !important; font-weight: 800 !important;
 }
-html.withlog-dark #appView :is(#tabAll,#tabFollowing,#tabISS,#tabWeather,#tabNews) {
+html.withlog-dark #appView :is(#tabAll,#tabFollowing,#tabISS,#tabWeather,#tabNews,#tabTrends) {
   background: #303138 !important; color: #aaa5b3 !important;
 }
 html.withlog-dark #appView :is(#tabAll,#tabFollowing).border-b-2,
@@ -4712,7 +4712,7 @@ html.withlog-dark #appView.withlog-news-active #tabNews {
 }
 #appView #tabNews { display:inline-flex; align-items:center; gap:6px; padding:8px 15px !important; }
 #appView #tabNews svg { width:16px; height:16px; flex:0 0 auto; }
-#appView :is(#tabAll,#tabFollowing,#tabISS,#tabWeather,#tabNews):focus-visible {
+#appView :is(#tabAll,#tabFollowing,#tabISS,#tabWeather,#tabNews,#tabTrends):focus-visible {
   outline: 2px solid #8569d3 !important; outline-offset: 3px;
 }
 #appView.withlog-news-active > main,
@@ -5356,7 +5356,7 @@ html.withlog-dark #profileActionContainer .withlog-edit-profile-button {
 #flightsPage {flex:1 0 auto;min-width:0;padding:16px 14px 52px;color:#40354c}
 #appView #tabFlights {display:inline-flex;align-items:center;gap:6px;padding:8px 15px!important}
 #appView #tabFlights svg {width:16px;height:16px;flex:0 0 auto}
-#appView :is(#tabAll,#tabFollowing,#tabISS,#tabFlights,#tabWeather,#tabNews) {
+#appView :is(#tabAll,#tabFollowing,#tabISS,#tabFlights,#tabWeather,#tabNews,#tabTrends) {
  min-height:38px!important;border:0!important;border-radius:9999px!important;
  background:#f1ecf7!important;color:#998da8!important;font-size:11px!important;
  font-weight:750!important;white-space:nowrap;transition:transform .16s ease!important
@@ -5368,7 +5368,7 @@ html.withlog-dark #profileActionContainer .withlog-edit-profile-button {
 #appView.withlog-news-active #tabNews {
  background:linear-gradient(135deg,#8569d3,#cf7ea8)!important;color:#fff!important;font-weight:800!important
 }
-html.withlog-dark #appView :is(#tabAll,#tabFollowing,#tabISS,#tabFlights,#tabWeather,#tabNews) {
+html.withlog-dark #appView :is(#tabAll,#tabFollowing,#tabISS,#tabFlights,#tabWeather,#tabNews,#tabTrends) {
  background:#303138!important;color:#aaa5b3!important
 }
 html.withlog-dark #appView :is(#tabAll,#tabFollowing).border-b-2,
@@ -5378,8 +5378,8 @@ html.withlog-dark #appView.withlog-weather-active #tabWeather,
 html.withlog-dark #appView.withlog-news-active #tabNews {
  background:linear-gradient(135deg,#6655a5,#a05b80)!important;color:#fff!important
 }
-#appView.withlog-flights-active :is(#tabAll,#tabFollowing,#tabISS,#tabWeather,#tabNews) {background:#f1ecf7!important;color:#998da8!important}
-html.withlog-dark #appView.withlog-flights-active :is(#tabAll,#tabFollowing,#tabISS,#tabWeather,#tabNews) {background:#303138!important;color:#aaa5b3!important}
+#appView.withlog-flights-active :is(#tabAll,#tabFollowing,#tabISS,#tabWeather,#tabNews,#tabTrends) {background:#f1ecf7!important;color:#998da8!important}
+html.withlog-dark #appView.withlog-flights-active :is(#tabAll,#tabFollowing,#tabISS,#tabWeather,#tabNews,#tabTrends) {background:#303138!important;color:#aaa5b3!important}
 #appView #tabFlights:focus-visible {outline:2px solid #8569d3!important;outline-offset:3px}
 #flightsPage .flights-hero {position:relative;overflow:hidden;padding:24px 22px 20px;border-radius:30px;
  background:radial-gradient(circle at 93% 7%,rgba(255,255,255,.68),transparent 31%),linear-gradient(132deg,#e6e1fa 0%,#f4e6f2 52%,#fbe9dd 100%)}
@@ -5590,7 +5590,7 @@ html.withlog-dark body {
   backdrop-filter:blur(20px) saturate(130%)!important;
   box-shadow:none!important;
 }
-#appView #withlogFeedTabBar :is(#tabAll,#tabFollowing,#tabISS,#tabFlights,#tabWeather,#tabNews) {
+#appView #withlogFeedTabBar :is(#tabAll,#tabFollowing,#tabISS,#tabFlights,#tabWeather,#tabNews,#tabTrends) {
   display:inline-flex!important;align-items:center!important;justify-content:center!important;
   gap:10px!important;flex:0 0 auto;
   min-height:42px!important;
@@ -5603,7 +5603,7 @@ html.withlog-dark body {
   font-weight:850!important;
   transition:background-color .18s,color .18s!important;
 }
-#appView #withlogFeedTabBar :is(#tabAll,#tabFollowing,#tabISS,#tabFlights,#tabWeather,#tabNews):hover {
+#appView #withlogFeedTabBar :is(#tabAll,#tabFollowing,#tabISS,#tabFlights,#tabWeather,#tabNews,#tabTrends):hover {
   background:var(--wl-chip)!important;
   color:var(--wl-ink)!important;
 }
@@ -5808,7 +5808,7 @@ html.withlog-dark #appView #feed .with-daily-post {
     content:"EXPLORE";display:block;
     margin:5px 11px 11px;color:var(--wl-muted);font-size:9px;font-weight:900;letter-spacing:.24em;
   }
-  #appView #withlogFeedTabBar :is(#tabAll,#tabFollowing,#tabISS,#tabFlights,#tabWeather,#tabNews) {
+  #appView #withlogFeedTabBar :is(#tabAll,#tabFollowing,#tabISS,#tabFlights,#tabWeather,#tabNews,#tabTrends) {
     width:100%!important;justify-content:flex-start!important;
     font-size:12px!important;
     padding:13px 14px!important;
@@ -5885,12 +5885,12 @@ html.withlog-dark #appView #feed .with-daily-post {
     border-radius:0!important;
   }
   #appView > #withlogFeedTabBar::-webkit-scrollbar {display:none;}
-  #appView #withlogFeedTabBar :is(#tabAll,#tabFollowing,#tabISS,#tabFlights,#tabWeather,#tabNews) {
+  #appView #withlogFeedTabBar :is(#tabAll,#tabFollowing,#tabISS,#tabFlights,#tabWeather,#tabNews,#tabTrends) {
     min-height:38px!important;padding:9px 12px!important;
     border-radius:999px!important;font-size:10px!important;
     letter-spacing:.02em!important;
   }
-  #appView #withlogFeedTabBar :is(#tabISS,#tabFlights,#tabWeather,#tabNews) svg {width:15px;height:15px;}
+  #appView #withlogFeedTabBar :is(#tabISS,#tabFlights,#tabWeather,#tabNews,#tabTrends) svg {width:15px;height:15px;}
   #appView > #storiesSection {width:100%!important;padding:14px 10px 0!important;}
   #appView #storiesSection .tl-filter-card {border-radius:22px!important;padding:12px!important;}
   #appView > main {width:100%!important;padding:13px 9px 25px!important;}
@@ -6460,11 +6460,11 @@ html body #appView > #withlogFeedTabBar {
 html.withlog-dark body #appView > #withlogFeedTabBar {
   background:linear-gradient(145deg,rgba(40,25,21,.27),rgba(19,14,16,.12))!important;
 }
-html body #appView #withlogFeedTabBar :is(#tabAll,#tabFollowing,#tabISS,#tabFlights,#tabWeather,#tabNews) {
+html body #appView #withlogFeedTabBar :is(#tabAll,#tabFollowing,#tabISS,#tabFlights,#tabWeather,#tabNews,#tabTrends) {
   border-radius:15px!important;
   color:var(--wl-muted)!important;
 }
-html body #appView #withlogFeedTabBar :is(#tabAll,#tabFollowing,#tabISS,#tabFlights,#tabWeather,#tabNews):hover {
+html body #appView #withlogFeedTabBar :is(#tabAll,#tabFollowing,#tabISS,#tabFlights,#tabWeather,#tabNews,#tabTrends):hover {
   background:var(--wl-chip)!important;color:var(--wl-ink)!important;
 }
 html body #appView #withlogFeedTabBar :is(#tabAll,#tabFollowing).border-b-2,
@@ -6836,7 +6836,7 @@ html body #appView #memoryMapPage .mm-list-head h3 {color:var(--wl-ink,#34231e)!
     -webkit-backdrop-filter:blur(24px) saturate(130%)!important;
   }
   html body #appView > #withlogFeedTabBar::before {color:#d9ab92!important;}
-  html body #appView #withlogFeedTabBar :is(#tabAll,#tabFollowing,#tabMemoryMap,#tabISS,#tabFlights,#tabWeather,#tabNews) {color:#f0d5c6!important;opacity:1!important;}
+  html body #appView #withlogFeedTabBar :is(#tabAll,#tabFollowing,#tabMemoryMap,#tabISS,#tabFlights,#tabWeather,#tabNews,#tabTrends) {color:#f0d5c6!important;opacity:1!important;}
   html body #appView #withlogFeedTabBar > button {color:#efd3c4!important;opacity:1!important;}
   html body #appView #withlogFeedTabBar > button:hover {
     background:rgba(255,153,73,.17)!important;color:#fff9f2!important;
@@ -7065,6 +7065,9 @@ html body #appView #withlogFeedTabBar #tabMemoryMap:focus-visible {
       <button id="tabNews" type="button" onclick="openNewsPage()" aria-label="NEWS 最新ニュースを開く">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2" stroke-width="1.7"/><path d="M8 8h8M8 12h8M8 16h5" stroke-width="1.7" stroke-linecap="round"/></svg> NEWS
       </button>
+      <button id="tabTrends" type="button" onclick="openTrendsPage()" aria-label="LIVE TRENDS 急上昇トレンドを開く">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 17l6-6 4 4 8-9M16 6h5v5" stroke-linecap="round" stroke-linejoin="round"/></svg> TRENDS
+      </button>
     </div>
 
     <!-- フォロー中ストーリーバー -->
@@ -7147,6 +7150,26 @@ html body #appView #withlogFeedTabBar #tabMemoryMap:focus-visible {
       <p id="newsStatus" class="news-info" role="status" aria-live="polite">NEWSタブを開くと最新の見出しを取得します。</p>
       <div id="newsContent" aria-live="off"></div>
       <p class="news-footnote">ニュース提供：NHK NEWS・BBC News の公開RSS。見出し・掲載日時を表示し、記事は配信元サイトで開きます。世界のニュースの一部は英語です。配信元の更新や接続状況により、表示が遅れたり一部の記事を取得できない場合があります。</p>
+    </section>
+
+    <!-- LIVE TRENDS: public Google Trends RSS by selected country. -->
+    <section id="trendsPage" class="hidden" aria-label="LIVE TRENDS 急上昇トピック" aria-hidden="true">
+      <div class="trends-hero">
+        <div class="trends-kicker"><span class="trends-pulse" aria-hidden="true"></span> WITHLOG / DISCOVER</div>
+        <h2>LIVE <span>TRENDS</span></h2>
+        <p>今、検索が急増している話題をチェック。Google Trendsの公開RSSから取得します。</p>
+        <div class="trends-hero-foot"><span id="trendsUpdated">取得前</span><button type="button" id="trendsRefresh">↻ 更新</button></div>
+      </div>
+      <div class="trends-regions" role="group" aria-label="トレンドを表示する地域">
+        <button data-trends-region="JP" aria-pressed="true">日本</button>
+        <button data-trends-region="US" aria-pressed="false">アメリカ</button>
+        <button data-trends-region="KR" aria-pressed="false">韓国</button>
+        <button data-trends-region="GB" aria-pressed="false">イギリス</button>
+        <button data-trends-region="AU" aria-pressed="false">オーストラリア</button>
+      </div>
+      <p id="trendsStatus" class="trends-status" role="status" aria-live="polite">トレンドを読み込みます。</p>
+      <div id="trendsItems" class="trends-items" aria-live="off"></div>
+      <p class="trends-footnote">出典：Google Trends「急上昇中」RSS。掲載順は人気順位ではなく、最近始まった検索トレンドの順序です。検索数は概算です。自動更新は約10分ごとに行い、配信元によって更新間隔や掲載件数は変わります。関連記事は外部サイトで開きます。</p>
     </section>
 
     <!-- 独立したISS追跡ページ：フィードと切り替えて表示 -->
@@ -14441,7 +14464,7 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 <!-- WITHLOG: remove decorative active-tab dots; keep selected backgrounds. -->
 <style id="withlog-explore-active-dot-removal">
-#appView #withlogFeedTabBar :is(#tabAll,#tabFollowing,#tabMemoryMap,#tabISS,#tabFlights,#tabWeather,#tabNews)::after {
+#appView #withlogFeedTabBar :is(#tabAll,#tabFollowing,#tabMemoryMap,#tabISS,#tabFlights,#tabWeather,#tabNews,#tabTrends)::after {
   content: none !important;
   display: none !important;
   width: 0 !important;
@@ -14523,7 +14546,7 @@ html body #appView > #withlogFeedTabBar {
   backdrop-filter:blur(25px) saturate(125%)!important;
   -webkit-backdrop-filter:blur(25px) saturate(125%)!important;
 }
-html body #appView #withlogFeedTabBar > :is(#tabAll,#tabFollowing,#tabMemoryMap,#tabISS,#tabFlights,#tabWeather,#tabNews) {
+html body #appView #withlogFeedTabBar > :is(#tabAll,#tabFollowing,#tabMemoryMap,#tabISS,#tabFlights,#tabWeather,#tabNews,#tabTrends) {
   display:flex!important;align-items:center!important;justify-content:flex-start!important;
   width:auto;min-width:0;box-sizing:border-box!important;
   gap:11px!important;padding:12px 14px!important;min-height:46px!important;
@@ -14533,7 +14556,7 @@ html body #appView #withlogFeedTabBar > :is(#tabAll,#tabFollowing,#tabMemoryMap,
   border:1px solid transparent!important;border-radius:16px!important;
   opacity:1!important;outline-offset:2px;
 }
-html body #appView #withlogFeedTabBar > :is(#tabAll,#tabFollowing,#tabMemoryMap,#tabISS,#tabFlights,#tabWeather,#tabNews) svg {
+html body #appView #withlogFeedTabBar > :is(#tabAll,#tabFollowing,#tabMemoryMap,#tabISS,#tabFlights,#tabWeather,#tabNews,#tabTrends) svg {
   width:18px!important;height:18px!important;min-width:18px!important;flex:0 0 18px!important;
 }
 html body #appView #withlogFeedTabBar :is(#tabAll,#tabFollowing)::before {
@@ -14552,8 +14575,8 @@ html body #appView.withlog-news-active #withlogFeedTabBar #tabNews {
   border:1px solid rgba(220,125,62,.45)!important;
   color:var(--wl-ink)!important;
 }
-html body #appView #withlogFeedTabBar > :is(#tabAll,#tabFollowing,#tabMemoryMap,#tabISS,#tabFlights,#tabWeather,#tabNews)::after,
-html body #appView #withlogFeedTabBar > :is(#tabAll,#tabFollowing,#tabMemoryMap,#tabISS,#tabFlights,#tabWeather,#tabNews).border-b-2::after {content:none!important;display:none!important;}
+html body #appView #withlogFeedTabBar > :is(#tabAll,#tabFollowing,#tabMemoryMap,#tabISS,#tabFlights,#tabWeather,#tabNews,#tabTrends)::after,
+html body #appView #withlogFeedTabBar > :is(#tabAll,#tabFollowing,#tabMemoryMap,#tabISS,#tabFlights,#tabWeather,#tabNews,#tabTrends).border-b-2::after {content:none!important;display:none!important;}
 /* Dashboard surfaces: identical border/radius/typographic scale. */
 html body #appView #feed .tl-post-card:not(.with-daily-post),
 html body #appView #storiesSection .tl-filter-card,
@@ -14649,13 +14672,13 @@ html body #appView .leaflet-control-zoom a {background:#fff9f3!important;color:#
 /* Responsive alignment, including MEMORY MAP which formerly had extra indent. */
 @media(min-width:900px){
   html body #appView > #withlogFeedTabBar {border-radius:25px!important;padding:15px 12px!important;}
-  html body #appView #withlogFeedTabBar > :is(#tabAll,#tabFollowing,#tabMemoryMap,#tabISS,#tabFlights,#tabWeather,#tabNews) {
+  html body #appView #withlogFeedTabBar > :is(#tabAll,#tabFollowing,#tabMemoryMap,#tabISS,#tabFlights,#tabWeather,#tabNews,#tabTrends) {
     width:100%!important;justify-content:flex-start!important;padding:12px 14px!important;
   }
   html body #appView > #withlogFeedTabBar::before {color:var(--wl-muted)!important;}
 }
 @media(max-width:899px){
-  html body #appView #withlogFeedTabBar > :is(#tabAll,#tabFollowing,#tabMemoryMap,#tabISS,#tabFlights,#tabWeather,#tabNews) {
+  html body #appView #withlogFeedTabBar > :is(#tabAll,#tabFollowing,#tabMemoryMap,#tabISS,#tabFlights,#tabWeather,#tabNews,#tabTrends) {
     width:auto!important;justify-content:center!important;min-height:39px!important;
     padding:9px 12px!important;border-radius:999px!important;font-size:10px!important;
   }
@@ -14677,5 +14700,158 @@ html body #appView > #memoryMapPage {box-sizing:border-box!important;max-width:1
 @media(max-width:640px){html body #appView > #memoryMapPage {width:100%!important;}}
 
 </style>
+
+<style id="withlog-live-trends-style">
+/* Feature-only addition: reuse WITHLOG's shared theme variables. */
+#appView.withlog-trends-active > main,#appView.withlog-trends-active > #storiesSection {display:none!important}
+#appView #tabTrends{display:flex;align-items:center;gap:11px}
+#appView #tabTrends svg{width:18px;height:18px;min-width:18px;flex:0 0 18px}
+html body #appView #withlogFeedTabBar > #tabTrends{
+ display:flex!important;align-items:center!important;justify-content:flex-start!important;
+ width:auto;min-width:0;box-sizing:border-box!important;gap:11px!important;padding:12px 14px!important;
+ min-height:46px!important;font-size:12px!important;font-weight:800!important;letter-spacing:.015em!important;
+ white-space:nowrap!important;text-align:left!important;background:transparent!important;
+ color:var(--wl-muted)!important;border:1px solid transparent!important;border-radius:16px!important;opacity:1!important
+}
+html body #appView #withlogFeedTabBar > #tabTrends[aria-current="page"],
+html body #appView.withlog-trends-active #withlogFeedTabBar > #tabTrends{
+ background:linear-gradient(115deg,rgba(236,128,51,.28),rgba(236,128,51,.13))!important;
+ border:1px solid rgba(220,125,62,.45)!important;color:var(--wl-ink)!important
+}
+html body #appView #withlogFeedTabBar > #tabTrends::after{display:none!important;content:none!important}
+#trendsPage{width:100%;min-width:0;padding:0 0 90px;color:var(--wl-ink);}
+#trendsPage.hidden{display:none!important}
+#trendsPage .trends-hero{
+ background:radial-gradient(ellipse at 88% 14%,rgba(238,111,26,.27),transparent 55%),linear-gradient(140deg,#1a1213,#44271e)!important;
+ color:#fff0e5!important;border:1px solid rgba(247,160,84,.24)!important;border-radius:var(--wl-radius,28px)!important;
+ padding:clamp(22px,4vw,40px);overflow:hidden
+}
+#trendsPage .trends-kicker{display:flex;align-items:center;gap:9px;color:#f6b784;font-size:10px;font-weight:900;letter-spacing:.17em}
+#trendsPage .trends-pulse{display:inline-block;width:8px;height:8px;background:#ffa052;border-radius:100%;box-shadow:0 0 0 5px rgba(241,122,47,.15)!important}
+#trendsPage .trends-hero h2{font-size:clamp(31px,5vw,52px);line-height:1.15;font-weight:900;letter-spacing:-.05em;color:#fff0e5!important;margin:20px 0 10px}
+#trendsPage .trends-hero h2 span{color:#f99a4b}
+#trendsPage .trends-hero p{font-size:12px;line-height:1.8;color:#e6bca6!important}
+#trendsPage .trends-hero-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:22px;color:#d5b6a5;font-size:11px;flex-wrap:wrap}
+#trendsPage #trendsRefresh{border:1px solid rgba(255,170,101,.35)!important;padding:9px 17px;background:rgba(255,155,64,.18)!important;color:#fff0e4!important;border-radius:999px!important;font-weight:800}
+#trendsPage #trendsRefresh:disabled{opacity:.55;cursor:wait}
+#trendsPage .trends-regions{display:flex;gap:9px;flex-wrap:wrap;margin:20px 0 12px}
+#trendsPage .trends-regions button{border-radius:999px!important;border:1px solid var(--wl-border)!important;padding:10px 16px;background:var(--wl-surface)!important;color:var(--wl-ink)!important;font-size:11px;font-weight:850}
+#trendsPage .trends-regions button[aria-pressed="true"]{background:linear-gradient(120deg,#f69337,#d26323)!important;color:white!important;border-color:transparent!important}
+#trendsPage .trends-status{min-height:24px;color:var(--wl-muted);font-size:11px;margin:10px 2px}
+#trendsPage .trends-items{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+#trendsPage .trends-card{min-width:0;border:1px solid var(--wl-border);border-radius:var(--wl-radius,24px);background:var(--wl-surface);padding:19px;color:var(--wl-ink);display:flex;flex-direction:column;gap:11px}
+#trendsPage .trends-card-head{display:flex;gap:13px;align-items:flex-start}
+#trendsPage .trends-number{flex:0 0 auto;display:grid;place-items:center;width:33px;height:33px;background:var(--wl-chip);color:var(--wl-accent);font-size:11px;font-weight:900;border-radius:12px}
+#trendsPage .trends-card-title{min-width:0;flex:1;font-size:15px;font-weight:850;line-height:1.5;overflow-wrap:anywhere}
+#trendsPage .trends-card-meta{color:var(--wl-muted);font-size:10px;line-height:1.6}
+#trendsPage .trends-article{font-size:11px;color:var(--wl-accent);line-height:1.5;text-decoration:none;overflow-wrap:anywhere}
+#trendsPage .trends-article:hover{text-decoration:underline}
+#trendsPage .trends-actions{margin-top:auto;display:flex;gap:9px;flex-wrap:wrap}
+#trendsPage .trends-actions a{font-size:10px;font-weight:800;text-decoration:none;color:var(--wl-accent);border:1px solid var(--wl-border);border-radius:999px;padding:8px 11px}
+#trendsPage .trends-empty{grid-column:1/-1;border:1px dashed var(--wl-border);padding:30px;border-radius:23px;text-align:center;color:var(--wl-muted)}
+#trendsPage .trends-footnote{font-size:10px;line-height:1.9;color:var(--wl-muted);margin:20px 2px}
+@media(min-width:900px){#appView.withlog-trends-active > #trendsPage{grid-column:2!important;grid-row:2 / span 2!important}}
+@media(min-width:1280px){#appView.withlog-trends-active > #trendsPage{grid-column:2/4!important}#appView.withlog-trends-active > #withlogDesktopRail{display:none!important}}
+@media(min-width:641px) and (max-width:899px){#appView > #trendsPage{width:100%!important}}
+@media(max-width:640px){#trendsPage{padding:8px 10px calc(105px + env(safe-area-inset-bottom))}#trendsPage .trends-items{grid-template-columns:1fr}#trendsPage .trends-card{padding:16px}#trendsPage .trends-regions{gap:7px}#trendsPage .trends-regions button{padding:9px 12px}}
+</style>
+
+<script id="withlog-live-trends-script">
+(() => {
+  'use strict';
+  const app=document.getElementById('appView');
+  const page=document.getElementById('trendsPage');
+  const tab=document.getElementById('tabTrends');
+  if(!app||!page||!tab)return;
+  const $=id=>document.getElementById(id);
+  const regions=new Set(['JP','US','KR','GB','AU']);
+  let region='JP', fetchedAt=0, controller=null, timer=null, seq=0, previousFeed='all';
+  let items=[];
+  const isOpen=()=>!page.classList.contains('hidden')&&app.classList.contains('withlog-trends-active');
+  const safeUrl=url=>typeof url==='string'&&/^https:\/\//i.test(url)?url:null;
+  function node(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!==undefined)e.textContent=txt;return e;}
+  function link(text,url,cls){const a=node('a',cls,text);a.href=safeUrl(url)||'https://trends.google.com/trending';a.target='_blank';a.rel='noopener noreferrer';return a;}
+  function fmt(t){if(!t)return '';const d=new Date(t);if(Number.isNaN(+d))return '';return d.toLocaleString('ja-JP',{timeZone:'Asia/Tokyo',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});}
+  function status(message){$('trendsStatus').textContent=message;}
+  function render(){
+    const area=$('trendsItems');area.replaceChildren();
+    if(!items.length){area.append(node('p','trends-empty','表示できるトレンドがありません。更新してお試しください。'));return;}
+    items.forEach((item,i)=>{
+      const card=node('article','trends-card');
+      const head=node('div','trends-card-head');
+      head.append(node('span','trends-number',String(i+1).padStart(2,'0')));
+      head.append(node('h3','trends-card-title',item.title||'トレンド'));
+      card.append(head);
+      const meta=[item.approx_traffic?`検索数の目安：${item.approx_traffic}`:'',item.published_at?`話題になった時刻：${fmt(item.published_at)}`:''].filter(Boolean).join(' ｜ ');
+      if(meta)card.append(node('p','trends-card-meta',meta));
+      for(const article of (Array.isArray(item.articles)?item.articles:[]).slice(0,2)){
+        if(!safeUrl(article.url))continue;
+        const a=link(`${article.source?article.source+' · ':''}${article.title||'関連ニュース'}`,article.url,'trends-article');
+        card.append(a);
+      }
+      const actions=node('div','trends-actions');
+      actions.append(link('Googleで検索',item.search_url,''));
+      actions.append(link('Google Trendsを見る',item.explore_url,''));
+      card.append(actions);area.append(card);
+    });
+  }
+  async function load(force=false){
+    if(!isOpen())return;
+    if(!force&&fetchedAt&&Date.now()-fetchedAt<600000){render();return;}
+    if(controller)controller.abort();
+    controller=new AbortController();const current=controller, id=++seq, selected=region;
+    status('急上昇トピックを取得中…');$('trendsRefresh').disabled=true;
+    const timeout=setTimeout(()=>current.abort(),16000);
+    try{
+      const response=await fetch('/api/trends?region='+encodeURIComponent(selected),{signal:current.signal,cache:'no-store'});
+      if(!response.ok)throw new Error('取得失敗');
+      const payload=await response.json();
+      if(id!==seq||!isOpen()||selected!==region)return;
+      items=Array.isArray(payload.items)?payload.items.filter(x=>typeof x.title==='string').slice(0,12):[];
+      fetchedAt=items.length?Date.now():0;render();
+      $('trendsUpdated').textContent=payload.updated_at?`取得：${fmt(payload.updated_at)}（日本時間）`:'取得できませんでした';
+      status(!items.length?'トレンドを取得できませんでした。しばらくしてから更新してください。':payload.stale?'前回取得したトレンドを表示しています。':'最近始まった急上昇トピックを表示しています。');
+    }catch(err){
+      if(id!==seq||!isOpen())return;
+      if(err.name!=='AbortError')status('トレンドを取得できませんでした。しばらくしてから更新してください。');
+      else status('通信がタイムアウトしました。再度お試しください。');
+      if(!items.length)render();
+    }finally{clearTimeout(timeout);if(current===controller){controller=null;$('trendsRefresh').disabled=false;}}
+  }
+  function close(){
+    if(!isOpen())return;
+    ++seq;if(controller)controller.abort();controller=null;
+    clearInterval(timer);timer=null;
+    app.classList.remove('withlog-trends-active');page.classList.add('hidden');page.setAttribute('aria-hidden','true');tab.removeAttribute('aria-current');
+    if(!['withlog-news-active','withlog-iss-active','withlog-weather-active','withlog-flights-active','withlog-memory-map-active'].some(c=>app.classList.contains(c))){
+      $(previousFeed==='following'?'tabFollowing':'tabAll')?.classList.add('border-b-2');
+    }
+  }
+  window.closeTrendsPage=close;
+  window.openTrendsPage=()=>{
+    if(app.classList.contains('hidden'))return;
+    if(isOpen())return;
+    previousFeed=$('tabFollowing').classList.contains('border-b-2')?'following':'all';
+    for(const fn of ['closeMemoryMap','closeIssTracker','closeWeatherPage','closeFlightTracker','closeNewsPage'])window[fn]?.();
+    page.classList.remove('hidden');page.setAttribute('aria-hidden','false');app.classList.add('withlog-trends-active');tab.setAttribute('aria-current','page');
+    $('tabAll').classList.remove('border-b-2');$('tabFollowing').classList.remove('border-b-2');
+    timer=setInterval(()=>{if(isOpen()&&!document.hidden&&Date.now()-fetchedAt>=600000)void load();},60000);
+    void load();
+  };
+  for(const name of ['switchFeedTab','openMemoryMap','openIssTracker','openWeatherPage','openFlightTracker','openNewsPage']){
+    const fn=window[name];if(typeof fn!=='function')continue;
+    window[name]=function(...args){close();return fn.apply(this,args)};
+  }
+  page.querySelectorAll('[data-trends-region]').forEach(btn=>btn.addEventListener('click',()=>{
+    const next=btn.dataset.trendsRegion;if(!regions.has(next)||next===region)return;
+    ++seq;if(controller)controller.abort();controller=null;region=next;items=[];fetchedAt=0;
+    page.querySelectorAll('[data-trends-region]').forEach(b=>b.setAttribute('aria-pressed',String(b===btn)));
+    render();void load(true);
+  }));
+  $('trendsRefresh').addEventListener('click',()=>void load(true));
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&isOpen()&&Date.now()-fetchedAt>=600000)void load()});
+})();
+</script>
+
 </body>
 </html>

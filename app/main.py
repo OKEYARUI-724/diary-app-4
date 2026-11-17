@@ -3019,3 +3019,90 @@ def get_withlog_flights(region: str = Query("tokyo", max_length=20)):
         # Don't treat a failure as a successful empty region.
         _flight_cache[region] = {"payload": payload, "expires": time.monotonic() + _FLIGHT_ERROR_TTL}
         return payload
+
+
+# --- WITHLOG LIVE TRENDS: Google Trending Now RSS (read-only, cached). ---
+# RSS is a selection of recently started trends, not a ranked top-ten chart.
+from urllib.parse import quote as _trends_quote
+
+_TRENDS_REGIONS = {"JP": "日本", "US": "アメリカ", "KR": "韓国", "GB": "イギリス", "AU": "オーストラリア"}
+_TRENDS_NS = "https://trends.google.com/trending/rss"
+_trends_cache_lock = threading.Lock()
+_trends_cache = {}  # region -> {payload, expires}
+
+
+def _fetch_trending_rss(region: str):
+    url = f"https://trends.google.com/trending/rss?geo={region}"
+    req = _news_urlrequest.Request(url, headers={
+        "User-Agent": "Mozilla/5.0 (compatible; WITHLOG/1.0; trends display)",
+        "Accept": "application/rss+xml, application/xml, text/xml;q=0.9",
+    })
+    with _news_urlrequest.urlopen(req, timeout=9) as response:
+        body = response.read(1000001)
+    if len(body) > 1000000:
+        raise ValueError("Trends RSS exceeds size limit")
+    root = _news_etree.fromstring(body)
+    items = []
+    for node in root.findall("./channel/item")[:12]:
+        title = (node.findtext("title") or "").strip()[:130]
+        if not title:
+            continue
+        traffic = (node.findtext(f"{{{_TRENDS_NS}}}approx_traffic") or "").strip()[:32]
+        published = None
+        date_text = node.findtext("pubDate")
+        if date_text:
+            try:
+                published = _news_parse_date(date_text).astimezone(timezone.utc).isoformat()
+            except (ValueError, TypeError, OverflowError):
+                pass
+        related = []
+        for n in node.findall(f"{{{_TRENDS_NS}}}news_item")[:3]:
+            article_url = (n.findtext(f"{{{_TRENDS_NS}}}news_item_url") or "").strip()
+            if not article_url.startswith("https://") or len(article_url) > 1500:
+                continue
+            related.append({
+                "title": (n.findtext(f"{{{_TRENDS_NS}}}news_item_title") or "関連ニュース").strip()[:180],
+                "source": (n.findtext(f"{{{_TRENDS_NS}}}news_item_source") or "").strip()[:70],
+                "url": article_url,
+            })
+        items.append({
+            "title": title, "approx_traffic": traffic, "published_at": published,
+            "explore_url": f"https://trends.google.com/trending?geo={region}",
+            "search_url": "https://www.google.com/search?q=" + _trends_quote(title),
+            "articles": related,
+        })
+    return items
+
+
+@app.get("/api/trends")
+def get_live_trends(region: str = "JP"):
+    region = (region or "JP").upper().strip()
+    if region not in _TRENDS_REGIONS:
+        raise HTTPException(status_code=400, detail="対象地域を選択してください。")
+    now = time.monotonic()
+    with _trends_cache_lock:
+        prior = _trends_cache.get(region)
+        if prior and now < prior["expires"]:
+            return prior["payload"]
+        try:
+            items = _fetch_trending_rss(region)
+            if not items:
+                raise ValueError("Empty trends RSS")
+            payload = {
+                "region": region, "region_name": _TRENDS_REGIONS[region],
+                "items": items, "updated_at": datetime.now(timezone.utc).isoformat(),
+                "stale": False, "source": "Google Trends Trending Now RSS",
+            }
+            ttl = 600
+        except Exception as exc:
+            print(f"[Trends fetch unavailable] {region}: {type(exc).__name__}", flush=True)
+            if prior and prior["payload"].get("items"):
+                payload = dict(prior["payload"])
+                payload["stale"] = True
+            else:
+                payload = {"region": region, "region_name": _TRENDS_REGIONS[region],
+                           "items": [], "updated_at": None, "stale": True,
+                           "source": "Google Trends Trending Now RSS"}
+            ttl = 90
+        _trends_cache[region] = {"payload": payload, "expires": time.monotonic() + ttl}
+        return payload
