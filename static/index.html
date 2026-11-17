@@ -6871,6 +6871,64 @@ html body #appView #memoryMapPage .mm-list-head h3 {color:var(--wl-ink,#34231e)!
   html body #appView #memoryMapPage .mm-filters {display:grid!important;grid-template-columns:1fr 1fr!important;}
 }
 </style>
+<style id="withlog-memory-map-nav-unified-fix">
+/* Match the existing Explore navigation exactly. Visual-only correction. */
+html body #appView #withlogFeedTabBar #tabMemoryMap {
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:10px!important;
+  flex:0 0 auto!important;
+  min-height:42px!important;
+  padding:11px 15px!important;
+  border:1px solid transparent!important;
+  border-radius:15px!important;
+  background:transparent!important;
+  color:var(--wl-muted)!important;
+  font-size:inherit!important;
+  font-weight:850!important;
+  letter-spacing:.02em!important;
+  white-space:nowrap!important;
+  transition:background-color .18s,color .18s!important;
+}
+html body #appView #withlogFeedTabBar #tabMemoryMap svg {
+  width:15px!important;height:15px!important;
+  flex:0 0 15px!important;
+}
+html body #appView #withlogFeedTabBar #tabMemoryMap:hover {
+  background:var(--wl-chip)!important;
+  color:var(--wl-ink)!important;
+}
+html body #appView.withlog-memory-map-active #withlogFeedTabBar #tabMemoryMap,
+html body #appView #withlogFeedTabBar #tabMemoryMap[aria-current="page"] {
+  background:linear-gradient(114deg,rgba(234,124,53,.26),rgba(239,160,99,.14))!important;
+  border:1px solid rgba(229,126,58,.26)!important;
+  color:var(--wl-ink)!important;
+  outline:none!important;
+}
+html body #appView #withlogFeedTabBar #tabMemoryMap[aria-current="page"]::after,
+html body #appView.withlog-memory-map-active #withlogFeedTabBar #tabMemoryMap::after {
+  content:"";width:6px;height:6px;flex:0 0 6px;border-radius:50%;background:var(--wl-mint);
+}
+html body #appView #withlogFeedTabBar #tabMemoryMap:focus-visible {
+  outline:2px solid #ff993a!important;outline-offset:3px!important;
+}
+@media(min-width:900px){
+  html body #appView #withlogFeedTabBar #tabMemoryMap {color:#f0d5c6!important;}
+  html body #appView.withlog-memory-map-active #withlogFeedTabBar #tabMemoryMap,
+  html body #appView #withlogFeedTabBar #tabMemoryMap[aria-current="page"] {
+    background:linear-gradient(115deg,rgba(241,139,60,.40),rgba(185,75,34,.30))!important;
+    color:#fff8f0!important;
+    border-color:rgba(255,184,125,.45)!important;
+  }
+}
+@media(min-width:641px) and (max-width:899px){
+  html body #appView #withlogFeedTabBar #tabMemoryMap {min-height:38px!important;padding:9px 12px!important;border-radius:999px!important;font-size:10px!important;}
+}
+@media(max-width:640px){
+  html body #appView #withlogFeedTabBar #tabMemoryMap {min-height:38px!important;padding:9px 12px!important;border-radius:999px!important;font-size:10px!important;}
+}
+</style>
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -6985,7 +7043,7 @@ html body #appView #memoryMapPage .mm-list-head h3 {color:var(--wl-ink,#34231e)!
     <div id="withlogFeedTabBar" class="px-4 flex items-center gap-4 text-xs font-bold tracking-wider border-b border-slate-200" aria-label="ページ切り替え">
       <button id="tabAll" onclick="switchFeedTab('all')" class="pb-2 text-slate-900 border-b-2 border-slate-900">ALL</button>
       <button id="tabFollowing" onclick="switchFeedTab('following')" class="pb-2 text-slate-400 hover:text-slate-700">FOLLOWING</button>
-      <button id="tabMemoryMap" type="button" onclick="openMemoryMap()" aria-label="思い出マップを開く"><span aria-hidden="true">◉</span> MEMORY MAP</button>
+      <button id="tabMemoryMap" type="button" onclick="openMemoryMap()" aria-label="思い出マップを開く"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20V6.5Z" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 4v13.5M15 6.5V20" stroke-width="1.6" stroke-linecap="round"/></svg> MEMORY MAP</button>
       <button id="tabISS" type="button" onclick="openIssTracker()" aria-label="ISS TRACKER ページを開く">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M8 10l6 6M5 14l5 5M14 5l5 5M10 3l11 11-7 7L3 10l7-7z" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg> ISS
       </button>
