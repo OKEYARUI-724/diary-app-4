@@ -6705,6 +6705,61 @@ html body .withlog-settings-link {background:var(--wl-chip)!important;}
 }
 </style>
 
+
+<style id="withlog-memory-map-style">
+/* MEMORY MAP follows the existing amber/black noise-gradient theme. */
+#appView.withlog-memory-map-active > main,#appView.withlog-memory-map-active > #storiesSection,#appView.withlog-memory-map-active > #withlogDesktopRail{display:none!important}
+#appView #tabMemoryMap{display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;border:0;border-radius:999px;padding:9px 15px;background:var(--wl-chip,rgba(245,137,53,.13));color:var(--wl-muted,#a7978f);font-weight:800;font-size:11px;white-space:nowrap}
+#appView #tabMemoryMap[aria-current="page"]{background:linear-gradient(120deg,#ff9a24,#d45219)!important;color:#fff!important}
+#appView #tabMemoryMap:focus-visible{outline:2px solid #ff993a;outline-offset:3px}
+#memoryMapPage{width:100%;min-width:0;max-width:1240px;margin:0 auto;padding:12px 16px 110px;color:var(--wl-ink,#fff0e5)}
+#memoryMapPage.hidden{display:none!important}
+#memoryMapPage .mm-hero{padding:clamp(20px,4vw,35px);border:1px solid rgba(255,164,91,.21);border-radius:32px;background:radial-gradient(ellipse at 96% 5%,rgba(238,103,24,.27),transparent 54%),linear-gradient(130deg,rgba(27,18,18,.94),rgba(69,33,24,.81));color:#fff4e9}
+#memoryMapPage .mm-hero-top,#memoryMapPage .mm-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#memoryMapPage .mm-kicker{font-weight:900;font-size:10px;letter-spacing:.19em;color:#e4a678}
+#memoryMapPage .mm-badge{font-size:9px;letter-spacing:.1em;color:#ffc07f;background:rgba(255,163,65,.10);padding:9px 13px;border-radius:999px}
+#memoryMapPage .mm-hero h2{font-size:clamp(29px,5vw,49px);letter-spacing:-.055em;line-height:1.15;font-weight:900;margin:23px 0 8px}
+#memoryMapPage .mm-hero h2 span{color:#ff9e38}
+#memoryMapPage .mm-hero p{font-size:12px;line-height:1.8;color:#e0bbaa}
+#memoryMapPage .mm-summary{margin-top:26px;justify-content:flex-start;gap:13px}
+#memoryMapPage .mm-summary span{padding:12px 16px;background:rgba(255,255,255,.075);border:1px solid rgba(255,255,255,.10);border-radius:15px;font-size:10px;color:#f5d5c1;letter-spacing:.08em}
+#memoryMapPage .mm-summary strong{color:#fff;font-size:23px;margin-right:6px}
+#memoryMapPage .mm-summary button{margin-left:auto;background:rgba(255,255,255,.10)!important;color:#ffe7d2!important;border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:11px 16px;font-size:12px}
+#memoryMapPage .mm-tools{display:flex;gap:12px;align-items:center;margin:18px 0;flex-wrap:wrap}
+#memoryMapPage .mm-search-wrap{flex:1 1 260px;min-width:0;display:flex;gap:10px;align-items:center;padding:6px 14px;background:rgba(32,22,22,.72);border:1px solid rgba(255,170,106,.20);border-radius:20px;color:#f3b57f}
+#memoryMapPage .mm-search-wrap span{font-size:24px}
+#memoryMapPage #mmSearch{background:transparent!important;color:#f9e8dc!important;width:100%;border:0!important;outline:0!important;padding:10px 0;border-radius:0!important;font-size:12px}
+#memoryMapPage .mm-filters{display:flex;gap:8px;flex-wrap:wrap}
+#memoryMapPage .mm-filters button{padding:11px 14px;border:1px solid rgba(255,158,65,.18)!important;border-radius:999px!important;background:rgba(255,255,255,.06)!important;color:#edcabb!important;font-size:11px;font-weight:800}
+#memoryMapPage .mm-filters button[aria-pressed="true"]{background:linear-gradient(125deg,#f89125,#d6571b)!important;color:#fff!important}
+#memoryMapPage .mm-status{min-height:24px;font-size:11px;color:var(--wl-muted,#bba49a);margin:0 3px 7px;line-height:1.6}
+#memoryMapPage .mm-map-shell{position:relative;border:1px solid rgba(255,155,77,.24);border-radius:28px;overflow:hidden;background:#121518}
+#memoryMapPage #memoryMapCanvas{height:clamp(340px,54vh,620px);width:100%;z-index:1;background:#1e2529}
+#memoryMapPage .mm-map-hint{position:absolute;bottom:14px;left:14px;z-index:500;max-width:calc(100% - 28px);padding:10px 15px;background:rgba(19,17,17,.78);color:#f8dfcd;backdrop-filter:blur(15px);border:1px solid rgba(255,192,133,.17);border-radius:18px;font-size:11px;pointer-events:none}
+#memoryMapPage .mm-list-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:25px 2px 15px}
+#memoryMapPage .mm-list-head h3{font-size:12px;letter-spacing:.16em;font-weight:900}
+#memoryMapPage .mm-list-head span{font-size:11px;color:var(--wl-muted,#a7958c)}
+#memoryMapPage .mm-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,245px),1fr));gap:13px}
+#memoryMapPage .mm-card{display:flex;gap:12px;text-align:left;min-height:103px;border:1px solid rgba(255,162,88,.18)!important;border-radius:22px!important;background:rgba(33,23,24,.87)!important;padding:12px!important;color:#f7e9de!important;min-width:0}
+#memoryMapPage .mm-card:hover{border-color:rgba(255,168,71,.56)!important;background:rgba(69,37,26,.96)!important}
+#memoryMapPage .mm-card img{width:81px;height:81px;flex:0 0 81px;object-fit:cover;border-radius:14px;background:#573326}
+#memoryMapPage .mm-card .mm-card-body{display:flex;flex-direction:column;gap:6px;min-width:0;justify-content:center}
+#memoryMapPage .mm-card strong{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#memoryMapPage .mm-card small{font-size:10px;color:#c9aa9b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#memoryMapPage .mm-card .mm-card-cta{font-size:10px;color:#ffa45d;font-weight:900}
+#memoryMapPage .mm-empty{padding:28px;text-align:center;color:#b8a097;font-size:12px;border:1px dashed rgba(255,163,86,.30);border-radius:21px;grid-column:1/-1}
+#memoryMapPage .leaflet-popup-content-wrapper{background:#211717;color:#ffecdc;border:1px solid rgba(255,160,85,.28);border-radius:20px}
+#memoryMapPage .leaflet-popup-tip{background:#211717}
+#memoryMapPage .leaflet-popup-content{margin:12px 14px;min-width:178px}
+#memoryMapPage .mm-popup strong{display:block;font-size:13px;margin-bottom:6px}
+#memoryMapPage .mm-popup small{display:block;color:#f0b991;font-size:10px;margin-bottom:10px}
+#memoryMapPage .mm-popup img{width:100%;max-height:150px;object-fit:cover;border-radius:12px;margin-bottom:10px}
+#memoryMapPage .mm-popup button{background:#ea7723!important;color:#fff!important;border:0!important;padding:9px 13px;border-radius:999px!important;font-size:11px;font-weight:800}
+#memoryMapPage .mm-pin{display:grid;place-items:center;width:32px;height:32px;border:2px solid rgba(255,239,212,.9);border-radius:50%;background:linear-gradient(135deg,#ffac45,#cf4a13);color:white;font-size:16px;box-shadow:0 2px 13px rgba(243,107,23,.4)!important}
+@media(min-width:900px){#appView.withlog-memory-map-active > #memoryMapPage{grid-column:2!important;grid-row:2 / span 2!important;max-width:none!important;padding:0 0 35px!important}}
+@media(min-width:1280px){#appView.withlog-memory-map-active > #memoryMapPage{grid-column:2 / 4!important}}
+@media(max-width:640px){#memoryMapPage{padding:8px 10px calc(110px + env(safe-area-inset-bottom))}#memoryMapPage .mm-hero{border-radius:25px;padding:21px}#memoryMapPage #memoryMapCanvas{height:56vh;min-height:360px}#memoryMapPage .mm-tools{gap:9px}#memoryMapPage .mm-filters{width:100%}#memoryMapPage .mm-filters button{flex:1}#memoryMapPage .mm-map-hint{font-size:10px}#appView #tabMemoryMap{font-size:10px!important}}
+</style>
 </head>
 <body class="selection:bg-slate-900 selection:text-white">
 
@@ -6819,6 +6874,7 @@ html body .withlog-settings-link {background:var(--wl-chip)!important;}
     <div id="withlogFeedTabBar" class="px-4 flex items-center gap-4 text-xs font-bold tracking-wider border-b border-slate-200" aria-label="ページ切り替え">
       <button id="tabAll" onclick="switchFeedTab('all')" class="pb-2 text-slate-900 border-b-2 border-slate-900">ALL</button>
       <button id="tabFollowing" onclick="switchFeedTab('following')" class="pb-2 text-slate-400 hover:text-slate-700">FOLLOWING</button>
+      <button id="tabMemoryMap" type="button" onclick="openMemoryMap()" aria-label="思い出マップを開く"><span aria-hidden="true">◉</span> MEMORY MAP</button>
       <button id="tabISS" type="button" onclick="openIssTracker()" aria-label="ISS TRACKER ページを開く">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M8 10l6 6M5 14l5 5M14 5l5 5M10 3l11 11-7 7L3 10l7-7z" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg> ISS
       </button>
@@ -6865,6 +6921,7 @@ html body .withlog-settings-link {background:var(--wl-chip)!important;}
       <div class="wl-rail-card">
         <p class="wl-rail-eyebrow">EXPLORE MORE</p>
         <div class="wl-rail-links">
+          <button type="button" class="wl-rail-link" onclick="openMemoryMap()"><span>Memory Map</span><span class="wl-rail-arrow" aria-hidden="true">&#8599;</span></button>
           <button type="button" class="wl-rail-link" onclick="openIssTracker()"><span>ISS Tracker</span><span class="wl-rail-arrow" aria-hidden="true">&#8599;</span></button>
           <button type="button" class="wl-rail-link" onclick="openFlightTracker()"><span>Flight Tracker</span><span class="wl-rail-arrow" aria-hidden="true">&#8599;</span></button>
           <button type="button" class="wl-rail-link" onclick="openWeatherPage()"><span>Local Weather</span><span class="wl-rail-arrow" aria-hidden="true">&#8599;</span></button>
@@ -6873,6 +6930,25 @@ html body .withlog-settings-link {background:var(--wl-chip)!important;}
       </div>
       <p class="wl-rail-note">WITHLOG &middot; Moments in motion.</p>
     </aside>
+
+
+    <!-- MEMORY MAP: only already-visible posts with explicit valid locations appear -->
+    <section id="memoryMapPage" class="hidden" aria-label="MEMORY MAP 思い出マップ" aria-hidden="true">
+      <header class="mm-hero">
+        <div class="mm-hero-top"><span class="mm-kicker">WITHLOG / YOUR PLACES</span><span class="mm-badge">✦ WORLD OF MEMORIES</span></div>
+        <h2>MEMORY MAP <span aria-hidden="true">✧</span></h2>
+        <p>思い出を、世界に刻もう。写真・音楽・あの日の気持ちを地図から振り返れます。</p>
+        <div class="mm-summary"><span><strong id="mmPostCount">—</strong> POSTS</span><span><strong id="mmPlaceCount">—</strong> PLACES</span><button type="button" id="mmReload">↻ 更新</button></div>
+      </header>
+      <div class="mm-tools">
+        <label class="mm-search-wrap"><span aria-hidden="true">⌕</span><input id="mmSearch" type="search" placeholder="投稿名・ユーザー名・メモで検索" aria-label="思い出を検索" autocomplete="off"></label>
+        <div class="mm-filters"><button type="button" data-mm-filter="all" aria-pressed="true">すべて</button><button type="button" data-mm-filter="mine" aria-pressed="false">自分の思い出</button></div>
+      </div>
+      <p id="mmStatus" class="mm-status" role="status" aria-live="polite">思い出を準備しています...</p>
+      <div class="mm-map-shell"><div id="memoryMapCanvas" role="application" aria-label="投稿地点の世界地図"></div><div class="mm-map-hint">📍 ピンをタップすると投稿を確認できます</div></div>
+      <div class="mm-list-head"><h3>PLACES & MOMENTS</h3><span id="mmFilteredCount">0 件</span></div>
+      <div id="mmCards" class="mm-cards"></div>
+    </section>
 
     <!-- 国内ニュース＋海外の主要ニュース：報道機関の配信元へリンク -->
     <section id="newsPage" class="hidden" aria-label="日本・世界の最新ニュース" aria-hidden="true">
@@ -14069,5 +14145,121 @@ document.addEventListener("DOMContentLoaded", function () {
 })();
 </script>
 
+
+<script id="withlog-memory-map-script">
+(() => {
+  'use strict';
+  const app=document.getElementById('appView'), page=document.getElementById('memoryMapPage'), tab=document.getElementById('tabMemoryMap');
+  const $=id=>document.getElementById(id);
+  if(!app||!page||!tab)return;
+  let map=null,layer=null,all=[],filtered=[],owner='',filter='all',latest=0,requestId=0;
+  const isOpen=()=>app.classList.contains('withlog-memory-map-active')&&!page.classList.contains('hidden');
+  const status=(message)=>{$('mmStatus').textContent=message;};
+  const valid=post=>{
+    if(!post||post.daily_with_locked||String(post.memo||'').includes('[[WITH_DAILY_LOCKED:'))return false;
+    const lat=Number(post.latitude),lon=Number(post.longitude);
+    return post.latitude!==null&&post.latitude!==undefined&&post.longitude!==null&&post.longitude!==undefined&&Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180&&!(lat===0&&lon===0)&&Boolean(String(post.google_map_url||'').trim());
+  };
+  function init(){
+    if(map)return;
+    if(typeof L==='undefined'){status('地図を読み込めませんでした。再読み込みしてください。');return;}
+    map=L.map('memoryMapCanvas',{zoomControl:true,worldCopyJump:true}).setView([22,15],2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap contributors',maxZoom:18}).addTo(map);
+    layer=L.featureGroup().addTo(map);
+    // Never allow parent click handlers (such as the global new-post shortcut) to capture map taps.
+    L.DomEvent.disableClickPropagation($('memoryMapCanvas'));
+    L.DomEvent.disableScrollPropagation($('memoryMapCanvas'));
+  }
+  function createCard(post){
+    const btn=document.createElement('button');btn.type='button';btn.className='mm-card';
+    if(post.media_url&&post.media_type!=='video'){
+      const img=document.createElement('img');img.src=post.media_url;img.alt='投稿写真';img.loading='lazy';img.referrerPolicy='same-origin';btn.append(img);
+    }
+    const body=document.createElement('span');body.className='mm-card-body';
+    const title=document.createElement('strong');title.textContent=post.name||'名前のない思い出';body.append(title);
+    const meta=document.createElement('small');meta.textContent='@'+(post.username||'')+' ・ '+new Date(post.visited_at).toLocaleDateString('ja-JP');body.append(meta);
+    const cta=document.createElement('span');cta.className='mm-card-cta';cta.textContent='地図で見る ↗';body.append(cta);btn.append(body);
+    btn.addEventListener('click',()=>{if(map&&post.__marker){map.flyTo(post.__marker.getLatLng(),Math.max(7,map.getZoom()),{duration:.6});post.__marker.openPopup();$('memoryMapCanvas').scrollIntoView({behavior:'smooth',block:'center'});}});
+    return btn;
+  }
+  function popupFor(post){
+    const wrap=document.createElement('div');wrap.className='mm-popup';
+    const title=document.createElement('strong');title.textContent=post.name||'思い出';wrap.append(title);
+    const meta=document.createElement('small');meta.textContent='@'+(post.username||'');wrap.append(meta);
+    if(post.media_url&&post.media_type!=='video'){
+      const img=document.createElement('img');img.src=post.media_url;img.alt='投稿写真';img.loading='lazy';wrap.append(img);
+    }
+    const text=String(post.memo||'').replace(/\[\[WITH_[^\]]+\]\]/g,'').trim();
+    if(text){const snippet=document.createElement('p');snippet.textContent=text.slice(0,130);snippet.style.cssText='font-size:11px;line-height:1.5;overflow-wrap:anywhere;margin:0 0 8px';wrap.append(snippet);}
+    const button=document.createElement('button');button.type='button';button.textContent='投稿を表示 →';button.addEventListener('click',()=>{
+      window.closeMemoryMap();window.location.hash='spot-'+post.id;
+      window.switchFeedTab('all');
+    });wrap.append(button);return wrap;
+  }
+  function render(){
+    filtered=all.filter(post=>(filter!=='mine'||(owner&&String(post.username||'').toLowerCase()===owner))&&(!String($('mmSearch').value||'').trim()||[post.name,post.username,post.memo].some(v=>String(v||'').toLocaleLowerCase().includes($('mmSearch').value.trim().toLocaleLowerCase()))));
+    $('mmPostCount').textContent=all.length;
+    $('mmPlaceCount').textContent=new Set(all.map(x=>`${Number(x.latitude).toFixed(3)},${Number(x.longitude).toFixed(3)}`)).size;
+    $('mmFilteredCount').textContent=filtered.length+' 件';
+    const cards=$('mmCards');cards.replaceChildren();
+    if(!filtered.length){const empty=document.createElement('div');empty.className='mm-empty';empty.textContent=all.length?'条件に合う思い出がありません。':'位置情報が付いた閲覧可能な投稿はまだありません。';cards.append(empty);}
+    filtered.slice(0,240).forEach(post=>cards.append(createCard(post)));
+    if(!map)return;
+    layer.clearLayers();const bounds=[];
+    filtered.slice(0,600).forEach(post=>{
+      const marker=L.marker([Number(post.latitude),Number(post.longitude)],{icon:L.divIcon({className:'',html:'<span class="mm-pin">✦</span>',iconSize:[32,32],iconAnchor:[16,16]})});
+      marker.bindPopup(popupFor(post),{maxWidth:260});marker.addTo(layer);post.__marker=marker;bounds.push(marker.getLatLng());
+    });
+    if(bounds.length)map.fitBounds(L.latLngBounds(bounds),{padding:[35,35],maxZoom:10});
+    else map.setView([22,15],2);
+    window.setTimeout(()=>map&&map.invalidateSize(),100);
+  }
+  async function load(force=false){
+    if(!isOpen())return;
+    if(!force&&latest&&Date.now()-latest<60000){render();return;}
+    const serial=++requestId;status('思い出を読み込み中...');
+    const token=localStorage.getItem('access_token');
+    try{
+      const headers=token?{'Authorization':'Bearer '+token}:{};
+      const [response,profile]=await Promise.all([
+        fetch('/spots?feed_type=all',{cache:'no-store',headers}),
+        token?fetch('/auth/me',{cache:'no-store',headers}).then(r=>r.ok?r.json():null).catch(()=>null):Promise.resolve(null)
+      ]);
+      if(!response.ok)throw new Error('投稿の取得に失敗しました。');
+      const data=await response.json();if(!Array.isArray(data))throw new Error('投稿データが正しくありません。');
+      if(serial!==requestId||!isOpen())return;
+      owner=String(profile?.username||'').toLowerCase();
+      all=data.filter(valid);latest=Date.now();
+      if(filter==='mine'&&!owner){filter='all';page.querySelectorAll('[data-mm-filter]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mmFilter==='all')));}
+      render();status(all.length?`${all.length}件の思い出を地図に表示しています。`:'地図に表示できる位置情報付きの投稿がありません。');
+    }catch(error){if(serial!==requestId)return;status(error?.message||'思い出を取得できませんでした。');if(!latest){all=[];render();}}
+  }
+  window.closeMemoryMap=()=>{
+    if(!isOpen())return;
+    ++requestId;page.classList.add('hidden');page.setAttribute('aria-hidden','true');app.classList.remove('withlog-memory-map-active');tab.removeAttribute('aria-current');
+    const otherOpen=['withlog-iss-active','withlog-weather-active','withlog-news-active','withlog-flights-active'].some(c=>app.classList.contains(c));
+    if(!otherOpen){const active=$('tabFollowing').classList.contains('border-b-2')?$('tabFollowing'):$('tabAll');active?.classList.add('border-b-2');}
+  };
+  window.openMemoryMap=()=>{
+    if(app.classList.contains('hidden'))return;
+    window.closeIssTracker?.();window.closeWeatherPage?.();window.closeNewsPage?.();window.closeFlightTracker?.();
+    if(isOpen())return;
+    page.classList.remove('hidden');page.setAttribute('aria-hidden','false');app.classList.add('withlog-memory-map-active');tab.setAttribute('aria-current','page');
+    $('tabAll').classList.remove('border-b-2');$('tabFollowing').classList.remove('border-b-2');
+    init();window.setTimeout(()=>map?.invalidateSize(),140);void load();
+  };
+  ['switchFeedTab','openIssTracker','openWeatherPage','openNewsPage','openFlightTracker'].forEach(name=>{
+    const original=window[name];if(typeof original!=='function')return;
+    window[name]=function(...args){window.closeMemoryMap();return original.apply(this,args);};
+  });
+  $('mmSearch').addEventListener('input',render);
+  $('mmReload').addEventListener('click',()=>void load(true));
+  page.querySelectorAll('[data-mm-filter]').forEach(btn=>btn.addEventListener('click',()=>{
+    if(btn.dataset.mmFilter==='mine'&&!owner){status('自分の思い出を見るにはログインしてください。');return;}
+    filter=btn.dataset.mmFilter;
+    page.querySelectorAll('[data-mm-filter]').forEach(b=>b.setAttribute('aria-pressed',String(b===btn)));render();
+  }));
+})();
+</script>
 </body>
 </html>
