@@ -3190,3 +3190,205 @@ def get_music_trending(region: str = "JP"):
             ttl = 120
         _music_chart_cache[region] = {"payload": payload, "expires": time.monotonic() + ttl}
         return payload
+
+
+# --- TRIP: account-private itineraries; no changes to existing posts or tables ---
+import json as _trip_json
+from sqlalchemy import text as _trip_sql
+from datetime import date as _trip_date
+
+class TripPlanIn(BaseModel):
+    title: str
+    destination: str
+    start_date: _trip_date
+    end_date: _trip_date
+    stops: List[dict] = []
+    destination_location: Optional[dict] = None
+
+_trip_schema_lock = threading.Lock()
+_trip_schema_ready = False
+
+def _trip_ensure_schema():
+    global _trip_schema_ready
+    if _trip_schema_ready:
+        return
+    with _trip_schema_lock:
+        if _trip_schema_ready:
+            return
+        with engine.begin() as conn:
+            conn.execute(_trip_sql("""
+                CREATE TABLE IF NOT EXISTS withlog_trip_plans (
+                    id UUID PRIMARY KEY,
+                    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    title VARCHAR(100) NOT NULL,
+                    destination VARCHAR(150) NOT NULL,
+                    start_date DATE NOT NULL,
+                    end_date DATE NOT NULL,
+                    payload TEXT NOT NULL DEFAULT '{}',
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+                )
+            """))
+            conn.execute(_trip_sql("""CREATE INDEX IF NOT EXISTS idx_withlog_trip_owner ON withlog_trip_plans(user_id, updated_at DESC)"""))
+        _trip_schema_ready = True
+
+def _trip_normalize(payload: TripPlanIn):
+    if not payload.title.strip() or len(payload.title.strip()) > 100:
+        raise HTTPException(status_code=400, detail="タイトルは100文字以内で入力してください。")
+    if not payload.destination.strip() or len(payload.destination.strip()) > 150:
+        raise HTTPException(status_code=400, detail="行き先は150文字以内で入力してください。")
+    duration = (payload.end_date - payload.start_date).days
+    if duration < 0 or duration > 20:
+        raise HTTPException(status_code=400, detail="旅行日程は1日から21日までです。")
+    if len(payload.stops) > 30:
+        raise HTTPException(status_code=400, detail="訪問スポットは30件以内にしてください。")
+    clean_stops = []
+    for stop in payload.stops:
+        if not isinstance(stop, dict):
+            raise HTTPException(status_code=400, detail="スポットの内容が正しくありません。")
+        try:
+            lat, lon = float(stop.get("lat")), float(stop.get("lon"))
+            stop_date = _trip_date.fromisoformat(str(stop.get("date", "")))
+        except (TypeError, ValueError):
+            raise HTTPException(status_code=400, detail="スポットの位置情報が正しくありません。")
+        if not (-90 <= lat <= 90 and -180 <= lon <= 180) or not(payload.start_date <= stop_date <= payload.end_date):
+            raise HTTPException(status_code=400, detail="スポットの座標または日付が旅行日程外です。")
+        name = str(stop.get("name") or "").strip()[:140]
+        if not name:
+            raise HTTPException(status_code=400, detail="スポット名を入力してください。")
+        clean_stops.append({
+            "id": str(stop.get("id") or uuid.uuid4())[:80],
+            "date": stop_date.isoformat(), "name": name,
+            "subtitle": str(stop.get("subtitle") or "")[:160],
+            "lat": lat, "lon": lon,
+        })
+    location = None
+    if isinstance(payload.destination_location, dict):
+        try:
+            lat, lon = float(payload.destination_location.get("lat")), float(payload.destination_location.get("lon"))
+            if -90 <= lat <= 90 and -180 <= lon <= 180:
+                location = {"lat": lat, "lon": lon}
+        except (TypeError, ValueError):
+            pass
+    return {
+        "title": payload.title.strip(), "destination": payload.destination.strip(),
+        "start_date": payload.start_date.isoformat(), "end_date": payload.end_date.isoformat(),
+        "stops": clean_stops, "destination_location": location,
+    }
+
+def _trip_row(row):
+    data = _trip_json.loads(row["payload"])
+    return {"id": str(row["id"]), "title": row["title"], "destination": row["destination"],
+            "start_date": row["start_date"].isoformat(), "end_date": row["end_date"].isoformat(),
+            "stops": data.get("stops", []), "destination_location": data.get("destination_location"),
+            "updated_at": row["updated_at"].isoformat() if row["updated_at"] else None}
+
+@app.get("/api/trips")
+def trip_list(current_user: User = Depends(require_current_user), db: Session = Depends(get_db)):
+    _trip_ensure_schema()
+    rows = db.execute(_trip_sql("""SELECT id,title,destination,start_date,end_date,payload,updated_at
+        FROM withlog_trip_plans WHERE user_id=:uid ORDER BY updated_at DESC LIMIT 30"""),
+        {"uid": current_user.id}).mappings().all()
+    return {"items": [_trip_row(row) for row in rows]}
+
+@app.post("/api/trips", status_code=201)
+def trip_create(payload: TripPlanIn, current_user: User = Depends(require_current_user), db: Session = Depends(get_db)):
+    _trip_ensure_schema()
+    item = _trip_normalize(payload)
+    total = db.execute(_trip_sql("SELECT COUNT(*) FROM withlog_trip_plans WHERE user_id=:uid"), {"uid": current_user.id}).scalar()
+    if total >= 30:
+        raise HTTPException(status_code=400, detail="旅行プランは30件まで保存できます。")
+    uid = uuid.uuid4()
+    db.execute(_trip_sql("""INSERT INTO withlog_trip_plans
+        (id,user_id,title,destination,start_date,end_date,payload)
+        VALUES (:id,:uid,:title,:destination,:start_date,:end_date,:payload)"""),
+        {"id":uid,"uid":current_user.id, "title":item["title"], "destination":item["destination"],
+         "start_date":item["start_date"], "end_date":item["end_date"], "payload":_trip_json.dumps(item,ensure_ascii=False)})
+    db.commit()
+    row = db.execute(_trip_sql("SELECT * FROM withlog_trip_plans WHERE id=:id AND user_id=:uid"), {"id":uid,"uid":current_user.id}).mappings().first()
+    return _trip_row(row)
+
+@app.put("/api/trips/{trip_id}")
+def trip_update(trip_id: uuid.UUID, payload: TripPlanIn,
+                current_user: User = Depends(require_current_user), db: Session = Depends(get_db)):
+    _trip_ensure_schema()
+    item = _trip_normalize(payload)
+    result=db.execute(_trip_sql("""UPDATE withlog_trip_plans
+        SET title=:title,destination=:destination,start_date=:start_date,end_date=:end_date,
+            payload=:payload,updated_at=CURRENT_TIMESTAMP
+        WHERE id=:id AND user_id=:uid"""),
+        {"id":trip_id,"uid":current_user.id,"title":item["title"],"destination":item["destination"],
+         "start_date":item["start_date"],"end_date":item["end_date"],"payload":_trip_json.dumps(item,ensure_ascii=False)})
+    if not result.rowcount:
+        db.rollback()
+        raise HTTPException(status_code=404, detail="旅行プランが見つかりません。")
+    db.commit()
+    row=db.execute(_trip_sql("SELECT * FROM withlog_trip_plans WHERE id=:id AND user_id=:uid"),{"id":trip_id,"uid":current_user.id}).mappings().first()
+    return _trip_row(row)
+
+@app.delete("/api/trips/{trip_id}", status_code=204)
+def trip_delete(trip_id: uuid.UUID, current_user: User = Depends(require_current_user), db: Session = Depends(get_db)):
+    _trip_ensure_schema()
+    result=db.execute(_trip_sql("DELETE FROM withlog_trip_plans WHERE id=:id AND user_id=:uid"),
+                      {"id":trip_id,"uid":current_user.id})
+    if not result.rowcount:
+        db.rollback()
+        raise HTTPException(status_code=404, detail="旅行プランが見つかりません。")
+    db.commit()
+    return Response(status_code=204)
+
+
+# --- TRIP place lookup: user-initiated search only; comply with Nominatim policy ---
+import urllib.parse as _trip_urlparse
+import urllib.request as _trip_urlrequest
+_trip_geo_lock = threading.Lock()
+_trip_geo_cache = {}
+_trip_geo_last_request = 0.0
+
+@app.get("/api/trips/places")
+def trip_search_places(q: str = Query(..., min_length=2, max_length=120),
+                       current_user: User = Depends(require_current_user)):
+    global _trip_geo_last_request
+    key = q.strip()
+    if len(key) < 2:
+        return {"items": []}
+    now = time.monotonic()
+    with _trip_geo_lock:
+        stored = _trip_geo_cache.get(key.lower())
+        if stored and now - stored[0] < 86400:
+            return {"items": stored[1]}
+        # Public Nominatim requires no more than one request per second, globally.
+        pause = 1.1 - (time.monotonic() - _trip_geo_last_request)
+        if pause > 0:
+            time.sleep(pause)
+        _trip_geo_last_request = time.monotonic()
+        params = _trip_urlparse.urlencode({"q": key, "format": "jsonv2", "limit": 6,
+                                           "accept-language": "ja"})
+        url = "https://nominatim.openstreetmap.org/search?" + params
+        req = _trip_urlrequest.Request(url, headers={
+            "User-Agent": "WITHLOG-TripPlanner/1.0 (app support: https://github.com/OKEYARUI-724/diary-app-4)",
+            "Accept": "application/json", "Accept-Language": "ja",
+        })
+        try:
+            with _trip_urlrequest.urlopen(req, timeout=9) as response:
+                body = response.read(150001)
+            if len(body)>150000:
+                raise ValueError("Response too large")
+            raw = _trip_json.loads(body)
+            items = []
+            for place in raw[:6]:
+                try:
+                    lat,lon=float(place.get("lat")),float(place.get("lon"))
+                except (ValueError,TypeError):
+                    continue
+                if -90<=lat<=90 and -180<=lon<=180:
+                    items.append({"name":str(place.get("name") or place.get("display_name") or "場所")[:140],
+                                  "subtitle":str(place.get("display_name") or "")[:160],
+                                  "lat":lat,"lon":lon})
+        except Exception as exc:
+            print(f"[TRIP geocoding unavailable] {type(exc).__name__}", flush=True)
+            raise HTTPException(status_code=502, detail="場所を検索できませんでした。しばらくしてからお試しください。")
+        if len(_trip_geo_cache)>300:
+            _trip_geo_cache.clear()
+        _trip_geo_cache[key.lower()] = (time.monotonic(), items)
+        return {"items": items}

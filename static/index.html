@@ -7053,6 +7053,7 @@ html body #appView #withlogFeedTabBar #tabMemoryMap:focus-visible {
       <button id="tabAll" onclick="switchFeedTab('all')" class="pb-2 text-slate-900 border-b-2 border-slate-900">ALL</button>
       <button id="tabFollowing" onclick="switchFeedTab('following')" class="pb-2 text-slate-400 hover:text-slate-700">FOLLOWING</button>
       <button id="tabMemoryMap" type="button" onclick="openMemoryMap()" aria-label="思い出マップを開く"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20V6.5Z" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 4v13.5M15 6.5V20" stroke-width="1.6" stroke-linecap="round"/></svg>MEMORY MAP</button>
+      <button id="tabTrip" type="button" onclick="openTripPage()" aria-label="TRIP 旅行プランナーを開く"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M4 13h16M11 13v2h2v-2" stroke-linecap="round"/></svg> TRIP</button>
       <button id="tabISS" type="button" onclick="openIssTracker()" aria-label="ISS TRACKER ページを開く">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M8 10l6 6M5 14l5 5M14 5l5 5M10 3l11 11-7 7L3 10l7-7z" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg> ISS
       </button>
@@ -7115,6 +7116,38 @@ html body #appView #withlogFeedTabBar #tabMemoryMap:focus-visible {
       <p class="wl-rail-note">WITHLOG &middot; Moments in motion.</p>
     </aside>
 
+
+    <!-- TRIP: private travel planner (server-side per-account persistence) -->
+    <section id="tripPage" class="hidden" aria-label="TRIP 旅行・お出かけプランナー" aria-hidden="true">
+      <header class="trip-hero">
+        <div class="trip-kicker">WITHLOG / EXPLORE YOUR WORLD <span>TRAVEL PLANNER</span></div>
+        <h2>PLAN YOUR <em>TRIP.</em></h2>
+        <p>行きたい場所も、過ごしたい時間も。あなたの旅をひとつにまとめよう。</p>
+        <div class="trip-hero-actions"><span id="tripAccountStatus">プランを読み込みます</span><button type="button" id="tripNew">＋ 新しい旅</button></div>
+      </header>
+      <div class="trip-layout">
+        <aside class="trip-side">
+          <div class="trip-side-heading"><h3>MY TRIPS</h3><span id="tripCount">0 PLANS</span></div>
+          <div id="tripPlans" class="trip-plans" aria-label="保存済み旅行プラン"></div>
+          <p class="trip-note">旅行プランはログイン中のアカウントに保存されます。スポット検索にはOpenStreetMap Nominatim、天気情報にはOpen-Meteoを使用します。</p>
+        </aside>
+        <div class="trip-workspace">
+          <form id="tripEditor" class="trip-editor hidden" autocomplete="off">
+            <div class="trip-title-row"><div><div class="trip-eyebrow">ITINERARY EDITOR</div><h3 id="tripEditorHeading">新しい旅</h3></div><button type="button" id="tripDelete" class="trip-quiet">このプランを削除</button></div>
+            <div class="trip-fields"><label>旅のタイトル<input id="tripTitle" maxlength="100" required placeholder="例：週末の北海道旅行"></label><label>行き先<input id="tripDestination" maxlength="150" required placeholder="例：札幌、北海道"></label><label>出発日<input id="tripStart" type="date" required></label><label>帰着日<input id="tripEnd" type="date" required></label></div>
+            <div class="trip-day-head"><h4>DAY BY DAY</h4><span>日付ごとに訪問先を追加できます</span></div>
+            <div id="tripDayTabs" class="trip-day-tabs" role="group" aria-label="日付を選択"></div>
+            <div class="trip-stop-add"><input id="tripPlaceSearch" maxlength="120" placeholder="スポット名で検索（例：札幌時計台）" aria-label="スポット検索"><button id="tripPlaceButton" type="button">場所を検索</button></div>
+            <div id="tripPlaceResults" class="trip-place-results" aria-live="polite"></div>
+            <div id="tripStops" class="trip-stops"></div>
+            <div class="trip-map-wrap"><div class="trip-map-head"><span>TRIP MAP</span><a id="tripDirections" href="#" target="_blank" rel="noopener noreferrer" class="hidden">地図アプリで経路を見る ↗</a></div><div id="tripMap" aria-label="旅行スポットの地図"></div><div class="trip-note" style="padding:8px 12px">地図・検索データ © OpenStreetMap contributors</div></div>
+            <div class="trip-weather" id="tripWeather" aria-live="polite">スポットを登録すると、その地域の現在の天気を確認できます。</div>
+            <div class="trip-editor-actions"><span id="tripMessage" role="status" aria-live="polite"></span><button type="submit" id="tripSave">旅のプランを保存</button></div>
+          </form>
+          <div id="tripEmpty" class="trip-empty"><div class="trip-empty-symbol">✦</div><h3>WHERE TO NEXT?</h3><p>新しい旅を作成して、行き先と訪れたい場所を登録しましょう。</p><button type="button" id="tripEmptyNew">＋ 旅を計画する</button></div>
+        </div>
+      </div>
+    </section>
 
     <!-- MEMORY MAP: only already-visible posts with explicit valid locations appear -->
     <section id="memoryMapPage" class="hidden" aria-label="MEMORY MAP 思い出マップ" aria-hidden="true">
@@ -14997,6 +15030,110 @@ html body #appView #withlogFeedTabBar > #tabMusicTrends::after{display:none!impo
  }));
  $('mtRefresh').addEventListener('click',()=>void load(true));
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&isOpen()&&Date.now()-lastFetch>=1800000)void load();});
+})();
+</script>
+
+<style id="withlog-trip-style">
+#appView.withlog-trip-active > main,#appView.withlog-trip-active > #storiesSection{display:none!important}
+#tripPage{width:100%;min-width:0;padding:0 0 110px;color:var(--wl-ink)}
+#tripPage.hidden{display:none!important}
+#tripPage .trip-hero{padding:clamp(22px,4vw,39px);border:1px solid rgba(239,158,96,.36)!important;border-radius:30px!important;background:radial-gradient(ellipse at 85% 12%,rgba(237,115,35,.34),transparent 52%),linear-gradient(115deg,#191010,#40241e)!important;color:#fff2e8!important}
+#tripPage .trip-kicker{font-size:10px;font-weight:850;letter-spacing:.14em;color:#f9b47c!important;display:flex;gap:12px;flex-wrap:wrap}
+#tripPage .trip-kicker span{padding:4px 8px;border-radius:30px;border:1px solid rgba(255,191,132,.43)}
+#tripPage .trip-hero h2{font-size:clamp(30px,5vw,54px);font-weight:950;letter-spacing:-.055em;margin:18px 0 9px;color:#fff3e8!important;line-height:1.14}#tripPage .trip-hero h2 em{font-style:normal;color:#ff9b50!important}
+#tripPage .trip-hero p{font-size:12px;line-height:1.8;color:#eecfbc!important}
+#tripPage .trip-hero-actions{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:23px;font-size:11px;color:#d4b5a3}
+#tripPage button{cursor:pointer}#tripPage button:focus-visible,#tripPage input:focus-visible{outline:2px solid #f0a167;outline-offset:2px}
+#tripPage #tripNew,#tripPage #tripEmptyNew,#tripPage #tripSave,#tripPage #tripPlaceButton{background:linear-gradient(125deg,#f49543,#d7662b)!important;color:#fff!important;border:0!important;border-radius:15px!important;font-size:12px;font-weight:850;padding:11px 17px;min-height:42px}
+#tripPage button:disabled{opacity:.55;cursor:not-allowed}
+#tripPage .trip-layout{display:grid;grid-template-columns:minmax(210px,280px) minmax(0,1fr);gap:16px;margin-top:19px;align-items:start}
+#tripPage .trip-side,#tripPage .trip-editor,#tripPage .trip-empty{border:1px solid var(--wl-border)!important;border-radius:25px;background:var(--wl-surface)!important;min-width:0}
+#tripPage .trip-side{padding:18px}#tripPage .trip-side-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:12px;border-bottom:1px solid var(--wl-border)}#tripPage .trip-side-heading h3{font-size:12px;font-weight:900;letter-spacing:.1em}#tripPage #tripCount{font-size:10px;color:var(--wl-muted)}
+#tripPage .trip-plans{display:grid;gap:9px;margin:12px 0}#tripPage .trip-plan{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:13px 14px;border-radius:16px!important;background:var(--wl-chip)!important;color:var(--wl-ink)!important;border:1px solid transparent!important;text-align:left;width:100%;font-size:12px;font-weight:800}#tripPage .trip-plan span{font-weight:500;font-size:10px;color:var(--wl-muted)}#tripPage .trip-plan[aria-current="true"]{background:rgba(238,139,60,.17)!important;border-color:rgba(232,128,54,.58)!important}
+#tripPage .trip-note{font-size:10px;line-height:1.8;color:var(--wl-muted)}
+#tripPage .trip-editor{padding:clamp(16px,2.7vw,26px)}#tripPage .trip-title-row{display:flex;align-items:start;justify-content:space-between;gap:10px;margin-bottom:18px}#tripPage .trip-eyebrow{font-size:10px;letter-spacing:.14em;color:var(--wl-accent);font-weight:850}#tripPage .trip-title-row h3{font-size:23px;font-weight:900;letter-spacing:-.04em;margin-top:5px}#tripPage .trip-quiet{background:transparent!important;border:1px solid var(--wl-border)!important;color:var(--wl-muted)!important;font-size:11px;border-radius:13px!important;padding:9px!important}
+#tripPage .trip-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#tripPage .trip-fields label{display:grid;gap:7px;font-size:11px;font-weight:750;color:var(--wl-muted)}
+#tripPage .trip-fields input,#tripPage #tripPlaceSearch{color:var(--wl-ink)!important;background:var(--wl-chip)!important;border:1px solid var(--wl-border)!important;border-radius:13px!important;padding:12px!important;min-width:0;width:100%;font-size:13px;outline:0}
+#tripPage input::placeholder{color:var(--wl-muted)!important;opacity:.85}
+#tripPage .trip-day-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:25px 0 12px}#tripPage .trip-day-head h4{font-weight:900;font-size:12px;letter-spacing:.12em}#tripPage .trip-day-head span{color:var(--wl-muted);font-size:10px}
+#tripPage .trip-day-tabs{display:flex;gap:8px;overflow-x:auto;padding:3px 0 8px}#tripPage .trip-day-tabs button{flex:none;min-width:68px;border:1px solid var(--wl-border)!important;border-radius:13px!important;color:var(--wl-ink)!important;background:var(--wl-chip)!important;font-size:11px;padding:10px 12px!important;font-weight:850}#tripPage .trip-day-tabs button[aria-pressed="true"]{background:#dd7634!important;color:white!important;border-color:#dd7634!important}
+#tripPage .trip-stop-add{display:flex;gap:9px;margin-top:14px}#tripPage #tripPlaceSearch{flex:1}
+#tripPage .trip-place-results{display:grid;gap:5px;margin:8px 0}#tripPage .trip-place-results button{padding:10px 12px;border:1px solid var(--wl-border)!important;border-radius:12px!important;background:var(--wl-chip)!important;color:var(--wl-ink)!important;text-align:left;font-size:11px}
+#tripPage .trip-stops{display:grid;gap:9px;margin:12px 0}#tripPage .trip-stop{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--wl-border);background:var(--wl-chip);border-radius:15px;min-width:0}
+#tripPage .trip-stop-number{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:rgba(237,129,47,.18);color:var(--wl-accent);font-size:12px;font-weight:900;flex:none}
+#tripPage .trip-stop-content{flex:1;min-width:0;display:grid;gap:4px}#tripPage .trip-stop-content strong{font-size:12px;overflow-wrap:anywhere}#tripPage .trip-stop-content small{color:var(--wl-muted);font-size:10px}#tripPage .trip-stop button{flex:none;background:transparent!important;color:var(--wl-muted)!important;border:1px solid var(--wl-border)!important;padding:7px 9px!important;border-radius:9px!important;font-size:11px}
+#tripPage .trip-map-wrap{overflow:hidden;border-radius:20px;border:1px solid var(--wl-border);margin:18px 0}#tripPage .trip-map-head{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px 14px;background:var(--wl-chip);font-size:10px;font-weight:850;letter-spacing:.08em}#tripPage .trip-map-head a{font-weight:750;text-decoration:none;color:var(--wl-accent)}#tripMap{width:100%;height:340px;background:#d9e2df}
+#tripPage .trip-weather{padding:14px 16px;border:1px solid var(--wl-border);border-radius:15px;background:var(--wl-chip);font-size:11px;line-height:1.8;color:var(--wl-muted)}#tripPage .trip-editor-actions{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-top:20px}#tripMessage{font-size:11px;color:var(--wl-muted)}
+#tripPage .trip-empty{text-align:center;padding:70px 16px}#tripPage .trip-empty-symbol{font-size:38px;color:var(--wl-accent)}#tripPage .trip-empty h3{font-size:23px;font-weight:900;margin:9px 0}#tripPage .trip-empty p{color:var(--wl-muted);font-size:12px;margin-bottom:21px}
+#appView #withlogFeedTabBar #tabTrip{display:flex;align-items:center;justify-content:flex-start;gap:11px;white-space:nowrap;min-height:46px;padding:12px 14px!important;color:var(--wl-muted)!important;background:transparent!important;border:1px solid transparent!important;border-radius:16px!important;font-size:12px!important;font-weight:800!important}
+#appView #withlogFeedTabBar #tabTrip svg{width:18px;height:18px;flex:none}
+#appView.withlog-trip-active #withlogFeedTabBar #tabTrip{background:linear-gradient(115deg,rgba(236,128,51,.28),rgba(236,128,51,.13))!important;border-color:rgba(220,125,62,.45)!important;color:var(--wl-ink)!important}
+#appView #withlogFeedTabBar #tabTrip::after{content:none!important;display:none!important}
+@media(min-width:900px){#appView.withlog-trip-active > #tripPage{grid-column:2;grid-row:2/span 2}}@media(min-width:1280px){#appView.withlog-trip-active > #tripPage{grid-column:2/4!important}#appView.withlog-trip-active > #withlogDesktopRail{display:none!important}}
+@media(max-width:899px){#appView > #tripPage{min-width:0}}
+@media(max-width:750px){#tripPage .trip-layout{grid-template-columns:1fr}#tripPage .trip-plans{display:flex;overflow-x:auto}#tripPage .trip-plan{min-width:170px}}
+@media(max-width:640px){#appView #withlogFeedTabBar #tabTrip{min-height:38px!important;padding:9px 12px!important;border-radius:999px!important;font-size:10px!important}#appView #withlogFeedTabBar #tabTrip svg{width:15px;height:15px}#tripPage{padding:8px 10px calc(110px + env(safe-area-inset-bottom))}#tripPage .trip-hero{border-radius:24px!important}#tripPage .trip-fields{grid-template-columns:1fr}#tripPage .trip-stop-add{flex-wrap:wrap}#tripPage #tripPlaceButton{width:100%}#tripMap{height:300px}}
+</style>
+
+<script id="withlog-trip-script">
+(() => {
+ 'use strict';
+ const app=document.getElementById('appView'),page=document.getElementById('tripPage'),tab=document.getElementById('tabTrip');
+ if(!app||!page||!tab)return;
+ const $=id=>document.getElementById(id);
+ let plans=[],selected=null,day=0,map=null,markers=null,mapLine=null,searchAbort=null,fetchSeq=0,initialized=false,previousFeed='all',dirty=false;
+ const isOpen=()=>app.classList.contains('withlog-trip-active')&&!page.classList.contains('hidden');
+ const auth=()=>{try{return localStorage.getItem('access_token')||'';}catch{return ''}};
+ const node=(tag,cls,txt)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(txt!==undefined)n.textContent=txt;return n};
+ const today=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
+ const plainDate=(date)=>{const d=new Date(date+'T12:00:00');return Number.isNaN(+d)?null:d};
+ const allDays=()=>{const a=plainDate($('tripStart').value),b=plainDate($('tripEnd').value);if(!a||!b||b<a)return[];const n=Math.round((b-a)/86400000)+1;if(n>21)return[];return Array.from({length:n},(_,i)=>{const d=new Date(+a+i*86400000);return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')})};
+ const say=m=>{$('tripMessage').textContent=m};
+ function tripStatus(msg){$('tripAccountStatus').textContent=msg}
+ async function api(path,options={}){
+   const token=auth();if(!token)throw new Error('ログインしてください。');
+   const r=await fetch(path,{...options,headers:{'Authorization':'Bearer '+token,...options.body?{'Content-Type':'application/json'}:{},...(options.headers||{})},cache:'no-store'});
+   if(!r.ok){let message='保存処理に失敗しました。';try{const body=await r.json();if(typeof body.detail==='string')message=body.detail}catch{};throw new Error(message)}
+   return r.status===204?null:r.json();
+ }
+ function renderPlans(){const host=$('tripPlans');host.replaceChildren();$('tripCount').textContent=plans.length+' PLANS';
+  if(!plans.length){host.append(node('p','trip-note','保存された旅行はまだありません。'));return}
+  for(const p of plans){const b=node('button','trip-plan');b.type='button';b.setAttribute('aria-current',String(p.id===selected?.id));b.append(node('strong','',p.title));b.append(node('span','',p.destination+' / '+p.start_date+' ～ '+p.end_date));b.addEventListener('click',()=>{if(dirty&&!confirm('未保存の変更があります。別のプランに移動しますか？'))return;choose(p)});host.append(b)}
+ }
+ function pickState(){return {title:$('tripTitle').value.trim(),destination:$('tripDestination').value.trim(),start_date:$('tripStart').value,end_date:$('tripEnd').value,stops:structuredClone(selected?.stops||[]),destination_location:selected?.destination_location||null}}
+ function choose(plan){selected=structuredClone(plan);dirty=false;day=0;$('tripEmpty').classList.add('hidden');$('tripEditor').classList.remove('hidden');$('tripEditorHeading').textContent=plan.id?'旅のプランを編集':'新しい旅';$('tripDelete').classList.toggle('hidden',!plan.id);
+   $('tripTitle').value=plan.title||'';$('tripDestination').value=plan.destination||'';$('tripStart').value=plan.start_date||today();$('tripEnd').value=plan.end_date||today();$('tripPlaceResults').replaceChildren();$('tripPlaceSearch').value='';say('');renderPlans();renderDays();loadWeather();
+   setTimeout(()=>{ensureMap();map?.invalidateSize();drawMap()},100);
+ }
+ function renderDays(){const days=allDays(),root=$('tripDayTabs');root.replaceChildren();if(!days.length){root.append(node('span','trip-note','日程は1～21日間で設定してください。'));$('tripStops').replaceChildren();drawMap();return;}day=Math.max(0,Math.min(day,days.length-1));for(let i=0;i<days.length;i++){const btn=node('button','',`DAY ${i+1} / ${days[i].slice(5)}`);btn.type='button';btn.setAttribute('aria-pressed',String(i===day));btn.onclick=()=>{day=i;renderDays()};root.append(btn)}renderStops();drawMap();}
+ function dayStops(){const days=allDays();return selected?.stops?.filter(s=>days[day]===s.date)||[]}
+ function renderStops(){const host=$('tripStops');host.replaceChildren();const stops=dayStops();if(!stops.length)host.append(node('p','trip-note','この日のスポットはまだありません。上の検索欄から追加してください。'));
+  stops.forEach((stop,i)=>{const row=node('div','trip-stop');row.append(node('span','trip-stop-number',String(i+1)));const content=node('div','trip-stop-content');content.append(node('strong','',stop.name));content.append(node('small','',stop.subtitle||'訪問スポット'));row.append(content);const up=node('button','','↑');up.type='button';up.title='順番を前へ';up.disabled=i===0;up.onclick=()=>{const prev=stops[i-1],oldIndex=selected.stops.indexOf(stop),newIndex=selected.stops.indexOf(prev);[selected.stops[oldIndex],selected.stops[newIndex]]=[selected.stops[newIndex],selected.stops[oldIndex]];dirty=true;renderStops();drawMap()};row.append(up);const del=node('button','','削除');del.type='button';del.onclick=()=>{selected.stops=selected.stops.filter(x=>x!==stop);dirty=true;renderStops();drawMap()};row.append(del);host.append(row)});
+ }
+ function ensureMap(){if(map||typeof L==='undefined')return;map=L.map('tripMap',{zoomControl:true}).setView([36,138],5);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:18}).addTo(map);markers=L.featureGroup().addTo(map);L.DomEvent.disableClickPropagation($('tripMap'));L.DomEvent.disableScrollPropagation($('tripMap'))}
+ function drawMap(){if(!map||!markers)return;markers.clearLayers();if(mapLine){map.removeLayer(mapLine);mapLine=null}const stops=dayStops(),points=[];for(const s of stops){if(!Number.isFinite(+s.lat)||!Number.isFinite(+s.lon))continue;const pt=[+s.lat,+s.lon];points.push(pt);L.marker(pt).bindPopup(node('strong','',s.name)).addTo(markers)}
+  if(points.length>1)mapLine=L.polyline(points,{color:'#e77b31',weight:4,opacity:.85}).addTo(map);
+  if(points.length)map.fitBounds(L.latLngBounds(points).pad(.3),{maxZoom:12});else if(selected?.destination_location){map.setView([selected.destination_location.lat,selected.destination_location.lon],10)}else map.setView([36,138],5);
+  const link=$('tripDirections');if(!points.length){link.classList.add('hidden');return}const coords=points.map(p=>p.join(',')).join('/');link.href='https://www.google.com/maps/dir/'+points.map(p=>p.join(',')).join('/')+'/';link.classList.remove('hidden');
+ }
+ const cleanSearch=async term=>{const r=await fetch('/api/trips/places?q='+encodeURIComponent(term),{signal:searchAbort.signal,headers:{Authorization:'Bearer '+auth()},cache:'no-store'});if(!r.ok)throw new Error('検索に失敗');const data=await r.json();return (data.items||[]).filter(x=>Number.isFinite(+x.lat)&&Number.isFinite(+x.lon))};
+ async function searchPlaces(){const term=$('tripPlaceSearch').value.trim(),root=$('tripPlaceResults');root.replaceChildren();if(term.length<2){root.append(node('p','trip-note','2文字以上の地名を入力してください。'));return}searchAbort?.abort();searchAbort=new AbortController();const n=++fetchSeq;root.append(node('p','trip-note','場所を検索中…'));
+  try{let found=await cleanSearch(term);if(!found.length&&({'東京':'Tokyo','大阪':'Osaka','札幌':'Sapporo','京都':'Kyoto','千歳':'Chitose','ソウル':'Seoul'}[term]))found=await cleanSearch(({'東京':'Tokyo','大阪':'Osaka','札幌':'Sapporo','京都':'Kyoto','千歳':'Chitose','ソウル':'Seoul'})[term]);if(n!==fetchSeq)return;root.replaceChildren();if(!found.length){root.append(node('p','trip-note','候補が見つかりません。都市名で再検索してください。'));return}
+    for(const candidate of found){const name=[candidate.name,candidate.subtitle].filter(Boolean).join(' / ');const btn=node('button','',name);btn.type='button';btn.onclick=()=>{const date=allDays()[day];if(!date){say('先に有効な日付を設定してください。');return}if((selected.stops||[]).length>=30){say('1つの旅に追加できる場所は30件までです。');return}selected.stops.push({id:crypto.randomUUID(),date,name:candidate.name,subtitle:candidate.subtitle||'',lat:+candidate.lat,lon:+candidate.lon});if(!selected.destination_location)selected.destination_location={lat:+candidate.lat,lon:+candidate.lon};dirty=true;$('tripPlaceSearch').value='';root.replaceChildren();renderStops();drawMap();loadWeather();};root.append(btn)}
+  }catch(e){if(n!==fetchSeq)return;root.replaceChildren();root.append(node('p','trip-note',e.name==='AbortError'?'':'通信できませんでした。時間をおいて再検索してください。'))}
+ }
+ async function loadWeather(){const dst=selected?.destination_location,host=$('tripWeather');if(!dst){host.textContent='スポットを追加すると、その地域の現在の天気を表示します。';return}host.textContent='天気を取得しています…';try{const u='https://api.open-meteo.com/v1/forecast?latitude='+encodeURIComponent(dst.lat)+'&longitude='+encodeURIComponent(dst.lon)+'&current=temperature_2m,relative_humidity_2m,precipitation,weather_code&timezone=auto';const r=await fetch(u);if(!r.ok)throw Error();const data=await r.json();if(!selected||selected.destination_location?.lat!==dst.lat)return;const c=data.current||{};host.textContent='現在の天気 / '+(Number.isFinite(c.temperature_2m)?c.temperature_2m+'℃':'--')+' ・ 湿度 '+(Number.isFinite(c.relative_humidity_2m)?c.relative_humidity_2m+'%':'--')+' ・ 降水量 '+(Number.isFinite(c.precipitation)?c.precipitation+' mm':'--')+'。旅行当日の予報とは異なります。';}catch{host.textContent='天気情報を取得できませんでした。'} }
+ async function loadPlans(){if(!auth()){tripStatus('ログインすると旅行プランを保存できます');plans=[];renderPlans();return}tripStatus('旅行プランを取得中…');try{const result=await api('/api/trips');plans=result.items||[];renderPlans();tripStatus('旅行プランはアカウントに保存されます');if(selected?.id){const matching=plans.find(p=>p.id===selected.id);if(matching&&!dirty)choose(matching)}}catch(e){tripStatus(e.message)}}
+ function create(){if(!auth()){tripStatus('旅行プランを保存するにはログインしてください');return}if(dirty&&!confirm('未保存の変更を破棄して、新しい旅を作りますか？'))return;choose({title:'',destination:'',start_date:today(),end_date:today(),stops:[],destination_location:null})}
+ async function save(e){e.preventDefault();if(!selected)return;const payload=pickState();if(!payload.title||!payload.destination){say('タイトルと行き先を入力してください。');return}const ds=allDays();if(!ds.length){say('日程は1～21日間で指定してください。');return}if(payload.stops.length>30){say('スポットは30件まで追加できます。');return}const b=$('tripSave');b.disabled=true;say('保存しています…');try{const saved=await api(selected.id?'/api/trips/'+encodeURIComponent(selected.id):'/api/trips',{method:selected.id?'PUT':'POST',body:JSON.stringify(payload)});dirty=false;selected=saved;await loadPlans();choose(saved);say('保存しました。')}catch(err){say(err.message)}finally{b.disabled=false}}
+ async function remove(){if(!selected?.id||!confirm('この旅行プランを削除しますか？'))return;try{await api('/api/trips/'+encodeURIComponent(selected.id),{method:'DELETE'});selected=null;dirty=false;$('tripEditor').classList.add('hidden');$('tripEmpty').classList.remove('hidden');await loadPlans()}catch(err){say(err.message)}}
+ function close(){if(!isOpen())return;app.classList.remove('withlog-trip-active');page.classList.add('hidden');page.setAttribute('aria-hidden','true');tab.removeAttribute('aria-current')}
+ window.closeTripPage=close;
+ window.openTripPage=()=>{if(app.classList.contains('hidden')||isOpen())return;previousFeed=$('tabFollowing').classList.contains('border-b-2')?'following':'all';for(const fn of ['closeMemoryMap','closeIssTracker','closeWeatherPage','closeFlightTracker','closeNewsPage','closeTrendsPage','closeMusicTrendsPage'])window[fn]?.();page.classList.remove('hidden');page.setAttribute('aria-hidden','false');app.classList.add('withlog-trip-active');tab.setAttribute('aria-current','page');$('tabAll').classList.remove('border-b-2');$('tabFollowing').classList.remove('border-b-2');if(!initialized){initialized=true;void loadPlans()}else void loadPlans();setTimeout(()=>{map?.invalidateSize();drawMap()},150)};
+ for(const fnName of ['switchFeedTab','openMemoryMap','openIssTracker','openWeatherPage','openFlightTracker','openNewsPage','openTrendsPage','openMusicTrendsPage']){const fn=window[fnName];if(typeof fn!=='function')continue;window[fnName]=function(...args){close();return fn.apply(this,args)}}
+ $('tripNew').onclick=create;$('tripEmptyNew').onclick=create;$('tripDelete').onclick=()=>void remove();$('tripEditor').addEventListener('submit',save);
+ $('tripStart').onchange=()=>{dirty=true;renderDays()};$('tripEnd').onchange=()=>{dirty=true;renderDays()};for(const id of ['tripTitle','tripDestination'])$(id).addEventListener('input',()=>{dirty=true});$('tripPlaceButton').onclick=()=>void searchPlaces();$('tripPlaceSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();void searchPlaces()}});
 })();
 </script>
 
