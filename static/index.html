@@ -15074,6 +15074,29 @@ html body #appView #withlogFeedTabBar > #tabMusicTrends::after{display:none!impo
 @media(max-width:899px){#appView > #tripPage{min-width:0}}
 @media(max-width:750px){#tripPage .trip-layout{grid-template-columns:1fr}#tripPage .trip-plans{display:flex;overflow-x:auto}#tripPage .trip-plan{min-width:170px}}
 @media(max-width:640px){#appView #withlogFeedTabBar #tabTrip{min-height:38px!important;padding:9px 12px!important;border-radius:999px!important;font-size:10px!important}#appView #withlogFeedTabBar #tabTrip svg{width:15px;height:15px}#tripPage{padding:8px 10px calc(110px + env(safe-area-inset-bottom))}#tripPage .trip-hero{border-radius:24px!important}#tripPage .trip-fields{grid-template-columns:1fr}#tripPage .trip-stop-add{flex-wrap:wrap}#tripPage #tripPlaceButton{width:100%}#tripMap{height:300px}}
+
+/* TRIP day selector: clear Japanese calendar dates on desktop and mobile. */
+#tripPage .trip-day-tabs{gap:10px;scrollbar-width:thin;padding:3px 0 10px}
+#tripPage .trip-day-tabs .trip-day-button{
+  display:flex!important;flex-direction:column!important;align-items:flex-start!important;
+  justify-content:center!important;gap:5px!important;min-width:142px!important;
+  min-height:69px!important;padding:12px 16px!important;
+  border-radius:16px!important;text-align:left!important;
+  background:var(--wl-chip)!important;color:var(--wl-ink)!important;
+  border:1px solid var(--wl-border)!important;
+  transition:background .15s ease,border-color .15s ease;
+}
+#tripPage .trip-day-tabs .trip-day-number{font-size:11px;font-weight:900;letter-spacing:.08em;line-height:1.2;color:inherit}
+#tripPage .trip-day-tabs .trip-day-date{font-size:13px;font-weight:850;letter-spacing:0;line-height:1.3;color:inherit;white-space:nowrap}
+#tripPage .trip-day-tabs .trip-day-button[aria-pressed="true"]{
+  background:linear-gradient(120deg,#e38b45,#cb692d)!important;
+  border-color:#e38b45!important;color:#fff!important;
+}
+#tripPage .trip-day-tabs .trip-day-button:focus-visible{outline:2px solid #ffa968;outline-offset:2px}
+@media(max-width:640px){
+  #tripPage .trip-day-tabs .trip-day-button{min-width:132px!important;min-height:66px!important;padding:11px 14px!important}
+  #tripPage .trip-day-head{align-items:flex-start;flex-direction:column;gap:4px}
+}
 </style>
 
 <script id="withlog-trip-script">
@@ -15106,7 +15129,25 @@ html body #appView #withlogFeedTabBar > #tabMusicTrends::after{display:none!impo
    $('tripTitle').value=plan.title||'';$('tripDestination').value=plan.destination||'';$('tripStart').value=plan.start_date||today();$('tripEnd').value=plan.end_date||today();$('tripPlaceResults').replaceChildren();$('tripPlaceSearch').value='';say('');renderPlans();renderDays();loadWeather();
    setTimeout(()=>{ensureMap();map?.invalidateSize();drawMap()},100);
  }
- function renderDays(){const days=allDays(),root=$('tripDayTabs');root.replaceChildren();if(!days.length){root.append(node('span','trip-note','日程は1～21日間で設定してください。'));$('tripStops').replaceChildren();drawMap();return;}day=Math.max(0,Math.min(day,days.length-1));for(let i=0;i<days.length;i++){const btn=node('button','',`DAY ${i+1} / ${days[i].slice(5)}`);btn.type='button';btn.setAttribute('aria-pressed',String(i===day));btn.onclick=()=>{day=i;renderDays()};root.append(btn)}renderStops();drawMap();}
+ function renderDays(){
+  const days=allDays(),root=$('tripDayTabs');root.replaceChildren();
+  if(!days.length){root.append(node('span','trip-note','日程は1～21日間で設定してください。'));$('tripStops').replaceChildren();drawMap();return;}
+  day=Math.max(0,Math.min(day,days.length-1));
+  const weekdays=['日','月','火','水','木','金','土'];
+  for(let i=0;i<days.length;i++){
+    const iso=days[i];
+    const [year,month,date]=iso.split('-').map(Number);
+    const weekday=weekdays[new Date(year,month-1,date,12).getDay()];
+    const readable=`${month}月${date}日（${weekday}）`;
+    const btn=node('button','trip-day-button');btn.type='button';
+    btn.setAttribute('aria-pressed',String(i===day));
+    btn.setAttribute('aria-label',`旅行${i+1}日目、${year}年${readable}`);
+    btn.append(node('span','trip-day-number',`DAY ${i+1}`));
+    btn.append(node('span','trip-day-date',readable));
+    btn.onclick=()=>{day=i;renderDays()};root.append(btn);
+  }
+  renderStops();drawMap();
+}
  function dayStops(){const days=allDays();return selected?.stops?.filter(s=>days[day]===s.date)||[]}
  function renderStops(){const host=$('tripStops');host.replaceChildren();const stops=dayStops();if(!stops.length)host.append(node('p','trip-note','この日のスポットはまだありません。上の検索欄から追加してください。'));
   stops.forEach((stop,i)=>{const row=node('div','trip-stop');row.append(node('span','trip-stop-number',String(i+1)));const content=node('div','trip-stop-content');content.append(node('strong','',stop.name));content.append(node('small','',stop.subtitle||'訪問スポット'));row.append(content);const up=node('button','','↑');up.type='button';up.title='順番を前へ';up.disabled=i===0;up.onclick=()=>{const prev=stops[i-1],oldIndex=selected.stops.indexOf(stop),newIndex=selected.stops.indexOf(prev);[selected.stops[oldIndex],selected.stops[newIndex]]=[selected.stops[newIndex],selected.stops[oldIndex]];dirty=true;renderStops();drawMap()};row.append(up);const del=node('button','','削除');del.type='button';del.onclick=()=>{selected.stops=selected.stops.filter(x=>x!==stop);dirty=true;renderStops();drawMap()};row.append(del);host.append(row)});
